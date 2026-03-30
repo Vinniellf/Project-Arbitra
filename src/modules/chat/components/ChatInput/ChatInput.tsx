@@ -1,6 +1,26 @@
 import { Send, Mic } from 'lucide-react'
+import { useState } from 'react'
 
-export const ChatInput = () => {
+type Props = {
+  onSend: (text: string) => void
+}
+
+export const ChatInput = ({ onSend }: Props) => {
+  const [text, setText] = useState('')
+
+  const handleSend = () => {
+    if (!text.trim()) return
+    onSend(text)
+    setText('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
   return (
     <div className="w-full flex justify-center">
       <div
@@ -17,6 +37,9 @@ export const ChatInput = () => {
       >
         {/* INPUT */}
         <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Escribe tu mensaje..."
           className="
             flex-1
@@ -43,6 +66,8 @@ export const ChatInput = () => {
 
         {/* SEND */}
         <button
+          onClick={handleSend}
+          disabled={!text.trim()}
           className="
             p-2.5 rounded-xl
             bg-blue-500
@@ -50,6 +75,8 @@ export const ChatInput = () => {
             hover:bg-blue-600
             transition
             shadow-md
+            disabled:opacity-50
+            disabled:cursor-not-allowed
           "
         >
           <Send size={18} />

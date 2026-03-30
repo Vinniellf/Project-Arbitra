@@ -4,10 +4,13 @@ import { ChatHeader } from '../ChatHeader/ChatHeader'
 import { ChatWelcome } from '../ChatWelcome/ChatWelcome'
 import { ChatSidebar } from '../ChatSidebar/ChatSidebar'
 import { ChatInput } from '../ChatInput/ChatInput'
+import { ChatMessages } from '../ChatMessages/ChatMessages'
+import { useChat } from '@/modules/chat/hooks/useChat'
 
 export const ChatContainer = () => {
-  const messages = [] // Aquí irían los mensajes reales, por ahora es un array vacío para mostrar el mensaje de bienvenida
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  const { messages, sendMessage, loading } = useChat()
 
   return (
     <div
@@ -32,24 +35,35 @@ export const ChatContainer = () => {
       </AnimatePresence>
 
       {/* CHAT */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col relative">
         {/* HEADER */}
         <ChatHeader onToggleMenu={() => setIsSidebarOpen((prev) => !prev)} />
 
-        {/* MENSAJES */}
-        <div className="flex-1 overflow-y-auto">
-          {messages.length === 0 ? (
-            <ChatWelcome />
-          ) : (
-            <div className="p-4 text-gray-400 text-sm">
-              Aquí irán los mensajes...
-            </div>
-          )}
+        {/* MENSAJES (SCROLL REAL) */}
+        <div className="flex-1 flex flex-col min-h-0">
+          <div
+            className="
+              flex-1
+              overflow-y-auto
+              pb-32
+              scroll-smooth
+              will-change-transform
+            "
+            style={{
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {messages.length === 0 ? (
+              <ChatWelcome />
+            ) : (
+              <ChatMessages messages={messages} loading={loading} />
+            )}
+          </div>
         </div>
 
-        {/* INPUT */}
-        <div className="p-6">
-          <ChatInput />
+        {/* INPUT FLOTANTE */}
+        <div className="absolute bottom-0 left-0 w-full p-6">
+          <ChatInput onSend={sendMessage} />
         </div>
       </div>
     </div>
