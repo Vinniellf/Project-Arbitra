@@ -21,7 +21,7 @@ export const ChatContainer = () => {
         relative
       "
     >
-      {/* 🔥 SIDEBAR */}
+      {/* SIDEBAR */}
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
           <ChatSidebar
@@ -31,7 +31,7 @@ export const ChatContainer = () => {
         )}
       </AnimatePresence>
 
-      {/* 💬 CHAT */}
+      {/* CHAT */}
       <div className="flex-1 flex flex-col">
         {/* HEADER */}
         <ChatHeader onToggleMenu={() => setIsSidebarOpen((prev) => !prev)} />
