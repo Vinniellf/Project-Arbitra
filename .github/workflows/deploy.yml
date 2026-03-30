@@ -1,0 +1,48 @@
+name: Deploy Frontend to AWS S3 & CloudFront
+ 
+# El pipeline se ejecutará cada vez que hagas un 'push' a la rama 'main'
+on:
+  push:
+    branches:
+      - main
+ 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      # 1. Descargar el código del repositorio
+      - name: Checkout Code
+        uses: actions/checkout@v4
+ 
+      # 2. Instalar Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Usa la versión que necesite tu proyecto
+          cache: 'npm'
+ 
+      # 3. Instalar dependencias
+      - name: Install Dependencies
+        run: npm ci # 'npm ci' es más seguro y rápido para CI/CD que 'npm install'
+ 
+      # 4. Construir la aplicación para producción
+      - name: Build Application
+        run: npm run build
+ 
+      # 5. Configurar credenciales de AWS
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+ 
+      # 6. Sincronizar la carpeta de build con S3
+      # NOTA: Cambia './dist' por './build' o la carpeta que genere tu framework.
+      - name: Deploy to S3
+        run: aws s3 sync ./dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+ 
+      # 7. Invalidar la caché de CloudFront para que los usuarios vean los cambios inmediatamente
+      - name: Invalidate CloudFront Cache
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
