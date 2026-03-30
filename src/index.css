@@ -4,19 +4,16 @@
 ::-webkit-scrollbar {
   width: 6px;
 }
-
 /* Fondo del track */
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 /* Barra */
 ::-webkit-scrollbar-thumb {
   background: rgba(100, 116, 139, 0.25); /* slate-500 suave */
   border-radius: 999px;
   transition: background 0.2s ease;
 }
-
 /* Hover */
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.45);
