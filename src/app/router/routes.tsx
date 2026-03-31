@@ -1,12 +1,23 @@
 import { Route, Routes } from "react-router-dom";
-import { routes } from "./links";
+import { publicRoutes, privateRoutes } from "./links";
 import { MainLayout } from "../layouts/MainLayout";
 
 export const RoutesApp = () => {
   return (
     <Routes>
+
+      {/* RUTAS PUBLICAS (SIN LAYOUT) */}
+      {publicRoutes.map((route) => (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={route.element}
+        />
+      ))}
+
+      {/* RUTAS PRIVADAS (CON LAYOUT) */}
       <Route element={<MainLayout />}>
-        {routes.map((route) => (
+        {privateRoutes.map((route) => (
           <Route
             key={route.path}
             path={route.path}
@@ -14,6 +25,7 @@ export const RoutesApp = () => {
           />
         ))}
       </Route>
+
     </Routes>
   );
 };
