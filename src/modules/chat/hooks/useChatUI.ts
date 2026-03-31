@@ -8,7 +8,7 @@ export const useChatUI = () => {
   const originalOverflow = useRef<string | null>(null)
 
   const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen(prev => !prev)
+    setIsSidebarOpen((prev) => !prev)
   }, [])
 
   const closeSidebar = useCallback(() => {
@@ -16,7 +16,7 @@ export const useChatUI = () => {
   }, [])
 
   const toggleFullscreen = useCallback(() => {
-    setIsFullscreen(prev => {
+    setIsFullscreen((prev) => {
       if (!prev) {
         scrollPosition.current = window.scrollY
       }
