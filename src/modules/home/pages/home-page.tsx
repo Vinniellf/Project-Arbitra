@@ -1,6 +1,6 @@
 import { PepeWelcome } from "../components/PepeWelcome";
 import { PepeInfoCard } from "../components/PepeInfoCard";
-import { ChatContainer } from "@/modules/chat/components/ChatContainer/ChatContainer";
+import { ChatContainer } from "@/modules/chat/containers/ChatContainer";
 
 export const HomePage = () => {
   return (

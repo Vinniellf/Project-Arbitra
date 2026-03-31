@@ -1,7 +1,7 @@
-export type Role = 'user' | 'bot'
+export type MessageRole = 'user' | 'assistant'
 
 export interface Message {
   id: string
-  role: Role
   content: string
+  role: MessageRole
 }

@@ -30,7 +30,7 @@ export const ChatSidebar = ({ onClose }: Props) => {
         "
       />
 
-      {/* 🔥 SIDEBAR */}
+      {/* SIDEBAR */}
       <motion.div
         variants={{
           hidden: { x: '-100%' },
@@ -39,23 +39,24 @@ export const ChatSidebar = ({ onClose }: Props) => {
         }}
         transition={{
           type: 'spring',
-          stiffness: 280,
-          damping: 30,
+          stiffness: 220,
+          damping: 26,
         }}
         className="
           absolute top-0 left-0 h-full
-          w-[85%] max-w-xs sm:max-w-sm
+          w-[85%] sm:w-[320px] md:w-85 lg:w-90
+          max-w-[90vw]
           bg-white/95 backdrop-blur-xl
           border-r border-gray-200/60
           shadow-xl
           z-20
-          p-4
+          p-3 sm:p-4
           flex flex-col
         "
       >
-        {/* 🔷 HEADER */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-gray-700">
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm sm:text-base font-semibold text-gray-700">
             Conversaciones
           </h2>
 
@@ -67,9 +68,9 @@ export const ChatSidebar = ({ onClose }: Props) => {
           </button>
         </div>
 
-        {/* 🔷 ACCIONES */}
-        <div className="p-2 border-gray-200 space-y-2">
-          <button className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
+        {/* ACCIONES */}
+        <div className="p-1 sm:p-2 space-y-2">
+          <button className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-sm">
             <MessageSquare size={16} />
             <span>Nuevo chat</span>
           </button>
@@ -83,29 +84,29 @@ export const ChatSidebar = ({ onClose }: Props) => {
             <input
               placeholder="Buscar conversaciones..."
               className="
-      w-full pl-9 pr-3 py-2
-      rounded-lg
-      bg-gray-100/70
-      text-sm
-      outline-none
-      focus:ring-2 focus:ring-blue-200
-      transition
-    "
+                w-full pl-9 pr-3 py-2
+                rounded-lg
+                bg-gray-100/70
+                text-sm
+                outline-none
+                focus:ring-2 focus:ring-blue-200
+                transition
+              "
             />
           </div>
         </div>
 
-        {/* 🔷 LISTA */}
-        <div className="mt-4 border-t border-gray-200 pt-3 flex-1 overflow-y-auto pr-1">
-          <p className="text-xs text-gray-400 font-semibold tracking-wide mb-2">
-            CONVERSACIONES
+        {/* LISTA */}
+        <div className="mt-3 sm:mt-4 border-t border-gray-200 pt-3 flex-1 overflow-y-auto pr-1">
+          <p className="text-[11px] sm:text-xs text-gray-400 font-semibold tracking-wide mb-2">
+            RECIENTES
           </p>
 
           <div className="space-y-1">
             <div
               className="
                 flex justify-between items-start
-                px-3 py-2
+                px-2.5 sm:px-3 py-2
                 rounded-lg
                 group cursor-pointer
                 transition
@@ -117,14 +118,15 @@ export const ChatSidebar = ({ onClose }: Props) => {
                   Problema con impresora HP
                 </span>
 
-                <span className="text-[11px] text-gray-400 mt-1">
+                <span className="text-[10px] sm:text-[11px] text-gray-400 mt-1">
                   Hoy, 10:30
                 </span>
               </div>
 
               <button
                 className="
-                  opacity-0 group-hover:opacity-100
+                  opacity-0 sm:opacity-0
+                  group-hover:opacity-100
                   text-gray-400 hover:text-red-500
                   transition ml-2 mt-1
                 "

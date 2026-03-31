@@ -2,7 +2,7 @@ import { User } from 'lucide-react'
 import pepeIcon from '@/assets/icon.webp'
 
 type Props = {
-  role: 'user' | 'bot'
+  role: 'user' | 'assistant'
   content: string
 }
 
@@ -12,16 +12,16 @@ export const MessageBubble = ({ role, content }: Props) => {
   return (
     <div
       className={`
-        flex items-end gap-3
+        flex items-end gap-2 sm:gap-3
         ${isUser ? 'justify-end' : 'justify-start'}
       `}
     >
       {/* BOT AVATAR */}
       {!isUser && (
-        <div className="w-10 h-10 flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
           <img
             src={pepeIcon}
-            className="w-12 h-12 object-contain"
+            className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
           />
         </div>
       )}
@@ -29,10 +29,11 @@ export const MessageBubble = ({ role, content }: Props) => {
       {/* BURBUJA */}
       <div
         className={`
-          px-4 py-2.5
-          rounded-2xl
-          text-sm
-          max-w-[75%]
+          px-3 sm:px-4
+          py-2 sm:py-2.5
+          rounded-xl sm:rounded-2xl
+          text-sm sm:text-[15px]
+          max-w-[85%] sm:max-w-[75%]
           leading-relaxed
           whitespace-pre-wrap wrap-break-word
           ${
@@ -47,8 +48,8 @@ export const MessageBubble = ({ role, content }: Props) => {
 
       {/* USER AVATAR */}
       {isUser && (
-        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-          <User size={16} className="text-slate-600" />
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+          <User size={14} className="sm:w-4 sm:h-4 text-slate-600" />
         </div>
       )}
     </div>

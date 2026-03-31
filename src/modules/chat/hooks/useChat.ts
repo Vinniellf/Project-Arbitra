@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Message } from '../types/chat.types'
 import { getPepeResponse } from '../services/pepe.service'
+import { saveNewChat } from '../services/chat.service'
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
@@ -17,8 +18,7 @@ export const useChat = () => {
 
     setMessages((prev) => [...prev, userMessage])
     setLoading(true)
-
-    // 🔥 delay dinámico (más natural)
+    
     const delay = Math.min(2000, 600 + text.length * 20)
 
     setTimeout(() => {
@@ -26,7 +26,7 @@ export const useChat = () => {
 
       const botMessage: Message = {
         id: crypto.randomUUID(),
-        role: 'bot',
+        role: 'assistant',
         content: response,
       }
 
@@ -35,9 +35,19 @@ export const useChat = () => {
     }, delay)
   }
 
+  // 🔥 NUEVO → reset chat
+  const resetChat = () => {
+    if (messages.length > 0) {
+      saveNewChat(messages) // guarda antes de limpiar
+    }
+
+    setMessages([])
+  }
+
   return {
     messages,
     sendMessage,
     loading,
+    resetChat,
   }
 }
