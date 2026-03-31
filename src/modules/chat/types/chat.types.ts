@@ -5,3 +5,9 @@ export interface Message {
   content: string
   role: MessageRole
 }
+
+export interface Chat {
+  id: string
+  date: string
+  messages: Message[]
+}

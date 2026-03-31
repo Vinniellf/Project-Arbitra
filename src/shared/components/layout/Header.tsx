@@ -37,7 +37,7 @@ export const Header = () => {
             src={logoEmpresa}
             alt="Misión Tecnológica"
             className="
-              h-12 w-auto object-contain
+              h-14 w-auto object-contain
               drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)]
             "
           />
@@ -91,7 +91,7 @@ export const Header = () => {
           {/* DROPDOWN */}
           <div
             className={`
-              absolute right-0 mt-4 w-64
+              absolute right-0 mt-6 w-64
               bg-white backdrop-blur-xl
               border border-white/30
               rounded-2xl

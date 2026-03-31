@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import type { Message } from '../types/chat.types'
 import { getPepeResponse } from '../services/pepe.service'
-import { saveNewChat } from '../services/chat.service'
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (
+    chatId: string,
+    text: string,
+    onMessagesChange?: (messages: Message[]) => void
+  ) => {
     if (!text.trim()) return
 
     const userMessage: Message = {
@@ -16,13 +19,18 @@ export const useChat = () => {
       content: text,
     }
 
-    setMessages((prev) => [...prev, userMessage])
+    setMessages((prev) => {
+      const updated = [...prev, userMessage]
+      onMessagesChange?.(updated)
+      return updated
+    })
+
     setLoading(true)
-    
+
     const delay = Math.min(2000, 600 + text.length * 20)
 
     setTimeout(() => {
-      const response = getPepeResponse(text)
+      const response = getPepeResponse(chatId, text) // 🔥 FIX
 
       const botMessage: Message = {
         id: crypto.randomUUID(),
@@ -30,18 +38,22 @@ export const useChat = () => {
         content: response,
       }
 
-      setMessages((prev) => [...prev, botMessage])
+      setMessages((prev) => {
+        const updated = [...prev, botMessage]
+        onMessagesChange?.(updated)
+        return updated
+      })
+
       setLoading(false)
     }, delay)
   }
 
-  // 🔥 NUEVO → reset chat
   const resetChat = () => {
-    if (messages.length > 0) {
-      saveNewChat(messages) // guarda antes de limpiar
-    }
-
     setMessages([])
+  }
+
+  const loadMessages = (newMessages: Message[]) => {
+    setMessages(newMessages)
   }
 
   return {
@@ -49,5 +61,6 @@ export const useChat = () => {
     sendMessage,
     loading,
     resetChat,
+    loadMessages,
   }
 }

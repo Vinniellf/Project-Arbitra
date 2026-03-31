@@ -1,11 +1,33 @@
 import { MessageSquare, Search, Trash2, X } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useState } from 'react'
+import type { Chat } from '../../types/chat.types'
 
 type Props = {
   onClose: () => void
+  chats: Chat[]
+  onSelectChat: (id: string) => void
+  activeChatId: string | null
+  onDeleteChat: (id: string) => void
+  onNewChat: () => void
 }
 
-export const ChatSidebar = ({ onClose }: Props) => {
+export const ChatSidebar = ({
+  chats,
+  onSelectChat,
+  onClose,
+  activeChatId,
+  onDeleteChat,
+  onNewChat,
+}: Props) => {
+  // 🔥 estado búsqueda
+  const [search, setSearch] = useState('')
+
+  // 🔥 filtro
+  const filteredChats = chats.filter((chat) =>
+    chat.messages[0]?.content?.toLowerCase().includes(search.toLowerCase()),
+  )
+
   return (
     <motion.div
       initial="hidden"
@@ -13,7 +35,7 @@ export const ChatSidebar = ({ onClose }: Props) => {
       exit="exit"
       className="absolute inset-0 z-20"
     >
-      {/* 🔥 OVERLAY */}
+      {/* OVERLAY */}
       <motion.div
         onClick={onClose}
         variants={{
@@ -22,12 +44,7 @@ export const ChatSidebar = ({ onClose }: Props) => {
           exit: { opacity: 0 },
         }}
         transition={{ duration: 0.25 }}
-        className="
-          absolute inset-0
-          bg-black/30
-          backdrop-blur-[1px]
-          z-10
-        "
+        className="absolute inset-0 bg-black/30 backdrop-blur-[1px] z-10"
       />
 
       {/* SIDEBAR */}
@@ -70,7 +87,10 @@ export const ChatSidebar = ({ onClose }: Props) => {
 
         {/* ACCIONES */}
         <div className="p-1 sm:p-2 space-y-2">
-          <button className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-sm">
+          <button
+            onClick={onNewChat}
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-sm"
+          >
             <MessageSquare size={16} />
             <span>Nuevo chat</span>
           </button>
@@ -82,6 +102,8 @@ export const ChatSidebar = ({ onClose }: Props) => {
             />
 
             <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar conversaciones..."
               className="
                 w-full pl-9 pr-3 py-2
@@ -103,37 +125,58 @@ export const ChatSidebar = ({ onClose }: Props) => {
           </p>
 
           <div className="space-y-1">
-            <div
-              className="
-                flex justify-between items-start
-                px-2.5 sm:px-3 py-2
-                rounded-lg
-                group cursor-pointer
-                transition
-                hover:bg-gray-100
-              "
-            >
-              <div className="flex flex-col flex-1">
-                <span className="text-sm text-gray-700 line-clamp-2">
-                  Problema con impresora HP
-                </span>
+            {filteredChats.length === 0 ? (
+              <p className="text-xs text-gray-400 px-2">No hay resultados</p>
+            ) : (
+              filteredChats.map((chat) => {
+                const isActive = activeChatId === chat.id
 
-                <span className="text-[10px] sm:text-[11px] text-gray-400 mt-1">
-                  Hoy, 10:30
-                </span>
-              </div>
+                return (
+                  <div
+                    key={chat.id}
+                    onClick={() => onSelectChat(chat.id)}
+                    className={`
+                      flex justify-between items-start
+                      px-2.5 sm:px-3 py-2
+                      rounded-lg
+                      group cursor-pointer
+                      transition
 
-              <button
-                className="
-                  opacity-0 sm:opacity-0
-                  group-hover:opacity-100
-                  text-gray-400 hover:text-red-500
-                  transition ml-2 mt-1
-                "
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
+                      ${
+                        isActive
+                          ? 'bg-blue-50 border border-blue-200'
+                          : 'hover:bg-gray-100'
+                      }
+                    `}
+                  >
+                    <div className="flex flex-col flex-1">
+                      <span className="text-sm text-gray-700 line-clamp-2">
+                        {chat.messages[0]?.content || 'Nuevo chat'}
+                      </span>
+
+                      <span className="text-[10px] sm:text-[11px] text-gray-400 mt-1">
+                        {new Date(chat.date).toLocaleString()}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDeleteChat(chat.id) // 🔥 ahora sí funciona
+                      }}
+                      className="
+                        opacity-0 sm:opacity-0
+                        group-hover:opacity-100
+                        text-gray-400 hover:text-red-500
+                        transition ml-2 mt-1
+                      "
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
       </motion.div>

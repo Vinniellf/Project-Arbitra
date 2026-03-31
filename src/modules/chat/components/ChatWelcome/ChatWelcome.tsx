@@ -16,14 +16,14 @@ export const ChatWelcome = () => {
       >
 
         {/* Avatar */}
-        <div className="relative w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full bg-white/80 flex items-center justify-center shadow-xl shadow-blue-500/10 border border-white/40">
+        <div className="relative w-12 h-12 sm:w-40 sm:h-40 md:w-36 md:h-36 rounded-full bg-white/80 flex items-center justify-center shadow-xl shadow-blue-500/10 border border-white/40">
           
-          <div className="absolute w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-blue-400/20 rounded-full"></div>
+          <div className="absolute w-18 h-18 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-blue-400/20 rounded-full"></div>
 
           <img
             src={icon}
             alt="Bot"
-            className="w-20 sm:w-32 md:w-40 object-contain relative z-10 drop-shadow-xl"
+            className="w-26 sm:w-32 md:w-40 object-contain relative z-10 drop-shadow-xl"
           />
         </div>
 
