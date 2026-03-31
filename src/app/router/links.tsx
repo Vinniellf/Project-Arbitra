@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 
 import AuthPage from "@/modules/auth/pages/auth-page";
 import { HomePage } from "@/modules/home/pages/home-page";
+import { AuthGuard } from "@/shared/guards/AuthGuard";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -18,6 +19,10 @@ export const publicRoutes: RouteObject[] = [
 export const privateRoutes: RouteObject[] = [
   {
     path: "/home",
-    element: <HomePage />,
+    element: (
+      <AuthGuard>
+        <HomePage />
+      </AuthGuard>
+    ),
   },
 ];
