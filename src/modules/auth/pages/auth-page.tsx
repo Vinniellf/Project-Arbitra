@@ -6,6 +6,9 @@ import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 import icon from '@/assets/icon.webp'
 import { fetchAuthSession } from 'aws-amplify/auth'
 
+// 🔥 NUEVO
+import { useAuthContext } from '@/modules/auth/context/useAuthContext'
+
 export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
@@ -13,6 +16,10 @@ export default function AuthPage() {
   const [showLoading, setShowLoading] = useState(false)
 
   const { login, loading } = useAuth()
+
+  // 🔥 NUEVO
+  const { refreshUser } = useAuthContext()
+
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -53,6 +60,9 @@ export default function AuthPage() {
       if (!sessionReady) {
         throw new Error('No se pudo establecer la sesión')
       }
+
+      // 🔥 CLAVE: sincroniza el usuario con el contexto
+      await refreshUser()
 
       setShowLoading(true)
 
