@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 import icon from '@/assets/icon.webp'
@@ -14,6 +14,17 @@ export default function AuthPage() {
 
   const { login, loading } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // 🔥 AUTOCOMPLETAR EMAIL DESDE URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const emailParam = params.get('email')
+
+    if (emailParam) {
+      setEmail(emailParam)
+    }
+  }, [location])
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -21,7 +32,7 @@ export default function AuthPage() {
     try {
       const result = await login(email, password)
 
-      // 🔥 USUARIO INVITADO (Cognito)
+      // 🔐 USUARIO INVITADO (Cognito)
       if (result.requiresNewPassword) {
         navigate('/new-password')
         return
@@ -101,9 +112,16 @@ export default function AuthPage() {
               Iniciar sesión
             </h2>
 
-            <p className="text-gray-500 mb-6 text-sm">
+            <p className="text-gray-500 mb-4 text-sm">
               Accede a tu cuenta
             </p>
+
+            {/* 🔥 MENSAJE UX PARA INVITADOS */}
+            {email && (
+              <p className="text-xs text-gray-500 mb-4">
+                Ingresa la contraseña temporal enviada a tu correo.
+              </p>
+            )}
 
             <form className="space-y-5" onSubmit={handleSubmit}>
 
@@ -138,7 +156,7 @@ export default function AuthPage() {
 
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
+                    placeholder="Contraseña temporal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#5aa9e6]/40"
