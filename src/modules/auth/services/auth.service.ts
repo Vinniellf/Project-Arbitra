@@ -8,7 +8,7 @@ import {
 
 export const authService = {
 
-  // 🔐 LOGIN
+  // LOGIN
   async login(email: string, password: string): Promise<{
     requiresNewPassword: boolean;
   }> {
@@ -26,7 +26,7 @@ export const authService = {
 
     } catch (error: unknown) {
 
-      // 🔁 Si ya hay sesión activa, cerramos y reintentamos
+      // Si ya hay sesión activa, cerramos y reintentamos
       if (
         error instanceof Error &&
         error.name === "UserAlreadyAuthenticatedException"
@@ -39,7 +39,7 @@ export const authService = {
     }
   },
 
-  // 🆕 🔐 CAMBIO DE CONTRASEÑA (INVITACIÓN / PRIMER LOGIN)
+  // CAMBIO DE CONTRASEÑA (INVITACIÓN / PRIMER LOGIN)
   async confirmNewPassword(newPassword: string) {
     try {
       await confirmSignIn({
@@ -51,7 +51,7 @@ export const authService = {
     }
   },
 
-  // 📩 FORGOT PASSWORD (opcional)
+  // FORGOT PASSWORD (opcional)
   async forgotPassword(email: string) {
     try {
       await resetPassword({
@@ -63,7 +63,7 @@ export const authService = {
     }
   },
 
-  // 🔐 CONFIRMAR RESET PASSWORD (opcional)
+  // CONFIRMAR RESET PASSWORD (opcional)
   async confirmReset(email: string, code: string, newPassword: string) {
     try {
       await confirmResetPassword({
@@ -77,7 +77,7 @@ export const authService = {
     }
   },
 
-  // 🚪 LOGOUT
+  // LOGOUT
   async logout() {
     try {
       await signOut();
