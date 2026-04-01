@@ -1,30 +1,88 @@
-import type { User } from "../types/user";
+import {
+  signIn,
+  signOut,
+  resetPassword,
+  confirmResetPassword,
+  confirmSignIn
+} from "aws-amplify/auth";
 
-export const users: User[] = [
-  {
-    id: 1,
-    name: 'Admin',
-    email: 'admin@test.com',
-    password: 'Protecso123',
-    empresa: "Misión Tecnológica",
-    role: 'ADMIN',
-    estado: 'ACTIVO',
-  },
-  {
-    id: 2,
-    name: 'Fabiano',
-    lastName: 'Guerrero',
-    email: 'fabiano.guerrero@protecso.com.pe',
-    password: 'Protecso123',
-    empresa: 'Protecso',
-    role: 'USER',
-    estado: 'ACTIVO',
-  },
-]
+export const authService = {
 
-export const loginService = (email: string, password: string): User | null => {
-  const user = users.find(
-    (u) => u.email === email && u.password === password
-  );
-  return user || null;
+  // 🔐 LOGIN
+  async login(email: string, password: string): Promise<{
+    requiresNewPassword: boolean;
+  }> {
+    try {
+      const result = await signIn({
+        username: email,
+        password,
+      });
+
+      return {
+        requiresNewPassword:
+          result.nextStep?.signInStep ===
+          "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED",
+      };
+
+    } catch (error: unknown) {
+
+      // 🔁 Si ya hay sesión activa, cerramos y reintentamos
+      if (
+        error instanceof Error &&
+        error.name === "UserAlreadyAuthenticatedException"
+      ) {
+        await signOut();
+        return this.login(email, password);
+      }
+
+      throw error;
+    }
+  },
+
+  // 🆕 🔐 CAMBIO DE CONTRASEÑA (INVITACIÓN / PRIMER LOGIN)
+  async confirmNewPassword(newPassword: string) {
+    try {
+      await confirmSignIn({
+        challengeResponse: newPassword,
+      });
+    } catch (error: unknown) {
+      console.error("Error cambiando contraseña inicial:", error);
+      throw error;
+    }
+  },
+
+  // 📩 FORGOT PASSWORD (opcional)
+  async forgotPassword(email: string) {
+    try {
+      await resetPassword({
+        username: email,
+      });
+    } catch (error: unknown) {
+      console.error("Error enviando correo:", error);
+      throw error;
+    }
+  },
+
+  // 🔐 CONFIRMAR RESET PASSWORD (opcional)
+  async confirmReset(email: string, code: string, newPassword: string) {
+    try {
+      await confirmResetPassword({
+        username: email,
+        confirmationCode: code,
+        newPassword,
+      });
+    } catch (error: unknown) {
+      console.error("Error confirmando reset:", error);
+      throw error;
+    }
+  },
+
+  // 🚪 LOGOUT
+  async logout() {
+    try {
+      await signOut();
+    } catch (error: unknown) {
+      console.warn("Error en logout:", error);
+    }
+  },
 };

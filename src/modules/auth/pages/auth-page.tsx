@@ -1,37 +1,51 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Mail, Lock, X } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 import icon from '@/assets/icon.webp'
+import { fetchAuthSession } from 'aws-amplify/auth'
 
 export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
-  const [showRecover, setShowRecover] = useState(false)
-  const [recoverEmail, setRecoverEmail] = useState('')
-  const [recoverSent, setRecoverSent] = useState(false)
-
   const [showLoading, setShowLoading] = useState(false)
 
-  const { login } = useAuth()
+  const { login, loading } = useAuth()
   const navigate = useNavigate()
 
-  // Maneja el envío del formulario de login
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     try {
-      const user = await login(email, password)
+      const result = await login(email, password)
 
-      if (!user) {
-        alert('Credenciales incorrectas')
+      // 🔥 USUARIO INVITADO (Cognito)
+      if (result.requiresNewPassword) {
+        navigate('/new-password')
         return
       }
 
-      // Activa pantalla de carga antes de navegar
+      // 🔐 Esperar sesión
+      let sessionReady = false
+      let attempts = 0
+
+      while (!sessionReady && attempts < 5) {
+        const session = await fetchAuthSession()
+
+        if (session.tokens) {
+          sessionReady = true
+        } else {
+          await new Promise(res => setTimeout(res, 200))
+          attempts++
+        }
+      }
+
+      if (!sessionReady) {
+        throw new Error('No se pudo establecer la sesión')
+      }
+
       setShowLoading(true)
 
     } catch (error: unknown) {
@@ -43,20 +57,6 @@ export default function AuthPage() {
     }
   }
 
-  // Maneja recuperación de contraseña
-  const handleRecover = (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    if (!recoverEmail) {
-      alert('Ingresa un correo válido')
-      return
-    }
-
-    console.log('Enviar recuperación a:', recoverEmail)
-    setRecoverSent(true)
-  }
-
-  // Renderiza pantalla de carga controlada por estado
   if (showLoading) {
     return (
       <LoadingScreen
@@ -107,7 +107,7 @@ export default function AuthPage() {
 
             <form className="space-y-5" onSubmit={handleSubmit}>
 
-              {/* Email */}
+              {/* EMAIL */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Correo electrónico
@@ -122,11 +122,12 @@ export default function AuthPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#5aa9e6]/40"
+                    required
                   />
                 </div>
               </div>
 
-              {/* Password */}
+              {/* PASSWORD */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Contraseña
@@ -141,6 +142,7 @@ export default function AuthPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#5aa9e6]/40"
+                    required
                   />
 
                   <button
@@ -151,71 +153,21 @@ export default function AuthPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-
-                <div className="text-right mt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowRecover(true)
-                      setRecoverSent(false)
-                    }}
-                    className="text-sm text-[#5aa9e6] hover:underline"
-                  >
-                    Recuperar contraseña
-                  </button>
-                </div>
               </div>
 
-              {/* Botón */}
+              {/* BOTÓN */}
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl font-semibold text-white bg-linear-to-r from-[#5aa9e6] to-[#4a8fd9]"
+                disabled={loading}
+                className="w-full py-3 rounded-xl font-semibold text-white bg-linear-to-r from-[#5aa9e6] to-[#4a8fd9] disabled:opacity-50"
               >
-                Iniciar sesión
+                {loading ? 'Ingresando...' : 'Iniciar sesión'}
               </button>
 
             </form>
           </div>
         </div>
       </div>
-
-      {/* Modal recuperar */}
-      {showRecover && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl">
-
-            <div className="flex justify-between mb-4">
-              <h3 className="text-lg font-semibold">Recuperar contraseña</h3>
-              <button onClick={() => setShowRecover(false)}>
-                <X size={18} />
-              </button>
-            </div>
-
-            {!recoverSent ? (
-              <form onSubmit={handleRecover} className="space-y-4">
-
-                <input
-                  type="email"
-                  placeholder="correo@empresa.com"
-                  value={recoverEmail}
-                  onChange={(e) => setRecoverEmail(e.target.value)}
-                  className="w-full p-2 border rounded-xl"
-                />
-
-                <button className="w-full bg-[#5aa9e6] text-white py-2 rounded-xl">
-                  Enviar enlace
-                </button>
-
-              </form>
-            ) : (
-              <p className="text-center text-sm">
-                Se envió el enlace de recuperación
-              </p>
-            )}
-
-          </div>
-        </div>
-      )}
     </div>
   )
 }

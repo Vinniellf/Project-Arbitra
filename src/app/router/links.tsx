@@ -2,6 +2,7 @@ import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 
 import AuthPage from "@/modules/auth/pages/auth-page";
+import NewPasswordPage from "@/modules/auth/pages/new-password-page";
 import { HomePage } from "@/modules/home/pages/home-page";
 import { AuthGuard } from "@/shared/guards/AuthGuard";
 
@@ -13,6 +14,10 @@ export const publicRoutes: RouteObject[] = [
   {
     path: "/login",
     element: <AuthPage />,
+  },
+  {
+    path: "/new-password",
+    element: <NewPasswordPage />,
   },
 ];
 
