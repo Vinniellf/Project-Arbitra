@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
@@ -16,7 +16,6 @@ export default function AuthPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // AUTOCOMPLETAR EMAIL DESDE URL
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const emailParam = params.get('email')
@@ -32,13 +31,11 @@ export default function AuthPage() {
     try {
       const result = await login(email, password)
 
-      // USUARIO INVITADO (Cognito)
       if (result.requiresNewPassword) {
         navigate('/new-password')
         return
       }
 
-      // Esperar sesión
       let sessionReady = false
       let attempts = 0
 
@@ -79,44 +76,59 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-linear-to-br from-[#eef6fb] to-[#e3edf7]">
+    <div className="min-h-screen flex bg-linear-to-br from-[#eef6fb] via-white to-[#e3edf7]">
 
-      {/* Lado izquierdo */}
+      {/* LADO IZQUIERDO */}
       <div className="hidden md:flex w-1/2 relative overflow-hidden bg-linear-to-br from-[#0F3D5E] via-[#1E6F9F] to-[#5aa9e6] text-white items-center justify-center px-10">
-        <div className="absolute w-96 h-96 bg-white/10 rounded-full -top-20 -right-20 blur-2xl"></div>
-        <div className="absolute w-96 h-96 bg-white/10 rounded-full -bottom-20 -left-20 blur-2xl"></div>
+
+        {/* decoraciones */}
+        <div className="absolute w-96 h-96 bg-white/10 rounded-full -top-20 -right-20 blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 bg-white/10 rounded-full -bottom-20 -left-20 blur-3xl animate-pulse"></div>
 
         <div className="z-10 text-center flex flex-col items-center space-y-6">
-          <img
-            src={icon}
-            alt="Pepe AI"
-            className="w-64 h-64 object-contain drop-shadow-xl"
-          />
+
+          <div className="relative">
+            <img
+              src={icon}
+              alt="Pepe AI"
+              className="w-64 h-64 object-contain drop-shadow-2xl"
+            />
+
+            <Sparkles className="absolute -top-4 -right-4 text-white/80 animate-bounce" />
+          </div>
 
           <h2 className="text-4xl font-bold tracking-tight">
             Bienvenido a PEPE
           </h2>
 
-          <p className="text-lg opacity-90 max-w-md">
+          <p className="text-lg opacity-90 max-w-md leading-relaxed">
             Plataforma de gestión inteligente para soluciones tecnológicas
           </p>
         </div>
       </div>
 
-      {/* Lado derecho */}
+      {/* LADO DERECHO */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-6">
         <div className="w-full max-w-md">
-          <div className="bg-white/80 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-white/40">
 
-            <h2 className="text-3xl font-bold text-gray-800 mb-1">
+          <div className="
+            bg-white/70 backdrop-blur-xl
+            p-8 rounded-3xl
+            border border-white/30
+            shadow-[0_10px_40px_rgba(0,0,0,0.08)]
+            transition-all duration-300
+          ">
+
+            <h2 className="text-3xl font-bold text-gray-800 mb-1 flex items-center gap-2">
               Iniciar sesión
+              <Sparkles size={20} className="text-[#5aa9e6]" />
             </h2>
 
-            <p className="text-gray-500 mb-4 text-sm">
+            <p className="text-gray-500 mb-6 text-sm">
               Accede a tu cuenta
             </p>
 
-            <form className="space-y-5" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
 
               {/* EMAIL */}
               <div>
@@ -125,14 +137,24 @@ export default function AuthPage() {
                 </label>
 
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-3 text-gray-400 group-focus-within:text-[#5aa9e6]" size={18} />
+                  <Mail
+                    className="absolute left-3 top-3 text-gray-400 group-focus-within:text-[#5aa9e6] transition"
+                    size={18}
+                  />
 
                   <input
                     type="email"
                     placeholder="correo@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#5aa9e6]/40"
+                    className="
+                      w-full pl-10 pr-4 py-3
+                      border border-gray-200 rounded-xl
+                      outline-none
+                      hover:border-gray-300
+                      focus:ring-2 focus:ring-[#5aa9e6]/40
+                      transition
+                    "
                     required
                   />
                 </div>
@@ -145,21 +167,31 @@ export default function AuthPage() {
                 </label>
 
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-3 text-gray-400 group-focus-within:text-[#5aa9e6]" size={18} />
+                  <Lock
+                    className="absolute left-3 top-3 text-gray-400 group-focus-within:text-[#5aa9e6] transition"
+                    size={18}
+                  />
 
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Contraseña temporal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#5aa9e6]/40"
+                    className="
+                      w-full pl-10 pr-10 py-3
+                      border border-gray-200 rounded-xl
+                      outline-none
+                      hover:border-gray-300
+                      focus:ring-2 focus:ring-[#5aa9e6]/40
+                      transition
+                    "
                     required
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-[#5aa9e6]"
+                    className="absolute right-3 top-3 text-gray-400 hover:text-[#5aa9e6] transition"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -170,9 +202,21 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl font-semibold text-white bg-linear-to-r from-[#5aa9e6] to-[#4a8fd9] disabled:opacity-50"
+                className="
+                  w-full py-3 rounded-xl font-semibold text-white
+                  bg-linear-to-r from-[#5aa9e6] to-[#4a8fd9]
+                  hover:from-[#4a8fd9] hover:to-[#1E6F9F]
+                  transition-all duration-200
+                  shadow-md hover:shadow-lg
+                  disabled:opacity-50
+                "
               >
-                {loading ? 'Ingresando...' : 'Iniciar sesión'}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    Ingresando...
+                  </span>
+                ) : 'Iniciar sesión'}
               </button>
 
             </form>
