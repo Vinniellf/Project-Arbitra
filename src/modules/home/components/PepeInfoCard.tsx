@@ -2,14 +2,14 @@ export const PepeInfoCard = () => {
   return (
     <div className="w-full max-w-2xl mx-auto px-2 sm:px-0">
 
-      {/* 🧠 Título */}
+      {/* Título */}
       <div className="text-center">
         <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#0f172a]">
           ¿Cómo aprovechar mejor a Pepe?
         </h3>
       </div>
 
-      {/* 🔥 INFOGRAFÍA */}
+      {/* INFOGRAFÍA */}
       <div className="mt-4 relative">
 
         {/* Línea vertical */}
@@ -17,7 +17,7 @@ export const PepeInfoCard = () => {
 
         <div className="space-y-6 sm:space-y-5">
 
-          {/* 🔹 PASO */}
+          {/* PASO */}
           {[ 
             {
               num: 1,
@@ -105,7 +105,7 @@ export const PepeInfoCard = () => {
         </div>
       </div>
 
-      {/* ⚖️ Nota */}
+      {/* Nota */}
       <p className="text-[10px] sm:text-[11px] text-center text-[#94a3b8] mt-4">
         Este servicio forma parte del soporte de impresoras brindado por Misión Tecnológica.
       </p>

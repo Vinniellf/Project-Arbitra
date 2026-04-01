@@ -4,7 +4,7 @@ import { authService } from "../services/auth.service";
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
 
-  // 🔐 LOGIN
+  // LOGIN
   const login = async (email: string, password: string) => {
     setLoading(true);
 
@@ -15,7 +15,7 @@ export const useAuth = () => {
     }
   };
 
-  // 🆕 🔐 CAMBIO DE CONTRASEÑA (INVITACIÓN / PRIMER LOGIN)
+  // CAMBIO DE CONTRASEÑA (INVITACIÓN / PRIMER LOGIN)
   const confirmNewPassword = async (password: string) => {
     setLoading(true);
 
@@ -26,7 +26,7 @@ export const useAuth = () => {
     }
   };
 
-  // 📩 FORGOT PASSWORD (opcional)
+  // FORGOT PASSWORD (opcional)
   const forgotPassword = async (email: string) => {
     setLoading(true);
 
@@ -37,7 +37,7 @@ export const useAuth = () => {
     }
   };
 
-  // 🔐 CONFIRMAR RESET PASSWORD (opcional)
+  // CONFIRMAR RESET PASSWORD (opcional)
   const confirmReset = async (
     email: string,
     code: string,
@@ -52,7 +52,7 @@ export const useAuth = () => {
     }
   };
 
-  // 🚪 LOGOUT
+  // LOGOUT
   const logout = async () => {
     return await authService.logout();
   };
@@ -60,10 +60,10 @@ export const useAuth = () => {
   return {
     login,
 
-    // 🔥 NUEVO (clave para invitación Cognito)
+    // NUEVO (clave para invitación Cognito)
     confirmNewPassword,
 
-    // 🔹 opcionales (forgot password)
+    // opcionales (forgot password)
     forgotPassword,
     confirmReset,
 

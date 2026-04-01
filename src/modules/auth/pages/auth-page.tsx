@@ -38,7 +38,7 @@ export default function AuthPage() {
         return
       }
 
-      // 🔐 Esperar sesión
+      // Esperar sesión
       let sessionReady = false
       let attempts = 0
 
@@ -115,13 +115,6 @@ export default function AuthPage() {
             <p className="text-gray-500 mb-4 text-sm">
               Accede a tu cuenta
             </p>
-
-            {/* 🔥 MENSAJE UX PARA INVITADOS */}
-            {email && (
-              <p className="text-xs text-gray-500 mb-4">
-                Ingresa la contraseña temporal enviada a tu correo.
-              </p>
-            )}
 
             <form className="space-y-5" onSubmit={handleSubmit}>
 

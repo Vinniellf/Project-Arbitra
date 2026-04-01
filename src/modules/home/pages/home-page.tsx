@@ -17,7 +17,7 @@ export const HomePage = () => {
             <PepeInfoCard />
           </div>
         </div>
-        {/* 💬 CHAT */}
+        {/* CHAT */}
         <ChatContainer />
       </div>
     </div>

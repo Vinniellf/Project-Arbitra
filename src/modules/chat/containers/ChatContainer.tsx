@@ -12,12 +12,12 @@ export const ChatContainer = () => {
   const ui = useChatUI()
   const history = useChatHistory()
 
-  // 🔥 lazy init → NO useEffect
+  // lazy init → NO useEffect
   const [activeChatId, setActiveChatId] = useState<string | null>(() => {
     return localStorage.getItem(ACTIVE_CHAT_KEY)
   })
 
-  // 🔥 persist helper (SIN effect)
+  // persist helper (SIN effect)
   const setActiveChat = (id: string | null) => {
     setActiveChatId(id)
 
@@ -28,7 +28,7 @@ export const ChatContainer = () => {
     }
   }
 
-  // 🔥 seleccionar chat
+  // seleccionar chat
   const handleSelectChat = (chatId: string) => {
     const selected = history.chats.find((c) => c.id === chatId)
     if (!selected) return
@@ -38,7 +38,7 @@ export const ChatContainer = () => {
     ui.closeSidebar()
   }
 
-  // 🔥 envío PRO
+  // envío PRO
   const handleSendMessage = (text: string) => {
     const chatId = activeChatId ?? crypto.randomUUID()
 
@@ -60,7 +60,7 @@ export const ChatContainer = () => {
   const handleDeleteChat = (chatId: string) => {
     history.deleteChat(chatId)
 
-    // 🔥 si eliminas el activo → limpiar
+    // si eliminas el activo → limpiar
     if (chatId === activeChatId) {
       setActiveChat(null)
       chat.resetChat()

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import avatar from '@/assets/avatar.webp'
 
 export const PepeWelcome = () => {
-  // 🔥 Controla si la imagen ya cargó (para animación suave)
+  // Controla si la imagen ya cargó (para animación suave)
   const [loaded, setLoaded] = useState(
     sessionStorage.getItem('pepe_loaded') === 'true'
   )
@@ -15,17 +15,17 @@ export const PepeWelcome = () => {
   return (
     <div className="flex flex-col items-center text-center gap-6 w-full max-w-xs mx-auto">
       
-      {/* 📝 Texto */}
+      {/* Texto */}
       <div>
         <h2 className="text-4xl font-bold text-[#0f172a]">¡Hola!</h2>
         <p className="text-[#334155] mt-2 text-sm leading-relaxed">
           Soy Pepe, tu agente inteligente de <strong>Misión Tecnológica</strong>. Estoy aquí para ayudarte con cualquier problema de tus equipos.        </p>
       </div>
 
-      {/* 🧑 Avatar */}
+      {/* Avatar */}
       <div className="relative mt-4 flex justify-center items-center">
         
-        {/* 🔷 Fondo inclinado */}
+        {/* Fondo inclinado */}
         <div
           className="
             absolute
@@ -39,7 +39,7 @@ export const PepeWelcome = () => {
           "
         ></div>
 
-        {/* ✨ Glow */}
+        {/* Glow */}
         <div
           className="
             absolute
@@ -50,7 +50,7 @@ export const PepeWelcome = () => {
           "
         ></div>
 
-        {/* 🧑 Avatar con animación */}
+        {/* Avatar con animación */}
         <img
           src={avatar}
           alt="Pepe AI"

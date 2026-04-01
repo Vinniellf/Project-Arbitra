@@ -9,7 +9,7 @@ export const ChatInput = ({ onSend }: Props) => {
   const [text, setText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // 🔥 TAB → enfocar input (global)
+  // TAB → enfocar input (global)
   useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
       if (e.key === 'Tab' && document.activeElement !== inputRef.current) {

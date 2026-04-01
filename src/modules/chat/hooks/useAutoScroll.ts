@@ -16,7 +16,7 @@ export const useAutoScroll = (
 
   const [isAtBottom, setIsAtBottom] = useState(true)
 
-  // 🔍 detectar si el usuario está abajo
+  // detectar si el usuario está abajo
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -37,7 +37,7 @@ export const useAutoScroll = (
     }
   }, [])
 
-  // 🔥 SCROLL INTELIGENTE HÍBRIDO
+  // SCROLL INTELIGENTE HÍBRIDO
   useEffect(() => {
     const container = containerRef.current
     const bottom = bottomRef.current
@@ -46,13 +46,13 @@ export const useAutoScroll = (
     if (!isAtBottom) return
 
     const id = requestAnimationFrame(() => {
-      // 1️⃣ scroll inteligente basado en DOM
+      // scroll inteligente basado en DOM
       bottom.scrollIntoView({
         behavior,
         block: 'nearest',
       })
 
-      // 2️⃣ fallback para asegurar fondo real
+      // fallback para asegurar fondo real
       const maxScroll =
         container.scrollHeight - container.clientHeight
 
@@ -67,7 +67,7 @@ export const useAutoScroll = (
     return () => cancelAnimationFrame(id)
   }, [messages, loading, isAtBottom, behavior])
 
-  // 🔽 scroll manual (botón ↓)
+  // scroll manual (botón ↓)
   const scrollToBottom = () => {
     const container = containerRef.current
     if (!container) return

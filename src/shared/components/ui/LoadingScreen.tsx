@@ -34,7 +34,7 @@ export default function LoadingScreen({ onFinish }: Props) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#f8fbff] via-[#eef2ff] to-[#e0e7ff] overflow-hidden relative">
 
-      {/* Fondo decorativo corregido */}
+      {/* Fondo decorativo */}
       <div className="absolute w-125 h-125 bg-blue-400/10 blur-3xl rounded-full top-30 left-left-30 animate-pulse"></div>
       <div className="absolute w-100 h-100 bg-indigo-400/10 blur-3xl rounded-full bottom-30 right-30 animate-pulse"></div>
 

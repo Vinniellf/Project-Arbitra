@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { ChevronDown, LogOut, User, Menu, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import logoEmpresa from '@/assets/logo.webp'
+import { useAuthContext } from '@/modules/auth/context/useAuthContext'
 
 export const Header = () => {
-  const user = JSON.parse(localStorage.getItem('user') || 'null')
+  const { user, logout } = useAuthContext()
+
   const [open, setOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    localStorage.removeItem('user')
-    sessionStorage.clear()
+  const handleLogout = async () => {
+    await logout()
     navigate('/', { replace: true })
   }
 
@@ -28,7 +29,7 @@ export const Header = () => {
           flex items-center justify-between
         "
       >
-        {/* 🔷 LOGO */}
+        {/* LOGO */}
         <div
           onClick={() => navigate('/home')}
           className="flex items-center gap-3 cursor-pointer"
@@ -43,7 +44,7 @@ export const Header = () => {
           />
         </div>
 
-        {/* 📱 MENU MOBILE */}
+        {/* MENU MOBILE */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="
@@ -56,7 +57,7 @@ export const Header = () => {
           {menuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        {/* 🔷 USER */}
+        {/* USER */}
         <div className="hidden md:block relative">
           <button
             onClick={() => setOpen(!open)}
@@ -79,7 +80,7 @@ export const Header = () => {
               flex items-center justify-center
               text-sm font-medium
             ">
-              {user?.name?.charAt(0) || 'U'}
+              {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
 
             <ChevronDown
@@ -109,7 +110,7 @@ export const Header = () => {
                 {user?.name || 'Usuario'}
               </p>
               <p className="text-xs text-gray-500 truncate mt-0.5">
-                {user?.email}
+                {user?.email || 'correo@ejemplo.com'}
               </p>
             </div>
 
@@ -142,7 +143,7 @@ export const Header = () => {
         </div>
       </header>
 
-      {/* 📱 MOBILE MENU */}
+      {/* MOBILE MENU */}
       {menuOpen && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40">
           <div className="

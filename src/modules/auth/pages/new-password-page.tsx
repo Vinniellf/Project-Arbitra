@@ -85,8 +85,8 @@ export default function NewPasswordPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 
-                         focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 
-                         outline-none transition"
+                        focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 
+                        outline-none transition"
             />
           </div>
 
@@ -101,8 +101,8 @@ export default function NewPasswordPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 
-                         focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 
-                         outline-none transition"
+                        focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 
+                        outline-none transition"
             />
           </div>
 
@@ -151,9 +151,9 @@ export default function NewPasswordPage() {
           type="submit"
           disabled={loading}
           className="w-full py-3 rounded-lg font-medium text-white 
-                     bg-linear-to-r from-blue-500 to-purple-600 
-                     hover:from-blue-600 hover:to-purple-700 
-                     transition shadow-md"
+                    bg-linear-to-r from-blue-500 to-purple-600 
+                    hover:from-blue-600 hover:to-purple-700 
+                    transition shadow-md"
         >
           {loading ? 'Procesando...' : 'Actualizar contraseña'}
         </button>

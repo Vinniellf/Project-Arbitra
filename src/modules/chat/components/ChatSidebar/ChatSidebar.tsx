@@ -20,10 +20,10 @@ export const ChatSidebar = ({
   onDeleteChat,
   onNewChat,
 }: Props) => {
-  // 🔥 estado búsqueda
+  // estado búsqueda
   const [search, setSearch] = useState('')
 
-  // 🔥 filtro
+  // filtro
   const filteredChats = chats.filter((chat) =>
     chat.messages[0]?.content?.toLowerCase().includes(search.toLowerCase()),
   )
@@ -162,7 +162,7 @@ export const ChatSidebar = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        onDeleteChat(chat.id) // 🔥 ahora sí funciona
+                        onDeleteChat(chat.id)
                       }}
                       className="
                         opacity-0 sm:opacity-0

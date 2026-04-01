@@ -41,7 +41,7 @@ export const useChatUI = () => {
     }
   }, [isFullscreen])
 
-  // 🔥 ESC para salir de fullscreen o cerrar sidebar
+  // ESC para salir de fullscreen o cerrar sidebar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

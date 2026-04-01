@@ -27,7 +27,7 @@ export const ChatMessages = ({
           />
         ))}
 
-        {/* 🤖 TYPING INDICATOR */}
+        {/* TYPING INDICATOR */}
         {loading && (
           <div className="flex items-end gap-2 sm:gap-3">
             
@@ -48,7 +48,7 @@ export const ChatMessages = ({
           </div>
         )}
 
-        {/* 🔥 ESPACIO DINÁMICO */}
+        {/* ESPACIO DINÁMICO */}
         <div style={{ height: bottomSpacer }} />
 
         <div ref={bottomRef} />

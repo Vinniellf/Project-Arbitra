@@ -30,7 +30,7 @@ export const useChat = () => {
     const delay = Math.min(2000, 600 + text.length * 20)
 
     setTimeout(() => {
-      const response = getPepeResponse(chatId, text) // 🔥 FIX
+      const response = getPepeResponse(chatId, text) 
 
       const botMessage: Message = {
         id: crypto.randomUUID(),
