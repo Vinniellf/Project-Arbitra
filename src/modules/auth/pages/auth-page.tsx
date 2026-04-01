@@ -16,7 +16,7 @@ export default function AuthPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // 🔥 AUTOCOMPLETAR EMAIL DESDE URL
+  // AUTOCOMPLETAR EMAIL DESDE URL
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const emailParam = params.get('email')
@@ -32,7 +32,7 @@ export default function AuthPage() {
     try {
       const result = await login(email, password)
 
-      // 🔐 USUARIO INVITADO (Cognito)
+      // USUARIO INVITADO (Cognito)
       if (result.requiresNewPassword) {
         navigate('/new-password')
         return
