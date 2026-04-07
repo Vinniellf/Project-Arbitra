@@ -2,17 +2,34 @@ import { useState } from 'react'
 import { ChevronDown, LogOut, User, Menu, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import logoEmpresa from '@/assets/logo.webp'
-import { useAuthContext } from '@/modules/auth/context/useAuthContext'
+import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
+import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 
 export const Header = () => {
   const { user, logout } = useAuthContext()
   const [open, setOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showLogoutLoading, setShowLogoutLoading] = useState(false)
+
   const navigate = useNavigate()
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/', { replace: true })
+    setShowLogoutLoading(true)
+  }
+
+  if (showLogoutLoading) {
+    return (
+      <LoadingScreen
+        variant="logout"
+        onFinish={async () => {
+          try {
+            await logout()
+          } finally {
+            navigate('/login', { replace: true })
+          }
+        }}
+      />
+    )
   }
 
   return (
@@ -28,7 +45,6 @@ export const Header = () => {
           flex items-center justify-between
         "
       >
-        {/* LOGO */}
         <div
           onClick={() => navigate('/home')}
           className="flex items-center gap-3 cursor-pointer"
@@ -43,7 +59,6 @@ export const Header = () => {
           />
         </div>
 
-        {/* MENU MOBILE */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="
@@ -56,7 +71,6 @@ export const Header = () => {
           {menuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        {/* USER */}
         <div className="hidden md:block relative">
           <button
             onClick={() => setOpen(!open)}
@@ -71,14 +85,15 @@ export const Header = () => {
               shadow-sm
             "
           >
-            {/* Avatar */}
-            <div className="
-              w-8 h-8
-              bg-linear-to-br from-[#5aa9e6] to-[#4a8fd9]
-              text-white rounded-full
-              flex items-center justify-center
-              text-sm font-medium
-            ">
+            <div
+              className="
+                w-8 h-8
+                bg-linear-to-br from-[#5aa9e6] to-[#4a8fd9]
+                text-white rounded-full
+                flex items-center justify-center
+                text-sm font-medium
+              "
+            >
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
 
@@ -88,7 +103,6 @@ export const Header = () => {
             />
           </button>
 
-          {/* DROPDOWN */}
           <div
             className={`
               absolute right-0 mt-6 w-64
@@ -98,9 +112,10 @@ export const Header = () => {
               shadow-xl shadow-black/10
               overflow-hidden
               transition-all duration-200
-              ${open
-                ? 'opacity-100 scale-100'
-                : 'opacity-0 scale-95 pointer-events-none'
+              ${
+                open
+                  ? 'opacity-100 scale-100'
+                  : 'opacity-0 scale-95 pointer-events-none'
               }
             `}
           >
@@ -142,14 +157,15 @@ export const Header = () => {
         </div>
       </header>
 
-      {/* MOBILE MENU */}
       {menuOpen && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40">
-          <div className="
-            absolute top-24 left-1/2 -translate-x-1/2
-            w-[90%] max-w-sm
-            bg-white rounded-xl shadow-lg p-4
-          ">
+          <div
+            className="
+              absolute top-24 left-1/2 -translate-x-1/2
+              w-[90%] max-w-sm
+              bg-white rounded-xl shadow-lg p-4
+            "
+          >
             <div className="flex flex-col gap-4 text-gray-700">
               <hr />
               <button

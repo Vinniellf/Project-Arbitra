@@ -1,16 +1,40 @@
 import { useEffect, useState } from 'react'
 import icon from '@/assets/icon.webp'
 
+type LoadingVariant = 'login' | 'logout' | 'welcome'
+
 type Props = {
   onFinish: () => void
+  variant?: LoadingVariant
 }
 
-export default function LoadingScreen({ onFinish }: Props) {
+const contentByVariant: Record<
+  LoadingVariant,
+  { title: string; subtitle: string }
+> = {
+  login: {
+    title: 'Preparando tu experiencia',
+    subtitle: 'Conectando con PEPE AI',
+  },
+  logout: {
+    title: 'Cerrando sesión',
+    subtitle: 'Desconectando de PEPE AI',
+  },
+  welcome: {
+    title: 'Bienvenido a PEPE',
+    subtitle: 'Estamos preparando tu espacio por primera vez',
+  },
+}
+
+export default function LoadingScreen({ onFinish, variant = 'login' }: Props) {
   const [progress, setProgress] = useState(0)
+
+  const content = contentByVariant[variant]
 
   useEffect(() => {
     let value = 0
-
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    
     const interval = setInterval(() => {
       if (value < 80) value += 5
       else if (value < 95) value += 1
@@ -20,37 +44,31 @@ export default function LoadingScreen({ onFinish }: Props) {
         value = 100
         clearInterval(interval)
 
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           onFinish()
-        }, 400)
+        }, 100)
       }
 
       setProgress(value)
-    }, 80)
+    }, 50)
 
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(interval)
+      if (timeoutId) clearTimeout(timeoutId)
+    }
   }, [onFinish])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#eef6fb] via-white to-[#e3edf7] overflow-hidden relative">
-
-      {/* FONDO HUMO / LED */}
       <div className="absolute w-150 h-150 bg-[#5aa9e6]/15 blur-[150px] rounded-full animate-pulse"></div>
       <div className="absolute w-100 h-100 bg-[#4a8fd9]/10 blur-[120px] rounded-full -top-20 -left-20 animate-pulse"></div>
       <div className="absolute w-100 h-100 bg-[#5aa9e6]/10 blur-[120px] rounded-full -bottom-20 -right-20 animate-pulse"></div>
 
       <div className="relative flex flex-col items-center gap-10">
-
-        {/* LOGO */}
         <div className="relative flex items-center justify-center">
-
-          {/* Glow principal (LED) */}
           <div className="absolute w-96 h-96 bg-[#5aa9e6]/25 blur-[100px] rounded-full animate-pulse"></div>
-
-          {/* Glow secundario */}
           <div className="absolute w-72 h-72 bg-[#4a8fd9]/20 blur-[80px] rounded-full"></div>
 
-          {/* Logo GRANDE */}
           <img
             src={icon}
             alt="Pepe AI"
@@ -64,26 +82,22 @@ export default function LoadingScreen({ onFinish }: Props) {
           />
         </div>
 
-        {/* TEXT */}
         <div className="text-center space-y-2">
           <h2 className="text-lg font-semibold text-gray-700">
-            Preparando tu experiencia
+            {content.title}
           </h2>
 
           <p className="text-sm text-gray-500 flex items-center justify-center gap-1">
-            Conectando con PEPE AI
+            {content.subtitle}
           </p>
         </div>
 
-        {/* PROGRESS */}
         <div className="w-72 space-y-2">
-
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-linear-to-r from-[#5aa9e6] to-[#4a8fd9] transition-all duration-200 relative"
               style={{ width: `${progress}%` }}
             >
-              {/* brillo animado */}
               <div className="absolute inset-0 bg-white/30 blur-sm animate-pulse"></div>
             </div>
           </div>
@@ -91,12 +105,9 @@ export default function LoadingScreen({ onFinish }: Props) {
           <div className="text-xs text-gray-500 text-right">
             {Math.floor(progress)}%
           </div>
-
         </div>
-
       </div>
 
-      {/* ANIMATIONS */}
       <style>
         {`
           @keyframes float {

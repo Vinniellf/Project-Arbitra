@@ -1,40 +1,21 @@
-import { Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { fetchAuthSession } from "aws-amplify/auth";
+import { Navigate } from 'react-router-dom'
+import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
+import { SessionLoader } from '@/modules/auth/components/SessionLoader'
 
 type Props = {
-  children: React.ReactNode;
-};
+  children: React.ReactNode
+}
 
 export const AuthGuard = ({ children }: Props) => {
-  const [status, setStatus] = useState<"loading" | "auth" | "no-auth">("loading");
+  const { isAuthenticated, initialLoading } = useAuthContext()
 
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const session = await fetchAuthSession();
-
-        if (session.tokens) {
-          setStatus("auth");
-        } else {
-          setStatus("no-auth");
-        }
-
-      } catch {
-        setStatus("no-auth");
-      }
-    };
-
-    check();
-  }, []);
-
-  if (status === "loading") {
-    return <div>Verificando sesión...</div>;
+  if (initialLoading) {
+    return <SessionLoader />
   }
 
-  if (status === "no-auth") {
-    return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
   }
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}

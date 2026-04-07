@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Check,
-  X,
-  Eye,
-  Sparkles,
-  ShieldCheck,
-  Zap
-} from 'lucide-react'
+import { Check, X, Eye, Sparkles, ShieldCheck, Zap } from 'lucide-react'
+
 import { useAuth } from '../hooks/useAuth'
+import { useAuthContext } from '../hooks/useAuthContext'
+import { PASSWORD_ERRORS } from '../constants/password-errors'
+import {
+  PASSWORD_RULES,
+  validatePassword,
+  isPasswordValid,
+} from '../utils/password-validator'
+
+import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 
 const RuleItem = ({ valid, label }: { valid: boolean; label: string }) => (
   <div className="flex items-center gap-2 text-sm">
@@ -17,9 +20,7 @@ const RuleItem = ({ valid, label }: { valid: boolean; label: string }) => (
     ) : (
       <X size={16} className="text-gray-300" />
     )}
-    <span className={valid ? 'text-green-600' : 'text-gray-500'}>
-      {label}
-    </span>
+    <span className={valid ? 'text-green-600' : 'text-gray-500'}>{label}</span>
   </div>
 )
 
@@ -28,46 +29,60 @@ export default function NewPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [showLoading, setShowLoading] = useState(false)
 
   const { confirmNewPassword, loading } = useAuth()
+  const { refreshUser } = useAuthContext()
   const navigate = useNavigate()
 
-  const rules = {
-    length: password.length >= 8,
-    upper: /[A-Z]/.test(password),
-    lower: /[a-z]/.test(password),
-    number: /[0-9]/.test(password),
-    special: /[^A-Za-z0-9]/.test(password),
-  }
+  const rules = validatePassword(password)
+  const validPassword = isPasswordValid(rules)
 
-  const isValidPassword = Object.values(rules).every(Boolean)
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
 
-    if (!isValidPassword) {
-      setError('La contraseña no cumple con los requisitos')
+    if (!password || !confirmPassword) {
+      setError(PASSWORD_ERRORS.REQUIRED)
+      return
+    }
+
+    if (!validPassword) {
+      setError(PASSWORD_ERRORS.INVALID_PASSWORD)
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden')
+      setError(PASSWORD_ERRORS.PASSWORD_MISMATCH)
       return
     }
 
     try {
       await confirmNewPassword(password)
-      navigate('/login')
+      setShowLoading(true)
     } catch (error: unknown) {
-      if (error instanceof Error) setError(error.message)
-      else setError('Error inesperado')
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError(PASSWORD_ERRORS.UNEXPECTED_ERROR)
+      }
     }
+  }
+
+  if (showLoading) {
+    return (
+      <LoadingScreen
+        variant="welcome"
+        onFinish={async () => {
+          await refreshUser()
+          navigate('/home', { replace: true })
+        }}
+      />
+    )
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#eef6fb] via-white to-[#e3edf7] px-4">
-
       <form
         onSubmit={handleSubmit}
         className="
@@ -78,8 +93,6 @@ export default function NewPasswordPage() {
           shadow-[0_10px_40px_rgba(0,0,0,0.08)]
         "
       >
-
-        {/* HEADER */}
         <div className="mb-7">
           <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
             <ShieldCheck className="text-[#5aa9e6]" />
@@ -92,10 +105,7 @@ export default function NewPasswordPage() {
           </p>
         </div>
 
-        {/* INPUTS */}
         <div className="space-y-6 mb-6">
-
-          {/* PASSWORD */}
           <div>
             <label className="text-sm text-gray-600 mb-1 block">
               Contraseña
@@ -114,10 +124,10 @@ export default function NewPasswordPage() {
                 transition
               "
               placeholder="Ingresa tu contraseña"
+              required
             />
           </div>
 
-          {/* CONFIRM PASSWORD */}
           <div>
             <label className="text-sm text-gray-600 mb-1 block">
               Confirmar contraseña
@@ -136,10 +146,10 @@ export default function NewPasswordPage() {
                 transition
               "
               placeholder="Repite tu contraseña"
+              required
             />
           </div>
 
-          {/* SWITCH */}
           <div className="flex items-center justify-between mt-2">
             <span className="text-sm text-gray-600 flex items-center gap-2">
               <Eye size={16} />
@@ -162,10 +172,8 @@ export default function NewPasswordPage() {
               />
             </button>
           </div>
-
         </div>
 
-        {/* CHECKLIST */}
         <div className="mb-6">
           <p className="text-xs font-medium text-gray-600 mb-2 flex items-center gap-2">
             <Zap size={14} />
@@ -173,7 +181,10 @@ export default function NewPasswordPage() {
           </p>
 
           <div className="space-y-2 bg-white/60 rounded-xl p-3 border border-white/30">
-            <RuleItem valid={rules.length} label="Mínimo 8 caracteres" />
+            <RuleItem
+              valid={rules.length}
+              label={`Mínimo ${PASSWORD_RULES.MIN_LENGTH} caracteres`}
+            />
             <RuleItem valid={rules.upper} label="Una mayúscula" />
             <RuleItem valid={rules.lower} label="Una minúscula" />
             <RuleItem valid={rules.number} label="Un número" />
@@ -181,14 +192,12 @@ export default function NewPasswordPage() {
           </div>
         </div>
 
-        {/* ERROR */}
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        {/* BOTÓN */}
         <button
           type="submit"
           disabled={loading}
@@ -206,9 +215,10 @@ export default function NewPasswordPage() {
               <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
               Procesando...
             </span>
-          ) : 'Actualizar contraseña'}
+          ) : (
+            'Actualizar contraseña'
+          )}
         </button>
-
       </form>
     </div>
   )

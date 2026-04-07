@@ -1,62 +1,61 @@
-import { useEffect, useState, useCallback } from "react";
-import { fetchUserAttributes, getCurrentUser } from "aws-amplify/auth";
-import { AuthContext } from "./AuthContext";
-import type { User } from "./AuthContext";
-import { useAuth } from "../hooks/useAuth";
+import { useEffect, useState, useCallback } from 'react'
+import type { ReactNode } from 'react'
+import { fetchUserAttributes, getCurrentUser } from 'aws-amplify/auth'
+import { AuthContext } from './AuthContext'
+import type { User } from './AuthContext'
+import { authService } from '../services/auth.service'
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { logout: serviceLogout } = useAuth();
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [initialLoading, setInitialLoading] = useState(true)
 
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // cargar usuario desde Cognito
   const loadUser = useCallback(async () => {
     try {
-      await getCurrentUser(); // valida sesión
+      await getCurrentUser()
 
-      const attributes = await fetchUserAttributes();
+      const attributes = await fetchUserAttributes()
 
       setUser({
         name: attributes.name || attributes.email,
         email: attributes.email,
-      });
-
+      })
     } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
+      setUser(null)
     }
-  }, []);
+  }, [])
 
-  // init app
   useEffect(() => {
-    loadUser();
-  }, [loadUser]);
+    const initAuth = async () => {
+      try {
+        await loadUser()
+      } finally {
+        setInitialLoading(false)
+      }
+    }
 
-  // refrescar usuario (post-login)
+    initAuth()
+  }, [loadUser])
+
   const refreshUser = async () => {
-    setLoading(true);
-    await loadUser();
-  };
+    await loadUser()
+  }
 
-  // logout global
   const logout = async () => {
-    await serviceLogout();
-    setUser(null);
-  };
+    await authService.logout()
+    setUser(null)
+  }
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
-        loading,
+        initialLoading,
         logout,
         refreshUser,
       }}
     >
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}

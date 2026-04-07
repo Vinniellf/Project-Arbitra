@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react'
 import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import LoadingScreen from '@/shared/components/ui/LoadingScreen'
-import icon from '@/assets/icon.webp'
 import { fetchAuthSession } from 'aws-amplify/auth'
 
-// 🔥 NUEVO
-import { useAuthContext } from '@/modules/auth/context/useAuthContext'
+import { useAuth } from '../hooks/useAuth'
+import { useAuthContext } from '../hooks/useAuthContext'
+import { getAuthErrorMessage } from '../utils/auth-error-handler'
+import { AuthErrorMessage } from '../components/AuthErrorMessage'
+
+import LoadingScreen from '@/shared/components/ui/LoadingScreen'
+import icon from '@/assets/icon.webp'
 
 export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showLoading, setShowLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const { login, loading } = useAuth()
-
-  // 🔥 NUEVO
   const { refreshUser } = useAuthContext()
 
   const navigate = useNavigate()
@@ -34,6 +35,7 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setError('')
 
     try {
       const result = await login(email, password)
@@ -52,7 +54,7 @@ export default function AuthPage() {
         if (session.tokens) {
           sessionReady = true
         } else {
-          await new Promise(res => setTimeout(res, 200))
+          await new Promise((res) => setTimeout(res, 200))
           attempts++
         }
       }
@@ -61,25 +63,19 @@ export default function AuthPage() {
         throw new Error('No se pudo establecer la sesión')
       }
 
-      // 🔥 CLAVE: sincroniza el usuario con el contexto
-      await refreshUser()
-
       setShowLoading(true)
-
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        alert(error.message)
-      } else {
-        alert('Error inesperado')
-      }
+      setError(getAuthErrorMessage(error))
     }
   }
 
   if (showLoading) {
     return (
       <LoadingScreen
-        onFinish={() => {
-          navigate('/home')
+        variant="login"
+        onFinish={async () => {
+          await refreshUser()
+          navigate('/home', { replace: true })
         }}
       />
     )
@@ -87,16 +83,12 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex bg-linear-to-br from-[#eef6fb] via-white to-[#e3edf7]">
-
       {/* LADO IZQUIERDO */}
       <div className="hidden md:flex w-1/2 relative overflow-hidden bg-linear-to-br from-[#0F3D5E] via-[#1E6F9F] to-[#5aa9e6] text-white items-center justify-center px-10">
-
-        {/* decoraciones */}
         <div className="absolute w-96 h-96 bg-white/10 rounded-full -top-20 -right-20 blur-3xl animate-pulse"></div>
         <div className="absolute w-96 h-96 bg-white/10 rounded-full -bottom-20 -left-20 blur-3xl animate-pulse"></div>
 
         <div className="z-10 text-center flex flex-col items-center space-y-6">
-
           <div className="relative">
             <img
               src={icon}
@@ -120,26 +112,23 @@ export default function AuthPage() {
       {/* LADO DERECHO */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-6">
         <div className="w-full max-w-md">
-
-          <div className="
-            bg-white/70 backdrop-blur-xl
-            p-8 rounded-3xl
-            border border-white/30
-            shadow-[0_10px_40px_rgba(0,0,0,0.08)]
-            transition-all duration-300
-          ">
-
+          <div
+            className="
+              bg-white/70 backdrop-blur-xl
+              p-8 rounded-3xl
+              border border-white/30
+              shadow-[0_10px_40px_rgba(0,0,0,0.08)]
+              transition-all duration-300
+            "
+          >
             <h2 className="text-3xl font-bold text-gray-800 mb-1 flex items-center gap-2">
               Iniciar sesión
               <Sparkles size={20} className="text-[#5aa9e6]" />
             </h2>
 
-            <p className="text-gray-500 mb-6 text-sm">
-              Accede a tu cuenta
-            </p>
+            <p className="text-gray-500 mb-6 text-sm">Accede a tu cuenta</p>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
-
               {/* EMAIL */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
@@ -157,14 +146,15 @@ export default function AuthPage() {
                     placeholder="correo@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="
+                    className={`
                       w-full pl-10 pr-4 py-3
-                      border border-gray-200 rounded-xl
+                      border rounded-xl
                       outline-none
                       hover:border-gray-300
                       focus:ring-2 focus:ring-[#5aa9e6]/40
                       transition
-                    "
+                      ${error ? 'border-red-300' : 'border-gray-200'}
+                    `}
                     required
                   />
                 </div>
@@ -187,17 +177,18 @@ export default function AuthPage() {
                     placeholder="Contraseña temporal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="
+                    className={`
                       w-full pl-10 pr-10 py-3
-                      border border-gray-200 rounded-xl
+                      border rounded-xl
                       outline-none
                       hover:border-gray-300
                       focus:ring-2 focus:ring-[#5aa9e6]/40
                       transition
-                    "
+                      ${error ? 'border-red-300' : 'border-gray-200'}
+                    `}
                     required
                   />
-
+                  
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -207,6 +198,8 @@ export default function AuthPage() {
                   </button>
                 </div>
               </div>
+
+              <AuthErrorMessage message={error} className="mt-2" />
 
               {/* BOTÓN */}
               <button
@@ -226,9 +219,10 @@ export default function AuthPage() {
                     <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
                     Ingresando...
                   </span>
-                ) : 'Iniciar sesión'}
+                ) : (
+                  'Iniciar sesión'
+                )}
               </button>
-
             </form>
           </div>
         </div>
