@@ -1,127 +1,63 @@
-type Step =
-  | 'init'
-  | 'confirm_issue'
-  | 'give_steps'
-  | 'check_result'
-  | 'escalation'
-  | 'closed'
+const chatSessions: Record<string, string> = {}
 
-type State = {
-  step: Step
-  reference?: string
-}
-
-const chatStates: Record<string, State> = {}
-
-const getState = (chatId: string): State => {
-  if (!chatStates[chatId]) {
-    chatStates[chatId] = { step: 'init' }
+const getOrCreateSessionId = (chatId: string): string => {
+  if (!chatSessions[chatId]) {
+    chatSessions[chatId] = `bedrock-session-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   }
-  return chatStates[chatId]
+  return chatSessions[chatId]
 }
 
 export const resetPepeState = (chatId: string) => {
-  delete chatStates[chatId]
+  delete chatSessions[chatId]
 }
 
-const generateTicket = () => {
-  return `MT-${Date.now().toString().slice(-6)}`
-}
+export const streamPepeResponse = async (
+  chatId: string, 
+  message: string, 
+  onChunk: (chunk: string) => void, 
+  onComplete: () => void            
+) => {
+  const sessionId = getOrCreateSessionId(chatId);
+  const currentPrompt = message.trim();
 
-// helpers simples
-const isYes = (msg: string) =>
-  msg.includes('si') || msg.includes('sí')
+  if (!currentPrompt) return; 
 
-const isNo = (msg: string) =>
-  msg.includes('no') || msg.includes('sigue igual')
+  try {
+    // 1. Obtener tu token de sesión 
+    const token = localStorage.getItem('session_token'); 
 
-export const getPepeResponse = (chatId: string, message: string) => {
-  const state = getState(chatId)
-  const msg = message.toLowerCase()
+    // 2. Hacer la petición a tu Lambda 
+    const response = await fetch('https://7bgpepmsyczjw5lqbexl2iq22e0rtfas.lambda-url.us-east-1.on.aws/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify({ 
+        prompt: currentPrompt,
+        sessionId: sessionId 
+      })
+    });
 
-  // 🟢 1. INICIO
-  if (state.step === 'init') {
-    state.step = 'confirm_issue'
+    if (!response.ok) throw new Error('Error comunicando con AgentCore');
 
-    return `👋 Hola, soy Pepe 🤖  
+    // 3. Prepararse para leer el stream 
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder('utf-8');
 
-🧠 Desde el monitoreo detecté que tu impresora presenta fallas  
-
-👉 ¿Estás teniendo problemas con esa impresora?`
-  }
-
-  // 🟡 2. CONFIRMACIÓN
-  if (state.step === 'confirm_issue') {
-    if (isYes(msg)) {
-      state.step = 'give_steps'
-
-      return `🖨️ Perfecto, vamos a revisarlo  
-
-1. Verifica que la impresora esté encendida  
-2. Revisa niveles de tinta o tóner  
-3. Confirma conexión  
-4. Intenta imprimir una prueba  
-
-👉 Dime cómo te va`
+    // 4. Bucle de lectura en tiempo real
+    while (true) {
+      const { done, value } = await reader!.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true });
+      
+      onChunk(chunk); 
     }
-
-    return `🤔 Solo para confirmar  
-
-👉 ¿El problema es con la impresora que te mencioné?`
+  } catch (error) {
+    console.error("Error en Pepe:", error);
+    onChunk("\n⚠️ Lo siento, tuve un problema de conexión con el servidor central.");
+  } finally {
+    onComplete();
   }
-
-  // 🔵 3. PASOS
-  if (state.step === 'give_steps') {
-    state.step = 'check_result'
-
-    return `👉 ¿Se solucionó el problema después de los pasos?`
-  }
-
-  // 🟣 4. VALIDACIÓN
-  if (state.step === 'check_result') {
-    if (isYes(msg)) {
-      state.step = 'closed'
-
-      return `🎉 Excelente  
-
-La impresora ya está funcionando correctamente  
-
-Si necesitas ayuda, aquí estaré 🤖`
-    }
-
-    if (isNo(msg)) {
-      state.step = 'escalation'
-      state.reference = generateTicket()
-
-      return `🧠 Gracias por la información  
-
-🔧 Voy a escalar tu caso a soporte técnico  
-
-🎫 Ticket generado: ${state.reference}  
-
-👨‍🔧 Un técnico se comunicará contigo`
-    }
-
-    return `🤔 ¿Se solucionó el problema?`
-  }
-
-  // 🔴 5. ESCALAMIENTO
-  if (state.step === 'escalation') {
-    return `👨‍🔧 Tu caso ya fue escalado  
-
-🎫 Ticket: ${state.reference}  
-
-📞 Pronto se comunicarán contigo  
-
-👉 Si tienes más detalles puedes agregarlos`
-  }
-
-  // ⚫ 6. CIERRE
-  if (state.step === 'closed') {
-    return `😊 Me alegra haber ayudado  
-
-👉 Estoy disponible si necesitas algo más`
-  }
-
-  return `⚠️ No entendí, ¿puedes repetir?`
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Message } from '../types/chat.types'
-import { getPepeResponse } from '../services/pepe.service'
+import { streamPepeResponse } from '../services/pepe.service' 
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
@@ -11,8 +11,9 @@ export const useChat = () => {
     text: string,
     onMessagesChange?: (messages: Message[]) => void
   ) => {
-    if (!text.trim()) return
+    if (!text.trim() || loading) return
 
+    // 1. Inyectar el mensaje del usuario
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -27,25 +28,44 @@ export const useChat = () => {
 
     setLoading(true)
 
-    const delay = Math.min(2000, 600 + text.length * 20)
+    // 2. Crear una "burbuja" vacía para el asistente
+    const botMessageId = crypto.randomUUID()
+    const botMessage: Message = {
+      id: botMessageId,
+      role: 'assistant',
+      content: '', 
+    }
 
-    setTimeout(() => {
-      const response = getPepeResponse(chatId, text) 
+    setMessages((prev) => {
+      const updated = [...prev, botMessage]
+      onMessagesChange?.(updated)
+      return updated
+    })
 
-      const botMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: response,
-      }
-
-      setMessages((prev) => {
-        const updated = [...prev, botMessage]
-        onMessagesChange?.(updated)
-        return updated
-      })
-
+    // 3. Conectarse a Bedrock e ir llenando la burbuja
+    try {
+      await streamPepeResponse(
+        chatId,
+        text,
+        (chunk: string) => {
+          setMessages((prev) => {
+            const updated = prev.map((msg) =>
+              msg.id === botMessageId
+                ? { ...msg, content: msg.content + chunk }
+                : msg
+            )
+            onMessagesChange?.(updated)
+            return updated
+          })
+        },
+        () => {
+          setLoading(false)
+        }
+      )
+    } catch (error) {
+      console.error("Error en la conexión con el Agente:", error)
       setLoading(false)
-    }, delay)
+    }
   }
 
   const resetChat = () => {
