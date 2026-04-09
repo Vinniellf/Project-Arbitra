@@ -5,15 +5,21 @@ import PageHeader from '../components/common/layout/PageHeader'
 import PageErrorState from '../components/common/feedback/PageErrorState'
 import StatsSkeleton from '../components/common/stats/StatsSkeleton'
 import CardsSkeleton from '../components/common/listing/CardsSkeleton'
+import TableContainer from '../components/common/table/TableContainer'
+import TableHead from '../components/common/table/TableHead'
+import TableSkeleton from '../components/common/table/TableSkeleton'
 
 import UserStats from '../components/ui/users/UserStats'
 import UserFilters from '../components/ui/users/UserFilters'
 import UsersGrid from '../components/ui/users/UsersGrid'
 import UsersEmptyState from '../components/ui/users/UsersEmptyState'
 import InviteUserButton from '../components/ui/users/InviteUserButton'
+import UserTable from '../components/ui/users/UserTable'
 
 import { useAdminUsers } from '../hooks/useAdminUsers'
 import { useAdminUserFilters } from '../hooks/useAdminUserFilters'
+import { useDisableAdminUser } from '../hooks/useDisableAdminUser'
+import { useEnableAdminUser } from '../hooks/useEnableAdminUser'
 import type { AdminUser } from '../types/user'
 import {
   formatAdminUserDate,
@@ -21,9 +27,17 @@ import {
   getAdminUserStatusLabel,
 } from '../utils/admin-users.utils'
 
+type ViewMode = 'cards' | 'table'
+
 export default function UsuariosView() {
   const { users, loading, error, reloadUsers } = useAdminUsers()
-  const [loadingUsername, setLoadingUsername] = useState<string | null>(null)
+  const { disableUser } = useDisableAdminUser()
+  const { enableUser } = useEnableAdminUser()
+
+  const [actionLoadingUserId, setActionLoadingUserId] = useState<string | null>(
+    null
+  )
+  const [viewMode, setViewMode] = useState<ViewMode>('table')
 
   const {
     search,
@@ -36,24 +50,31 @@ export default function UsuariosView() {
   } = useAdminUserFilters(users)
 
   const handleToggleEnabled = async (user: AdminUser) => {
+    const userKey = user.email ?? user.username ?? null
+    const username = user.username?.trim()
+
+    if (!userKey || !username) return
+
     try {
-      setLoadingUsername(user.username ?? null)
+      setActionLoadingUserId(userKey)
 
-      // TODO:
-      // Aquí conecta tu servicio real:
-      // await toggleAdminUserEnabled(user.username!, user.enabled)
-
-      console.log('Cambiar estado del usuario:', {
-        username: user.username,
-        enabled: user.enabled,
-      })
+      if (user.enabled) {
+        await disableUser(username)
+      } else {
+        await enableUser(username)
+      }
 
       await reloadUsers()
     } catch (toggleError) {
       console.error('Error al cambiar estado del usuario:', toggleError)
     } finally {
-      setLoadingUsername(null)
+      setActionLoadingUserId(null)
     }
+  }
+
+  const handleRefresh = async () => {
+    if (loading) return
+    await reloadUsers()
   }
 
   const headerIcon = loading ? (
@@ -76,27 +97,58 @@ export default function UsuariosView() {
           <PageErrorState title="Error al cargar usuarios" message={error} />
         ) : (
           <>
+            <UserFilters
+              search={search}
+              statusFilter={statusFilter}
+              enabledFilter={enabledFilter}
+              resultsCount={loading ? 0 : filteredUsers.length}
+              loading={loading}
+              viewMode={viewMode}
+              onSearchChange={setSearch}
+              onStatusFilterChange={setStatusFilter}
+              onEnabledFilterChange={setEnabledFilter}
+              onViewModeChange={setViewMode}
+              onRefresh={handleRefresh}
+            />
+
             {loading ? (
               <>
                 <StatsSkeleton />
-                <CardsSkeleton />
+
+                {viewMode === 'table' ? (
+                  <TableContainer>
+                    <table className="min-w-full divide-y divide-slate-200">
+                      <TableHead
+                        columns={[
+                          { key: 'user', label: 'Usuario' },
+                          { key: 'status', label: 'Estado Cognito' },
+                          { key: 'created', label: 'Creado' },
+                          { key: 'action', label: 'Acción', align: 'right' },
+                        ]}
+                      />
+                      <TableSkeleton rows={5} columns={4} />
+                    </table>
+                  </TableContainer>
+                ) : (
+                  <CardsSkeleton />
+                )}
               </>
             ) : (
               <>
                 <UserStats users={users} />
 
-                <UserFilters
-                  search={search}
-                  statusFilter={statusFilter}
-                  enabledFilter={enabledFilter}
-                  resultsCount={filteredUsers.length}
-                  onSearchChange={setSearch}
-                  onStatusFilterChange={setStatusFilter}
-                  onEnabledFilterChange={setEnabledFilter}
-                />
-
                 {filteredUsers.length === 0 ? (
                   <UsersEmptyState />
+                ) : viewMode === 'table' ? (
+                  <UserTable
+                    users={filteredUsers}
+                    loading={false}
+                    formatDate={formatAdminUserDate}
+                    getStatusBadge={getAdminUserStatusBadge}
+                    getStatusLabel={getAdminUserStatusLabel}
+                    onToggleEnabled={handleToggleEnabled}
+                    actionLoadingUserId={actionLoadingUserId}
+                  />
                 ) : (
                   <UsersGrid
                     users={filteredUsers}
@@ -104,7 +156,7 @@ export default function UsuariosView() {
                     getStatusBadge={getAdminUserStatusBadge}
                     getStatusLabel={getAdminUserStatusLabel}
                     onToggleEnabled={handleToggleEnabled}
-                    loadingUsername={loadingUsername}
+                    loadingUsername={actionLoadingUserId}
                   />
                 )}
               </>

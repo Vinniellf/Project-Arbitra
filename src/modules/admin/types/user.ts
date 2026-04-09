@@ -11,15 +11,34 @@ export interface ListUsersResponse {
   users: AdminUser[]
 }
 
+export type InviteUserRole = 'ADMIN' | 'SUPER_ADMIN'
+
 export interface InviteUserRequest {
-  email: string
-  role?: 'ADMIN' | 'SUPER_ADMIN'
+  email?: string
+  emails?: string[]
+  role?: InviteUserRole
   name?: string
 }
 
-export interface InviteUserResponse {
+export interface InviteUserResult {
+  email: string
+  success: boolean
+  status: 'created' | 'resent' | 'invalid' | 'error'
   message: string
-  success?: boolean
+  error?: string
+}
+
+export interface InviteUserResponse {
+  success: boolean
+  message: string
+  summary?: {
+    total: number
+    created: number
+    resent: number
+    invalid: number
+    failed: number
+  }
+  results?: InviteUserResult[]
   user?: {
     email: string
     role: string

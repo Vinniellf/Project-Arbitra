@@ -11,6 +11,15 @@ const INVITE_USER_API_URL = import.meta.env.VITE_INVITE_USER_API_URL
 type ApiErrorResponse = {
   message?: string
   error?: string
+  detail?: string
+}
+
+export type ToggleAdminUserResponse = {
+  message: string
+  username: string
+  executedBy?: string
+  requesterRole?: 'admin' | 'superadmin'
+  targetGroups?: string[]
 }
 
 async function getAccessToken(): Promise<string> {
@@ -29,9 +38,13 @@ async function parseErrorResponse(response: Response): Promise<never> {
 
   try {
     const errorData = (await response.json()) as ApiErrorResponse
-    message = errorData.message || errorData.error || message
+    message = errorData.message || errorData.error || errorData.detail || message
   } catch {
     // ignorar si no viene json
+  }
+
+  if (response.status === 400) {
+    throw new Error(message || 'Solicitud inválida.')
   }
 
   if (response.status === 401) {
@@ -39,14 +52,65 @@ async function parseErrorResponse(response: Response): Promise<never> {
   }
 
   if (response.status === 403) {
-    throw new Error('No tienes permisos para realizar esta acción.')
+    throw new Error(message || 'No tienes permisos para realizar esta acción.')
+  }
+
+  if (response.status === 404) {
+    throw new Error(message || 'El usuario no fue encontrado.')
   }
 
   if (response.status === 409) {
     throw new Error(message || 'El usuario ya existe.')
   }
 
+  if (response.status === 429) {
+    throw new Error(
+      message || 'Demasiadas solicitudes. Intenta nuevamente en unos segundos.'
+    )
+  }
+
   throw new Error(message)
+}
+
+async function postAdminUserAction(
+  endpoint: '/admin/users/disable' | '/admin/users/enable',
+  username: string,
+  networkErrorMessage: string
+): Promise<ToggleAdminUserResponse> {
+  if (!API_BASE_URL) {
+    throw new Error('Falta configurar VITE_API_BASE_URL')
+  }
+
+  const normalizedUsername = username.trim()
+
+  if (!normalizedUsername) {
+    throw new Error('El username es obligatorio')
+  }
+
+  const accessToken = await getAccessToken()
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ username: normalizedUsername }),
+    })
+
+    if (!response.ok) {
+      await parseErrorResponse(response)
+    }
+
+    return (await response.json()) as ToggleAdminUserResponse
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(networkErrorMessage)
+    }
+
+    throw error
+  }
 }
 
 export async function listAdminUsers(): Promise<ListUsersResponse> {
@@ -68,8 +132,7 @@ export async function listAdminUsers(): Promise<ListUsersResponse> {
       await parseErrorResponse(response)
     }
 
-    const data = (await response.json()) as ListUsersResponse
-    return data
+    return (await response.json()) as ListUsersResponse
   } catch (error) {
     if (error instanceof TypeError) {
       throw new Error(
@@ -90,6 +153,28 @@ export async function inviteAdminUser(
 
   const accessToken = await getAccessToken()
 
+  const normalizedPayload: InviteUserRequest = {
+    role: payload.role,
+  }
+
+  if (payload.name?.trim()) {
+    normalizedPayload.name = payload.name.trim()
+  }
+
+  if (payload.email?.trim()) {
+    normalizedPayload.email = payload.email.trim().toLowerCase()
+  }
+
+  if (payload.emails?.length) {
+    normalizedPayload.emails = [
+      ...new Set(
+        payload.emails
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean)
+      ),
+    ]
+  }
+
   try {
     const response = await fetch(INVITE_USER_API_URL, {
       method: 'POST',
@@ -97,15 +182,14 @@ export async function inviteAdminUser(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizedPayload),
     })
 
     if (!response.ok) {
       await parseErrorResponse(response)
     }
 
-    const data = (await response.json()) as InviteUserResponse
-    return data
+    return (await response.json()) as InviteUserResponse
   } catch (error) {
     if (error instanceof TypeError) {
       throw new Error(
@@ -115,4 +199,24 @@ export async function inviteAdminUser(
 
     throw error
   }
+}
+
+export async function disableAdminUser(
+  username: string
+): Promise<ToggleAdminUserResponse> {
+  return postAdminUserAction(
+    '/admin/users/disable',
+    username,
+    'No se pudo conectar con la API de deshabilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.'
+  )
+}
+
+export async function enableAdminUser(
+  username: string
+): Promise<ToggleAdminUserResponse> {
+  return postAdminUserAction(
+    '/admin/users/enable',
+    username,
+    'No se pudo conectar con la API de habilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.'
+  )
 }

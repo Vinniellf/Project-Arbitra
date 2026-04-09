@@ -25,11 +25,16 @@ export function useInviteAdminUser(): UseInviteAdminUserReturn {
 
       const response = await inviteAdminUser(payload)
 
-      setSuccessMessage(response.message || 'Usuario invitado correctamente.')
+      setSuccessMessage(
+        response.message || 'Invitación procesada correctamente.'
+      )
+
       return response
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'No se pudo invitar al usuario.'
+        err instanceof Error
+          ? err.message
+          : 'No se pudo procesar la invitación.'
 
       setError(message)
       throw err

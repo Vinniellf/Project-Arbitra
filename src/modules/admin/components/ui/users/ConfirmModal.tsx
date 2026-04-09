@@ -67,19 +67,19 @@ export default function ConfirmModal({
 
             {isLoading && (
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Enviando invitación, espera un momento...
+                Procesando invitación, espera un momento...
               </p>
             )}
 
             {isSuccess && (
               <div className="mt-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                {successMessage || 'La invitación se envió correctamente.'}
+                {successMessage || 'La invitación se procesó correctamente.'}
               </div>
             )}
 
             {isError && (
               <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {errorMessage || 'No se pudo enviar la invitación.'}
+                {errorMessage || 'No se pudo procesar la invitación.'}
               </div>
             )}
           </div>
