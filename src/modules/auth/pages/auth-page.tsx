@@ -8,6 +8,9 @@ import { useAuthContext } from '../hooks/useAuthContext'
 import { getAuthErrorMessage } from '../utils/auth-error-handler'
 import { AuthErrorMessage } from '../components/AuthErrorMessage'
 
+import { isAdminUser } from '../utils/role.utils'
+import { getCurrentSessionUser } from '../services/session.service'
+
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 import icon from '@/assets/icon.webp'
 
@@ -75,7 +78,13 @@ export default function AuthPage() {
         variant="login"
         onFinish={async () => {
           await refreshUser()
-          navigate('/home', { replace: true })
+
+          const sessionUser = await getCurrentSessionUser()
+          const redirectPath = isAdminUser(sessionUser?.groups ?? [])
+            ? '/admin'
+            : '/home'
+
+          navigate(redirectPath, { replace: true })
         }}
       />
     )
@@ -188,7 +197,7 @@ export default function AuthPage() {
                     `}
                     required
                   />
-                  
+
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}

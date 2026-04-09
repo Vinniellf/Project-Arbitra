@@ -1,17 +1,22 @@
 import { Navigate } from 'react-router-dom'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
+import { isAdminUser } from '@/modules/auth/utils/role.utils'
 
 type Props = {
   children: React.ReactNode
 }
 
 export const PublicGuard = ({ children }: Props) => {
-  const { isAuthenticated, initialLoading } = useAuthContext()
+  const { user, isAuthenticated, initialLoading } = useAuthContext()
 
   if (initialLoading) return null
 
   if (isAuthenticated) {
-    return <Navigate to="/home" replace />
+    const redirectPath = isAdminUser(user?.groups ?? [])
+      ? '/admin'
+      : '/home'
+
+    return <Navigate to={redirectPath} replace />
   }
 
   return <>{children}</>

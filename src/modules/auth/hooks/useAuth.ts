@@ -7,7 +7,6 @@ export const useAuth = () => {
   // LOGIN
   const login = async (email: string, password: string) => {
     setLoading(true);
-
     try {
       return await authService.login(email, password);
     } finally {
@@ -18,7 +17,6 @@ export const useAuth = () => {
   // CAMBIO DE CONTRASEÑA (INVITACIÓN / PRIMER LOGIN)
   const confirmNewPassword = async (password: string) => {
     setLoading(true);
-
     try {
       return await authService.confirmNewPassword(password);
     } finally {
@@ -26,10 +24,19 @@ export const useAuth = () => {
     }
   };
 
-  // FORGOT PASSWORD (opcional)
+  // 🔥 NUEVO: ACTUALIZAR PERFIL (NAME)
+  const updateProfile = async (data: { name?: string }) => {
+    setLoading(true);
+    try {
+      return await authService.updateProfile(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // FORGOT PASSWORD
   const forgotPassword = async (email: string) => {
     setLoading(true);
-
     try {
       return await authService.forgotPassword(email);
     } finally {
@@ -37,14 +44,13 @@ export const useAuth = () => {
     }
   };
 
-  // CONFIRMAR RESET PASSWORD (opcional)
+  // CONFIRMAR RESET PASSWORD
   const confirmReset = async (
     email: string,
     code: string,
     password: string
   ) => {
     setLoading(true);
-
     try {
       return await authService.confirmReset(email, code, password);
     } finally {
@@ -59,14 +65,12 @@ export const useAuth = () => {
 
   return {
     login,
-
-    // NUEVO (clave para invitación Cognito)
     confirmNewPassword,
 
-    // opcionales (forgot password)
+    updateProfile,
+
     forgotPassword,
     confirmReset,
-
     logout,
     loading,
   };
