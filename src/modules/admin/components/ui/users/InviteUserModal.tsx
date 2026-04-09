@@ -383,7 +383,7 @@ export default function InviteUserModal({
                   rows={7}
                   value={form.emailsText}
                   onChange={handleChange}
-                  placeholder={`angelfabiano0404@gmail.com\nangelfabiano3030@gmail.com`}
+                  placeholder={`correo@ejemplo.com\notro@ejemplo.com`}
                   disabled={isBusy}
                   className="w-full resize-none rounded-2xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-50"
                 />
