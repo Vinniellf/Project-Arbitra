@@ -8,7 +8,7 @@ type UsersGridProps = {
   getStatusBadge: (status?: string) => string
   getStatusLabel: (status?: string) => string
   onToggleEnabled: (user: AdminUser) => void
-  loadingUsername?: string | null
+  actionLoadingUserId?: string | null
 }
 
 export default function UsersGrid({
@@ -17,22 +17,26 @@ export default function UsersGrid({
   getStatusBadge,
   getStatusLabel,
   onToggleEnabled,
-  loadingUsername = null,
+  actionLoadingUserId = null,
 }: UsersGridProps) {
   return (
     <EntityGrid>
-      {users.map((user, index) => (
-        <UserCard
-          key={user.username ?? user.email ?? `${index}`}
-          user={user}
-          index={index}
-          formatDate={formatDate}
-          getStatusBadge={getStatusBadge}
-          getStatusLabel={getStatusLabel}
-          onToggleEnabled={onToggleEnabled}
-          actionLoading={loadingUsername === user.username}
-        />
-      ))}
+      {users.map((user, index) => {
+        const userKey = user.email ?? user.username ?? `${index}`
+
+        return (
+          <UserCard
+            key={userKey}
+            user={user}
+            index={index}
+            formatDate={formatDate}
+            getStatusBadge={getStatusBadge}
+            getStatusLabel={getStatusLabel}
+            onToggleEnabled={onToggleEnabled}
+            actionLoading={actionLoadingUserId === userKey}
+          />
+        )
+      })}
     </EntityGrid>
   )
 }

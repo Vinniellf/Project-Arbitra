@@ -156,7 +156,7 @@ export default function UsuariosView() {
                     getStatusBadge={getAdminUserStatusBadge}
                     getStatusLabel={getAdminUserStatusLabel}
                     onToggleEnabled={handleToggleEnabled}
-                    loadingUsername={actionLoadingUserId}
+                    actionLoadingUserId={actionLoadingUserId}
                   />
                 )}
               </>
