@@ -25,12 +25,23 @@ jobs:
       # 3. Instalar dependencias
       - name: Install Dependencies
         run: npm ci # 'npm ci' es más seguro y rápido para CI/CD que 'npm install'
+
+      # 4 Crear archivo .env temporal para el build
+      - name: Create .env file
+        run: |
+          echo "VITE_USER_POOL_ID=${{ secrets.VITE_USER_POOL_ID }}" >> .env
+          echo "VITE_USER_POOL_CLIENT_ID=${{ secrets.VITE_USER_POOL_CLIENT_ID }}" >> .env
+          echo "VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL=${{ secrets.VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL }}" >> .env
+          echo "VITE_ADMIN_USERS_API_URL=${{secrets.VITE_ADMIN_USERS_API_URL}}" >> .env
+          echo "VITE_INVITE_USER_API_URL=${{secrets.VITE_INVITE_USER_API_URL}}" >> .env
+
+
  
-      # 4. Construir la aplicación para producción
+      # 5. Construir la aplicación para producción
       - name: Build Application
         run: npm run build
  
-      # 5. Configurar credenciales de AWS
+      # 6. Configurar credenciales de AWS
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,11 +49,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
  
-      # 6. Sincronizar la carpeta de build con S3
+      # 7. Sincronizar la carpeta de build con S3
       # NOTA: Cambia './dist' por './build' o la carpeta que genere tu framework.
       - name: Deploy to S3
         run: aws s3 sync ./dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
  
-      # 7. Invalidar la caché de CloudFront para que los usuarios vean los cambios inmediatamente
+      # 8. Invalidar la caché de CloudFront para que los usuarios vean los cambios inmediatamente
       - name: Invalidate CloudFront Cache
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
