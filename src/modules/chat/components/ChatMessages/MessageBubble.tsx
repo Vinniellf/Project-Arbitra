@@ -2,6 +2,7 @@ import { User } from 'lucide-react'
 import pepeIcon from '@/assets/icon.webp'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import type { ReactNode } from 'react'
 
 type Props = {
   role: 'user' | 'assistant'
@@ -101,7 +102,7 @@ export const MessageBubble = ({ role, content }: Props) => {
                 code(props) {
                   const { inline, children } = props as {
                     inline?: boolean
-                    children?: React.ReactNode
+                    children?: ReactNode
                   }
 
                   if (inline) {
