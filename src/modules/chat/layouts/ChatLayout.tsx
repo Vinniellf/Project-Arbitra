@@ -58,6 +58,7 @@ export const ChatLayout = ({
     useState(false)
 
   const { containerRef, lastAssistantRef } = useAutoScroll(messages, {
+    loading,
     shouldScrollToNextAssistant,
     onScrolledToNextAssistant: () => setShouldScrollToNextAssistant(false),
   })
@@ -71,7 +72,7 @@ export const ChatLayout = ({
     'bg-white backdrop-blur-xl shadow-xl overflow-hidden flex',
     isFullscreen
       ? 'fixed inset-0 z-[9999] w-screen h-screen rounded-none'
-      : 'relative w-full h-screen sm:h-[85vh] md:h-[90vh] rounded-none sm:rounded-2xl',
+      : 'relative w-full h-screen sm:h-[85vh] md:h-[90vh] rounded-none sm:rounded-2xl'
   )
 
   return (

@@ -1,6 +1,7 @@
 import type { Message } from '../../types/chat.types'
 import { MessageBubble } from './MessageBubble'
 import pepeIcon from '@/assets/icon.webp'
+import type React from 'react'
 
 type Props = {
   messages: Message[]
@@ -58,7 +59,7 @@ export const ChatMessages = ({
           </div>
         )}
 
-        <div style={{ height: bottomSpacer }} />
+        <div style={{ height: bottomSpacer ?? 0 }} />
       </div>
     </div>
   )
