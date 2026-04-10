@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 export const useBottomSpacer = (
   inputRef: React.RefObject<HTMLElement | null>
 ) => {
-  const [height, setHeight] = useState(80)
+  const [height, setHeight] = useState(64)
 
   useEffect(() => {
     const element = inputRef.current
@@ -13,7 +13,7 @@ export const useBottomSpacer = (
       const rect = element.getBoundingClientRect()
 
       setHeight((prev) => {
-        const next = rect.height + 12 // margen visual
+        const next = rect.height + 4
         return Math.abs(prev - next) > 1 ? next : prev
       })
     }

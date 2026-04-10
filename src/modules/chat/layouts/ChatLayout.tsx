@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import clsx from 'clsx'
 import type { Chat } from '../types/chat.types'
 
@@ -54,7 +54,18 @@ export const ChatLayout = ({
   const inputRef = useRef<HTMLDivElement | null>(null)
   const bottomSpacer = useBottomSpacer(inputRef)
 
-  const { containerRef, bottomRef } = useAutoScroll(messages, loading)
+  const [shouldScrollToNextAssistant, setShouldScrollToNextAssistant] =
+    useState(false)
+
+  const { containerRef, lastAssistantRef } = useAutoScroll(messages, {
+    shouldScrollToNextAssistant,
+    onScrolledToNextAssistant: () => setShouldScrollToNextAssistant(false),
+  })
+
+  const handleSendMessage = (msg: string) => {
+    setShouldScrollToNextAssistant(true)
+    sendMessage(msg)
+  }
 
   const containerClasses = clsx(
     'bg-white backdrop-blur-xl shadow-xl overflow-hidden flex',
@@ -66,7 +77,6 @@ export const ChatLayout = ({
   return (
     <div className={containerClasses}>
       <div className="flex-1 flex flex-col h-full">
-        {/* HEADER */}
         <ChatHeader
           onToggleMenu={toggleSidebar}
           onReset={resetChat}
@@ -74,9 +84,7 @@ export const ChatLayout = ({
           isFullscreen={isFullscreen}
         />
 
-        {/* CONTENIDO */}
         <div className="relative flex-1 min-h-0 flex">
-          {/* SIDEBAR */}
           <AnimatePresence mode="wait">
             {isSidebarOpen && (
               <ChatSidebar
@@ -91,34 +99,28 @@ export const ChatLayout = ({
             )}
           </AnimatePresence>
 
-          {/* MENSAJES + INPUT */}
           <div className="flex flex-col flex-1 min-h-0">
-            {/* MENSAJES */}
             <div
               ref={containerRef}
               className="flex-1 overflow-y-auto scroll-smooth px-1 sm:px-0"
             >
-              <AnimatePresence mode="wait">
-                {messages.length === 0 ? (
-                  <ChatWelcome key="welcome" />
-                ) : (
-                  <ChatMessages
-                    key="messages"
-                    messages={messages}
-                    loading={loading}
-                    bottomRef={bottomRef}
-                    bottomSpacer={bottomSpacer}
-                  />
-                )}
-              </AnimatePresence>
+              {messages.length === 0 ? (
+                <ChatWelcome />
+              ) : (
+                <ChatMessages
+                  messages={messages}
+                  loading={loading}
+                  lastAssistantRef={lastAssistantRef}
+                  bottomSpacer={bottomSpacer}
+                />
+              )}
             </div>
 
-            {/* INPUT (STICKY PRO) */}
             <div
               ref={inputRef}
               className="sticky bottom-0 w-full px-2 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 bg-white"
             >
-              <ChatInput onSend={sendMessage} />
+              <ChatInput onSend={handleSendMessage} />
             </div>
           </div>
         </div>

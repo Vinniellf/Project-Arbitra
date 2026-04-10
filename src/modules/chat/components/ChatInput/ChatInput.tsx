@@ -1,4 +1,4 @@
-import { Send, Mic } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
 type Props = {
@@ -68,7 +68,7 @@ export const ChatInput = ({ onSend }: Props) => {
         />
 
         {/* MIC (opcional ocultar en móvil muy pequeño) */}
-        <button
+        {/* <button
           className="
             hidden xs:flex sm:flex
             p-2 rounded-lg
@@ -79,7 +79,7 @@ export const ChatInput = ({ onSend }: Props) => {
           "
         >
           <Mic size={18} />
-        </button>
+        </button> */}
 
         {/* SEND */}
         <button

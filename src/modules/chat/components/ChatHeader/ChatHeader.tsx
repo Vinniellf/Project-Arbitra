@@ -1,6 +1,7 @@
 import {
-  Download,
-  Printer,
+ 
+ // Download,
+ // Printer,
   Maximize,
   Minimize,
   RotateCcw,
@@ -70,7 +71,7 @@ export const ChatHeader = ({
         </button>
 
         {/* Ocultos en móvil */}
-        <button className="hidden sm:flex " title="Descargar">
+        {/* <button className="hidden sm:flex " title="Descargar">
           <span className={btn}>
             <Download size={16} />
           </span>
@@ -80,7 +81,7 @@ export const ChatHeader = ({
           <span className={btn}>
             <Printer size={16} />
           </span>
-        </button>
+        </button> */}
       </div>
     </header>
   )
