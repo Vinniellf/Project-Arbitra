@@ -1,7 +1,7 @@
 export const ADMIN_USER_STATUS = {
   CONFIRMED: 'CONFIRMED',
   FORCE_CHANGE_PASSWORD: 'FORCE_CHANGE_PASSWORD',
-  UNCONFIRMED: 'UNCONFIRMED',
+  //UNCONFIRMED: 'UNCONFIRMED',
 } as const
 
 export const ADMIN_USER_ENABLED_FILTER = {
@@ -34,10 +34,10 @@ export const ADMIN_USER_STATUS_META: Record<
     label: 'Cambiar contraseña',
     badgeClassName: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   },
-  [ADMIN_USER_STATUS.UNCONFIRMED]: {
-    label: 'Pendiente',
-    badgeClassName: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
-  },
+  // [ADMIN_USER_STATUS.UNCONFIRMED]: {
+  //   label: 'Pendiente',
+  //   badgeClassName: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
+  // },
 }
 
 export const ADMIN_USER_STATUS_OPTIONS = [
@@ -50,10 +50,10 @@ export const ADMIN_USER_STATUS_OPTIONS = [
     label: ADMIN_USER_STATUS_META[ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD].label,
     value: ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD,
   },
-  {
-    label: ADMIN_USER_STATUS_META[ADMIN_USER_STATUS.UNCONFIRMED].label,
-    value: ADMIN_USER_STATUS.UNCONFIRMED,
-  },
+  // {
+  //   label: ADMIN_USER_STATUS_META[ADMIN_USER_STATUS.UNCONFIRMED].label,
+  //   value: ADMIN_USER_STATUS.UNCONFIRMED,
+  // },
 ] as const
 
 export const ADMIN_USER_ENABLED_OPTIONS = [

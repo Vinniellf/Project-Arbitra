@@ -5,6 +5,7 @@ import {
   ADMIN_USER_STATUS_META,
   DEFAULT_ADMIN_USER_STATUS_BADGE_CLASS,
   DEFAULT_ADMIN_USER_STATUS_LABEL,
+  type AdminUserEnabledFilter,
   type AdminUserStatus,
 } from '../constants/admin-user.constants'
 
@@ -12,7 +13,7 @@ export function filterAdminUsers(
   users: AdminUser[],
   search: string,
   statusFilter: string,
-  enabledFilter: string,
+  enabledFilter: AdminUserEnabledFilter
 ) {
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -41,7 +42,7 @@ export function getAdminUsersStats(users: AdminUser[]) {
     enabledUsers: users.filter((user) => user.enabled).length,
     disabledUsers: users.filter((user) => !user.enabled).length,
     forceChangePasswordUsers: users.filter(
-      (user) => user.status === ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD,
+      (user) => user.status === ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
     ).length,
   }
 }

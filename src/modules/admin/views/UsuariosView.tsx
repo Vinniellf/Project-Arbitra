@@ -26,6 +26,7 @@ import {
   getAdminUserStatusBadge,
   getAdminUserStatusLabel,
 } from '../utils/admin-users.utils'
+import { ADMIN_USER_ENABLED_FILTER } from '../constants/admin-user.constants'
 
 type ViewMode = 'cards' | 'table'
 
@@ -82,6 +83,11 @@ export default function UsuariosView() {
   ) : (
     <Users className="h-7 w-7 text-white" />
   )
+
+  const currentTableVariant =
+    enabledFilter === ADMIN_USER_ENABLED_FILTER.DISABLED
+      ? 'disabled'
+      : 'enabled'
 
   return (
     <div className="min-h-full bg-slate-50 p-2">
@@ -143,6 +149,7 @@ export default function UsuariosView() {
                   <UserTable
                     users={filteredUsers}
                     loading={false}
+                    variant={currentTableVariant}
                     formatDate={formatAdminUserDate}
                     getStatusBadge={getAdminUserStatusBadge}
                     getStatusLabel={getAdminUserStatusLabel}

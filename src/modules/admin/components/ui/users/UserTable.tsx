@@ -15,9 +15,12 @@ import TableSkeleton from '../../common/table/TableSkeleton'
 
 import type { AdminUser } from '../../../types/user'
 
+type UserTableVariant = 'enabled' | 'disabled'
+
 type UserTableProps = {
   users: AdminUser[]
   loading?: boolean
+  variant: UserTableVariant
   formatDate: (date?: string) => string
   getStatusBadge: (status?: string) => string
   getStatusLabel: (status?: string) => string
@@ -28,6 +31,7 @@ type UserTableProps = {
 export default function UserTable({
   users,
   loading = false,
+  variant,
   formatDate,
   getStatusBadge,
   getStatusLabel,
@@ -41,6 +45,12 @@ export default function UserTable({
     { key: 'action', label: 'Acceso', align: 'right' as const },
   ]
 
+  const isEnabledVariant = variant === 'enabled'
+
+  const emptyMessage = isEnabledVariant
+    ? 'No hay usuarios habilitados.'
+    : 'No hay usuarios deshabilitados.'
+
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <TableContainer>
@@ -50,7 +60,7 @@ export default function UserTable({
           {loading ? (
             <TableSkeleton rows={5} columns={columns.length} />
           ) : users.length === 0 ? (
-            <TableEmptyState colSpan={columns.length} />
+            <TableEmptyState colSpan={columns.length} message={emptyMessage} />
           ) : (
             <tbody className="divide-y divide-slate-100 bg-white">
               {users.map((user) => {
@@ -63,7 +73,6 @@ export default function UserTable({
                     key={userKey}
                     className="group transition hover:bg-slate-50/70"
                   >
-                    {/* USUARIO */}
                     <td className="px-3 py-3">
                       <div className="flex items-start gap-2.5">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-100">
@@ -83,7 +92,6 @@ export default function UserTable({
                       </div>
                     </td>
 
-                    {/* ESTADO COGNITO */}
                     <td className="px-3 py-3">
                       <div className="flex items-center justify-between gap-2 rounded-md bg-slate-50 px-2.5 py-2">
                         <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
@@ -101,7 +109,6 @@ export default function UserTable({
                       </div>
                     </td>
 
-                    {/* FECHA */}
                     <td className="px-3 py-3">
                       <div className="flex items-center justify-between gap-2 rounded-md bg-slate-50 px-2.5 py-2">
                         <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
@@ -115,7 +122,6 @@ export default function UserTable({
                       </div>
                     </td>
 
-                    {/* ACCESO */}
                     <td className="px-3 py-3 text-right">
                       <div className="flex flex-col items-end gap-1">
                         <span
