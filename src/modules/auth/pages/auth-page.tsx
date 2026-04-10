@@ -40,8 +40,11 @@ export default function AuthPage() {
     e.preventDefault()
     setError('')
 
+    const cleanEmail = email.trim()
+    const cleanPassword = password.trim()
+
     try {
-      const result = await login(email, password)
+      const result = await login(cleanEmail, cleanPassword)
 
       if (result.requiresNewPassword) {
         navigate('/new-password')
