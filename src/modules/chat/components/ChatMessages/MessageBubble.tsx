@@ -15,12 +15,12 @@ export const MessageBubble = ({ role, content }: Props) => {
   return (
     <div
       className={`
-        flex items-end gap-2 sm:gap-3
+        flex items-end gap-2
         ${isUser ? 'justify-end' : 'justify-start'}
       `}
     >
       {!isUser && (
-        <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
+        <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
           <img
             src={pepeIcon}
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
@@ -31,14 +31,13 @@ export const MessageBubble = ({ role, content }: Props) => {
 
       <div
         className={`
-          px-3 sm:px-4
-          py-2 sm:py-3
-          rounded-xl sm:rounded-2xl
-          text-sm sm:text-[15px]
-          max-w-[85%] sm:max-w-[75%]
-          leading-relaxed
+          px-3
+          py-2
+          rounded-xl
+          text-[13px] sm:text-sm
+          max-w-[88%] sm:max-w-[78%]
+          leading-6
           wrap-break-word
-          overflow-hidden
           ${
             isUser
               ? 'bg-blue-600 text-white shadow-sm whitespace-pre-wrap'
@@ -49,32 +48,32 @@ export const MessageBubble = ({ role, content }: Props) => {
         {isUser ? (
           <span className="whitespace-pre-wrap wrap-break-word">{content}</span>
         ) : (
-          <div className="max-w-none text-[15px] leading-7 wrap-break-word">
+          <div className="max-w-full text-[13px] sm:text-sm leading-6 wrap-break-word">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => (
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mt-2 mb-3 leading-tight">
+                  <h1 className="text-lg sm:text-xl font-bold text-slate-900 mt-1 mb-2 leading-tight">
                     {children}
                   </h1>
                 ),
                 h2: ({ children }) => (
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mt-4 mb-2 leading-tight">
+                  <h2 className="text-base sm:text-lg font-semibold text-slate-900 mt-3 mb-1.5 leading-tight">
                     {children}
                   </h2>
                 ),
                 h3: ({ children }) => (
-                  <h3 className="text-base sm:text-lg font-semibold text-slate-900 mt-3 mb-2 leading-snug">
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-900 mt-2.5 mb-1.5 leading-snug">
                     {children}
                   </h3>
                 ),
                 p: ({ children }) => (
-                  <p className="my-2 whitespace-pre-wrap leading-7 text-slate-800">
+                  <p className="my-1.5 whitespace-pre-wrap leading-6 text-slate-800">
                     {children}
                   </p>
                 ),
                 strong: ({ children }) => (
-                  <strong className="font-bold text-slate-900">
+                  <strong className="font-semibold text-slate-900">
                     {children}
                   </strong>
                 ),
@@ -82,20 +81,20 @@ export const MessageBubble = ({ role, content }: Props) => {
                   <em className="italic text-slate-700">{children}</em>
                 ),
                 ul: ({ children }) => (
-                  <ul className="list-disc pl-5 my-2 space-y-1">
+                  <ul className="list-disc pl-4 my-1.5 space-y-0.5">
                     {children}
                   </ul>
                 ),
                 ol: ({ children }) => (
-                  <ol className="list-decimal pl-5 my-2 space-y-1">
+                  <ol className="list-decimal pl-4 my-1.5 space-y-0.5">
                     {children}
                   </ol>
                 ),
                 li: ({ children }) => (
-                  <li className="leading-7 text-slate-800">{children}</li>
+                  <li className="leading-6 text-slate-800">{children}</li>
                 ),
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-slate-300 pl-4 my-3 italic text-slate-700">
+                  <blockquote className="border-l-4 border-slate-300 pl-3 my-2 italic text-slate-700">
                     {children}
                   </blockquote>
                 ),
@@ -107,20 +106,20 @@ export const MessageBubble = ({ role, content }: Props) => {
 
                   if (inline) {
                     return (
-                      <code className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-900 text-[13px] font-mono">
+                      <code className="px-1 py-0.5 rounded bg-slate-100 text-slate-900 text-[12px] font-mono wrap-break-word">
                         {children}
                       </code>
                     )
                   }
 
                   return (
-                    <code className="block w-full overflow-x-auto rounded-xl bg-slate-900 text-slate-100 p-3 text-[13px] font-mono leading-6 my-3">
+                    <code className="block w-full overflow-x-auto rounded-lg bg-slate-900 text-slate-100 p-2.5 text-[12px] font-mono leading-5 my-2">
                       {children}
                     </code>
                   )
                 },
                 pre: ({ children }) => (
-                  <pre className="my-3 overflow-x-auto">{children}</pre>
+                  <pre className="my-2 overflow-x-auto">{children}</pre>
                 ),
                 a: ({ href, children }) => (
                   <a
@@ -132,8 +131,8 @@ export const MessageBubble = ({ role, content }: Props) => {
                     {children}
                   </a>
                 ),
-                hr: () => <hr className="my-4 border-slate-300" />,
-                br: () => <br className="block my-2" />,
+                hr: () => <hr className="my-3 border-slate-300" />,
+                br: () => <br />,
               }}
             >
               {content}
@@ -143,8 +142,8 @@ export const MessageBubble = ({ role, content }: Props) => {
       </div>
 
       {isUser && (
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-          <User size={14} className="sm:w-4 sm:h-4 text-slate-600" />
+        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+          <User size={13} className="sm:w-3.5 sm:h-3.5 text-slate-600" />
         </div>
       )}
     </div>

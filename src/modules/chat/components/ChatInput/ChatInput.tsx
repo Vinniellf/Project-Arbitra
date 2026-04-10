@@ -11,7 +11,13 @@ export const ChatInput = ({ onSend }: Props) => {
 
   useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
-      if (e.key === 'Tab' && document.activeElement !== textareaRef.current) {
+      if (
+        e.key === 'Tab' &&
+        document.activeElement !== textareaRef.current &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
+      ) {
         e.preventDefault()
         textareaRef.current?.focus()
       }
@@ -37,7 +43,6 @@ export const ChatInput = ({ onSend }: Props) => {
     setText('')
 
     if (textareaRef.current) {
-      textareaRef.current.style.height = '0px'
       textareaRef.current.style.height = '44px'
     }
   }
@@ -50,7 +55,7 @@ export const ChatInput = ({ onSend }: Props) => {
   }
 
   return (
-    <div className="w-full flex justify-center px-2 sm:px-4">
+    <div className="w-full flex justify-center">
       <div
         className="
           w-full max-w-3xl
@@ -74,7 +79,7 @@ export const ChatInput = ({ onSend }: Props) => {
             resize-none
             overflow-y-auto
             bg-transparent
-            px-1 py-2.5
+            px-1 py-2
             text-sm sm:text-base
             text-gray-700
             placeholder:text-gray-400
@@ -86,6 +91,7 @@ export const ChatInput = ({ onSend }: Props) => {
         <button
           onClick={handleSend}
           disabled={!text.trim()}
+          type="button"
           className="
             flex h-11 w-11 shrink-0 items-center justify-center
             rounded-xl bg-blue-500 text-white shadow-sm

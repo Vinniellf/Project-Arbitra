@@ -77,7 +77,7 @@ export const ChatLayout = ({
 
   return (
     <div className={containerClasses}>
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full min-w-0">
         <ChatHeader
           onToggleMenu={toggleSidebar}
           onReset={resetChat}
@@ -100,10 +100,10 @@ export const ChatLayout = ({
             )}
           </AnimatePresence>
 
-          <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex flex-col flex-1 min-h-0 min-w-0">
             <div
               ref={containerRef}
-              className="flex-1 overflow-y-auto scroll-smooth px-1 sm:px-0"
+              className="flex-1 overflow-y-auto scroll-smooth"
             >
               {messages.length === 0 ? (
                 <ChatWelcome />
@@ -119,7 +119,7 @@ export const ChatLayout = ({
 
             <div
               ref={inputRef}
-              className="sticky bottom-0 w-full px-2 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 bg-white"
+              className="sticky bottom-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 bg-white"
             >
               <ChatInput onSend={handleSendMessage} />
             </div>

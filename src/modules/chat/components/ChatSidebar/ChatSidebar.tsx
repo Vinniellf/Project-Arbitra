@@ -20,12 +20,10 @@ export const ChatSidebar = ({
   onDeleteChat,
   onNewChat,
 }: Props) => {
-  // estado búsqueda
   const [search, setSearch] = useState('')
 
-  // filtro
   const filteredChats = chats.filter((chat) =>
-    chat.messages[0]?.content?.toLowerCase().includes(search.toLowerCase()),
+    chat.messages[0]?.content?.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -35,7 +33,6 @@ export const ChatSidebar = ({
       exit="exit"
       className="absolute inset-0 z-20"
     >
-      {/* OVERLAY */}
       <motion.div
         onClick={onClose}
         variants={{
@@ -47,7 +44,6 @@ export const ChatSidebar = ({
         className="absolute inset-0 bg-black/30 backdrop-blur-[1px] z-10"
       />
 
-      {/* SIDEBAR */}
       <motion.div
         variants={{
           hidden: { x: '-100%' },
@@ -71,7 +67,6 @@ export const ChatSidebar = ({
           flex flex-col
         "
       >
-        {/* HEADER */}
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm sm:text-base font-semibold text-gray-700">
             Conversaciones
@@ -80,15 +75,16 @@ export const ChatSidebar = ({
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 transition"
+            type="button"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* ACCIONES */}
         <div className="p-1 sm:p-2 space-y-2">
           <button
             onClick={onNewChat}
+            type="button"
             className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-sm"
           >
             <MessageSquare size={16} />
@@ -118,7 +114,6 @@ export const ChatSidebar = ({
           </div>
         </div>
 
-        {/* LISTA */}
         <div className="mt-3 sm:mt-4 border-t border-gray-200 pt-3 flex-1 overflow-y-auto pr-1">
           <p className="text-[11px] sm:text-xs text-gray-400 font-semibold tracking-wide mb-2">
             RECIENTES
@@ -141,7 +136,6 @@ export const ChatSidebar = ({
                       rounded-lg
                       group cursor-pointer
                       transition
-
                       ${
                         isActive
                           ? 'bg-blue-50 border border-blue-200'
@@ -149,8 +143,8 @@ export const ChatSidebar = ({
                       }
                     `}
                   >
-                    <div className="flex flex-col flex-1">
-                      <span className="text-sm text-gray-700 line-clamp-2">
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="text-sm text-gray-700 line-clamp-2 wrap-break-word">
                         {chat.messages[0]?.content || 'Nuevo chat'}
                       </span>
 
@@ -164,11 +158,12 @@ export const ChatSidebar = ({
                         e.stopPropagation()
                         onDeleteChat(chat.id)
                       }}
+                      type="button"
                       className="
-                        opacity-0 sm:opacity-0
+                        opacity-0
                         group-hover:opacity-100
                         text-gray-400 hover:text-red-500
-                        transition ml-2 mt-1
+                        transition ml-2 mt-1 shrink-0
                       "
                     >
                       <Trash2 size={14} />

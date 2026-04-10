@@ -1,7 +1,7 @@
+import type React from 'react'
 import type { Message } from '../../types/chat.types'
 import { MessageBubble } from './MessageBubble'
 import pepeIcon from '@/assets/icon.webp'
-import type React from 'react'
 
 type Props = {
   messages: Message[]
@@ -26,8 +26,8 @@ export const ChatMessages = ({
     .pop()?.index
 
   return (
-    <div className="w-full px-3 sm:px-4 md:px-6 pt-6 sm:pt-8 md:pt-10 pb-4 sm:pb-6">
-      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-5 md:space-y-6">
+    <div className="w-full px-3 sm:px-4 md:px-6 pt-4 sm:pt-5 md:pt-6 pb-3 sm:pb-4">
+      <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
         {visibleMessages.map((msg, index) => {
           const isLastAssistant = index === lastAssistantIndex
 
@@ -42,8 +42,8 @@ export const ChatMessages = ({
         })}
 
         {loading && (
-          <div className="flex items-end gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+          <div className="flex items-end gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
               <img
                 src={pepeIcon}
                 className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
@@ -51,10 +51,10 @@ export const ChatMessages = ({
               />
             </div>
 
-            <div className="bg-white/80 border border-slate-200 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-400 rounded-full animate-bounce"></span>
-              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+            <div className="bg-white/80 border border-slate-200 rounded-xl px-2.5 sm:px-3 py-2 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" />
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]" />
             </div>
           </div>
         )}
