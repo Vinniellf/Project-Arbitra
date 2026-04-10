@@ -1,5 +1,5 @@
 import { Send } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type Props = {
   onSend: (text: string) => void
@@ -7,14 +7,13 @@ type Props = {
 
 export const ChatInput = ({ onSend }: Props) => {
   const [text, setText] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // TAB → enfocar input (global)
   useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
-      if (e.key === 'Tab' && document.activeElement !== inputRef.current) {
+      if (e.key === 'Tab' && document.activeElement !== textareaRef.current) {
         e.preventDefault()
-        inputRef.current?.focus()
+        textareaRef.current?.focus()
       }
     }
 
@@ -22,14 +21,29 @@ export const ChatInput = ({ onSend }: Props) => {
     return () => window.removeEventListener('keydown', handleGlobalKey)
   }, [])
 
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    textarea.style.height = '0px'
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`
+  }, [text])
+
   const handleSend = () => {
-    if (!text.trim()) return
-    onSend(text)
+    const message = text.trim()
+    if (!message) return
+
+    onSend(message)
     setText('')
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '0px'
+      textareaRef.current.style.height = '44px'
+    }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
@@ -40,61 +54,43 @@ export const ChatInput = ({ onSend }: Props) => {
       <div
         className="
           w-full max-w-3xl
-          flex items-center
-          bg-white/90 backdrop-blur-xl
-          border border-gray-200/60
-          rounded-xl sm:rounded-2xl
-          shadow-md
-          px-3 sm:px-4
-          py-2
-          gap-1.5 sm:gap-2
+          flex items-end gap-2
+          rounded-2xl border border-gray-200
+          bg-white shadow-sm
+          px-3 py-2
         "
       >
-        {/* INPUT */}
-        <input
-          ref={inputRef}
+        <textarea
+          ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
+          rows={1}
           placeholder="Escribe tu mensaje..."
           className="
             flex-1
+            min-h-11
+            max-h-40
+            resize-none
+            overflow-y-auto
             bg-transparent
-            outline-none
+            px-1 py-2.5
             text-sm sm:text-base
             text-gray-700
             placeholder:text-gray-400
+            outline-none
+            leading-6
           "
         />
 
-        {/* MIC (opcional ocultar en móvil muy pequeño) */}
-        {/* <button
-          className="
-            hidden xs:flex sm:flex
-            p-2 rounded-lg
-            text-gray-400
-            hover:text-gray-600
-            hover:bg-gray-100
-            transition
-          "
-        >
-          <Mic size={18} />
-        </button> */}
-
-        {/* SEND */}
         <button
           onClick={handleSend}
           disabled={!text.trim()}
           className="
-            p-2 sm:p-2.5
-            rounded-lg sm:rounded-xl
-            bg-blue-500
-            text-white
-            hover:bg-blue-600
-            transition
-            shadow-md
-            disabled:opacity-50
-            disabled:cursor-not-allowed
+            flex h-11 w-11 shrink-0 items-center justify-center
+            rounded-xl bg-blue-500 text-white shadow-sm
+            transition hover:bg-blue-600
+            disabled:cursor-not-allowed disabled:opacity-50
           "
         >
           <Send size={18} />
