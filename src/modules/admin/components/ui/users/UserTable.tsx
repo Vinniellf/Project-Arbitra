@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import {
   Mail,
   UserRound,
@@ -52,7 +51,6 @@ export default function UserTable({
     : 'No hay usuarios deshabilitados.'
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <TableContainer>
         <table className="min-w-full divide-y divide-slate-200">
           <TableHead columns={columns} />
@@ -163,6 +161,5 @@ export default function UserTable({
           )}
         </table>
       </TableContainer>
-    </motion.div>
   )
 }

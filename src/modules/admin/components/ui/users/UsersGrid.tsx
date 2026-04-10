@@ -2,8 +2,11 @@ import type { AdminUser } from '../../../types/user'
 import EntityGrid from '../../common/listing/EntityGrid'
 import UserCard from './UserCard'
 
+type UsersGridVariant = 'enabled' | 'disabled'
+
 type UsersGridProps = {
   users: AdminUser[]
+  variant: UsersGridVariant
   formatDate: (date?: string) => string
   getStatusBadge: (status?: string) => string
   getStatusLabel: (status?: string) => string
@@ -13,6 +16,7 @@ type UsersGridProps = {
 
 export default function UsersGrid({
   users,
+  variant,
   formatDate,
   getStatusBadge,
   getStatusLabel,
@@ -29,6 +33,7 @@ export default function UsersGrid({
             key={userKey}
             user={user}
             index={index}
+            variant={variant}
             formatDate={formatDate}
             getStatusBadge={getStatusBadge}
             getStatusLabel={getStatusLabel}

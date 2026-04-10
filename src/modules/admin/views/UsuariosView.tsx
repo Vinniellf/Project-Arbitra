@@ -36,7 +36,7 @@ export default function UsuariosView() {
   const { enableUser } = useEnableAdminUser()
 
   const [actionLoadingUserId, setActionLoadingUserId] = useState<string | null>(
-    null
+    null,
   )
   const [viewMode, setViewMode] = useState<ViewMode>('table')
 
@@ -159,6 +159,7 @@ export default function UsuariosView() {
                 ) : (
                   <UsersGrid
                     users={filteredUsers}
+                    variant={currentTableVariant}
                     formatDate={formatAdminUserDate}
                     getStatusBadge={getAdminUserStatusBadge}
                     getStatusLabel={getAdminUserStatusLabel}
