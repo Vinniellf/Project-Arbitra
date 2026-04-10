@@ -27,7 +27,7 @@ export const streamPepeResponse = async (
     const token = localStorage.getItem('session_token'); 
 
     // 2. Hacer la petición a tu Lambda 
-    const response = await fetch('https://7bgpepmsyczjw5lqbexl2iq22e0rtfas.lambda-url.us-east-1.on.aws/', {
+    const response = await fetch(import.meta.env.VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

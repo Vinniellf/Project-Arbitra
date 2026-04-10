@@ -5,7 +5,7 @@ import type {
   ListUsersResponse,
 } from '../types/user'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+const ADMIN_USERS_API_URL = import.meta.env.VITE_ADMIN_USERS_API_URL
 const INVITE_USER_API_URL = import.meta.env.VITE_INVITE_USER_API_URL
 
 type ApiErrorResponse = {
@@ -77,8 +77,8 @@ async function postAdminUserAction(
   username: string,
   networkErrorMessage: string
 ): Promise<ToggleAdminUserResponse> {
-  if (!API_BASE_URL) {
-    throw new Error('Falta configurar VITE_API_BASE_URL')
+  if (!ADMIN_USERS_API_URL) {
+    throw new Error('Falta configurar VITE_ADMIN_USERS_API_URL')
   }
 
   const normalizedUsername = username.trim()
@@ -90,7 +90,7 @@ async function postAdminUserAction(
   const accessToken = await getAccessToken()
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${ADMIN_USERS_API_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,14 +114,14 @@ async function postAdminUserAction(
 }
 
 export async function listAdminUsers(): Promise<ListUsersResponse> {
-  if (!API_BASE_URL) {
-    throw new Error('Falta configurar VITE_API_BASE_URL')
+  if (!ADMIN_USERS_API_URL) {
+    throw new Error('Falta configurar VITE_ADMIN_USERS_API_URL')
   }
 
   const accessToken = await getAccessToken()
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+    const response = await fetch(`${ADMIN_USERS_API_URL}/admin/users`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${accessToken}`,
