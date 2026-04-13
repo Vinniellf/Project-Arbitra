@@ -6,6 +6,7 @@ type StatCardProps = {
   icon: ReactNode
   valueClassName?: string
   iconWrapperClassName?: string
+  delay?: number
 }
 
 export default function StatCard({
