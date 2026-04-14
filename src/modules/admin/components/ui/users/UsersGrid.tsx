@@ -1,4 +1,4 @@
-import type { AdminUser } from '../../../types/user'
+import type { AdminUser } from '../../../types/admin-user'
 import EntityGrid from '../../common/listing/EntityGrid'
 import UserCard from './UserCard'
 
@@ -7,9 +7,9 @@ type UsersGridVariant = 'enabled' | 'disabled'
 type UsersGridProps = {
   users: AdminUser[]
   variant: UsersGridVariant
-  formatDate: (date?: string) => string
-  getStatusBadge: (status?: string) => string
-  getStatusLabel: (status?: string) => string
+  formatDate: (date?: string | null) => string
+  getStatusBadge: (status?: string | null) => string
+  getStatusLabel: (status?: string | null) => string
   onToggleEnabled: (user: AdminUser) => void
   actionLoadingUserId?: string | null
 }
@@ -26,7 +26,7 @@ export default function UsersGrid({
   return (
     <EntityGrid>
       {users.map((user, index) => {
-        const userKey = user.email ?? user.username ?? `${index}`
+        const userKey = user.username || `${index}`
 
         return (
           <UserCard

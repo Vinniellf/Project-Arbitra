@@ -23,7 +23,7 @@ export type ToggleAdminUserResponse = {
 export type InviteUserRole = 'ADMIN' | 'SUPER_ADMIN'
 
 export type InviteUserRequest = {
-  role: InviteUserRole
+  role?: InviteUserRole
   name?: string
   email?: string
   emails?: string[]
@@ -32,7 +32,7 @@ export type InviteUserRequest = {
 export type InviteUserResult = {
   email: string
   success: boolean
-  status: 'created' | 'resent' | 'invalid' | 'error'
+  status: 'created' | 'existing' | 'invalid' | 'error'
   message: string
   error?: string
 }
@@ -43,7 +43,7 @@ export type InviteUserResponse = {
   summary?: {
     total: number
     created: number
-    resent: number
+    existing: number
     invalid: number
     failed: number
   }
