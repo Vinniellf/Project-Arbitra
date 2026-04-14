@@ -32,6 +32,7 @@ export default function NewPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [showLoading, setShowLoading] = useState(false)
+  const [passwordConfirmed, setPasswordConfirmed] = useState(false)
 
   const { confirmNewPassword, updateProfile, loading } = useAuth()
   const { refreshUser } = useAuthContext()
@@ -70,10 +71,15 @@ export default function NewPasswordPage() {
     }
 
     try {
-      const fullName = `${cleanFirstName} ${cleanLastName}`
+      if (!passwordConfirmed) {
+        await confirmNewPassword(password)
+        setPasswordConfirmed(true)
+      }
 
-      await confirmNewPassword(password)
-      await updateProfile({ name: fullName })
+      await updateProfile({
+        firstName: cleanFirstName,
+        lastName: cleanLastName,
+      })
 
       setShowLoading(true)
     } catch (error: unknown) {
@@ -137,7 +143,7 @@ export default function NewPasswordPage() {
                   hover:border-gray-300
                   focus:ring-2 focus:ring-[#5aa9e6]/40
                 "
-                placeholder='Nombre'
+                placeholder="Nombre"
                 maxLength={50}
                 required
               />
@@ -158,7 +164,7 @@ export default function NewPasswordPage() {
                   hover:border-gray-300
                   focus:ring-2 focus:ring-[#5aa9e6]/40
                 "
-                placeholder='Apellido'
+                placeholder="Apellido"
                 maxLength={50}
                 required
               />

@@ -95,7 +95,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex bg-linear-to-br from-[#eef6fb] via-white to-[#e3edf7]">
-      {/* LADO IZQUIERDO */}
       <div className="hidden md:flex w-1/2 relative overflow-hidden bg-linear-to-br from-[#0F3D5E] via-[#1E6F9F] to-[#5aa9e6] text-white items-center justify-center px-10">
         <div className="absolute w-96 h-96 bg-white/10 rounded-full -top-20 -right-20 blur-3xl animate-pulse"></div>
         <div className="absolute w-96 h-96 bg-white/10 rounded-full -bottom-20 -left-20 blur-3xl animate-pulse"></div>
@@ -121,7 +120,6 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* LADO DERECHO */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-6">
         <div className="w-full max-w-md">
           <div
@@ -141,7 +139,6 @@ export default function AuthPage() {
             <p className="text-gray-500 mb-6 text-sm">Accede a tu cuenta</p>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* EMAIL */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Correo electrónico
@@ -172,7 +169,6 @@ export default function AuthPage() {
                 </div>
               </div>
 
-              {/* PASSWORD */}
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Contraseña
@@ -213,7 +209,6 @@ export default function AuthPage() {
 
               <AuthErrorMessage message={error} className="mt-2" />
 
-              {/* BOTÓN */}
               <button
                 type="submit"
                 disabled={loading}

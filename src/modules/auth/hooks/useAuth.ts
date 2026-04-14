@@ -1,77 +1,69 @@
-import { useState } from "react";
-import { authService } from "../services/auth.service";
+import { useState } from 'react'
+import { authService, type UpdateProfileData } from '../services/auth.service'
 
 export const useAuth = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
 
-  // LOGIN
   const login = async (email: string, password: string) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      return await authService.login(email, password);
+      return await authService.login(email, password)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // CAMBIO DE CONTRASEÑA (INVITACIÓN / PRIMER LOGIN)
   const confirmNewPassword = async (password: string) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      return await authService.confirmNewPassword(password);
+      return await authService.confirmNewPassword(password)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // 🔥 NUEVO: ACTUALIZAR PERFIL (NAME)
-  const updateProfile = async (data: { name?: string }) => {
-    setLoading(true);
+  const updateProfile = async (data: UpdateProfileData) => {
+    setLoading(true)
     try {
-      return await authService.updateProfile(data);
+      return await authService.updateProfile(data)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // FORGOT PASSWORD
   const forgotPassword = async (email: string) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      return await authService.forgotPassword(email);
+      return await authService.forgotPassword(email)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // CONFIRMAR RESET PASSWORD
   const confirmReset = async (
     email: string,
     code: string,
     password: string
   ) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      return await authService.confirmReset(email, code, password);
+      return await authService.confirmReset(email, code, password)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // LOGOUT
   const logout = async () => {
-    return await authService.logout();
-  };
+    return await authService.logout()
+  }
 
   return {
     login,
     confirmNewPassword,
-
     updateProfile,
-
     forgotPassword,
     confirmReset,
     logout,
     loading,
-  };
-};
+  }
+}

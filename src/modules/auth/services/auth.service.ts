@@ -5,7 +5,15 @@ import {
   confirmResetPassword,
   confirmSignIn,
   updateUserAttributes,
+  fetchAuthSession,
 } from 'aws-amplify/auth'
+
+const UPDATE_PROFILE_URL = import.meta.env.VITE_UPDATE_PROFILE_API_URL
+
+export type UpdateProfileData = {
+  firstName: string
+  lastName: string
+}
 
 export const authService = {
   async login(email: string, password: string): Promise<{
@@ -37,30 +45,83 @@ export const authService = {
 
   async confirmNewPassword(newPassword: string) {
     try {
-      await confirmSignIn({
+      const result = await confirmSignIn({
         challengeResponse: newPassword,
       })
+
+      return result
     } catch (error: unknown) {
       console.error('Error cambiando contraseña inicial:', error)
       throw error
     }
   },
 
-  async updateProfile(data: { name?: string }) {
+  async updateProfile(data: UpdateProfileData) {
     try {
-      const userAttributes: Record<string, string> = {}
+      const firstName = data.firstName.trim()
+      const lastName = data.lastName.trim()
+      const fullName = `${firstName} ${lastName}`.trim()
 
-      if (data.name?.trim()) {
-        userAttributes.name = data.name.trim()
+      if (!firstName || !lastName) {
+        throw new Error('El nombre y apellido son obligatorios')
       }
 
-      if (Object.keys(userAttributes).length === 0) {
-        return
-      }
-
-      await updateUserAttributes({
-        userAttributes,
+      const cognitoResult = await updateUserAttributes({
+        userAttributes: {
+          name: fullName,
+          given_name: firstName,
+          family_name: lastName,
+        },
       })
+
+      const session = await fetchAuthSession()
+      const idToken = session.tokens?.idToken?.toString()
+
+      if (!idToken) {
+        throw new Error('No se pudo obtener el token del usuario')
+      }
+
+      if (!UPDATE_PROFILE_URL) {
+        throw new Error('Falta VITE_UPDATE_PROFILE_API_URL')
+      }
+
+      const response = await fetch(UPDATE_PROFILE_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          name: fullName,
+          firstName,
+          lastName,
+        }),
+      })
+
+      let apiResult: unknown = null
+
+      try {
+        apiResult = await response.json()
+      } catch {
+        apiResult = null
+      }
+
+      if (!response.ok) {
+        const message =
+          typeof apiResult === 'object' &&
+          apiResult !== null &&
+          'message' in apiResult &&
+          typeof apiResult.message === 'string'
+            ? apiResult.message
+            : 'Error actualizando perfil'
+
+        throw new Error(message)
+      }
+
+      return {
+        cognitoResult,
+        apiResult,
+      }
     } catch (error: unknown) {
       console.error('Error actualizando perfil:', error)
       throw error
