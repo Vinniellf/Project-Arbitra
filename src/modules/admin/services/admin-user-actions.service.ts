@@ -1,4 +1,4 @@
-import { API } from '@/shared/config/api.config'
+import { API } from '@/shared/config/api-config'
 import { getAccessToken } from '@/shared/services/api-auth'
 import { parseErrorResponse } from '@/shared/services/api-errors'
 import type { ToggleAdminUserResponse } from '../types/admin-user'
@@ -6,7 +6,7 @@ import type { ToggleAdminUserResponse } from '../types/admin-user'
 async function postAdminUserAction(
   endpoint: string,
   username: string,
-  networkErrorMessage: string
+  networkErrorMessage: string,
 ): Promise<ToggleAdminUserResponse> {
   const normalizedUsername = username.trim()
 
@@ -41,21 +41,21 @@ async function postAdminUserAction(
 }
 
 export async function disableAdminUser(
-  username: string
+  username: string,
 ): Promise<ToggleAdminUserResponse> {
   return postAdminUserAction(
     API.admin.disableUser,
     username,
-    'No se pudo conectar con la API de deshabilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.'
+    'No se pudo conectar con la API de deshabilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.',
   )
 }
 
 export async function enableAdminUser(
-  username: string
+  username: string,
 ): Promise<ToggleAdminUserResponse> {
   return postAdminUserAction(
     API.admin.enableUser,
     username,
-    'No se pudo conectar con la API de habilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.'
+    'No se pudo conectar con la API de habilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.',
   )
 }

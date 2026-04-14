@@ -1,11 +1,11 @@
-import { API } from '@/shared/config/api.config'
+import { API } from '@/shared/config/api-config'
 import { getAccessToken } from '@/shared/services/api-auth'
 import { parseErrorResponse } from '@/shared/services/api-errors'
 import type { ListSystemUsersResponse } from '../types/system-user'
 
 export async function listSystemUsers(
   limit = 20,
-  nextToken?: string
+  nextToken?: string,
 ): Promise<ListSystemUsersResponse> {
   const accessToken = await getAccessToken()
 
@@ -32,7 +32,7 @@ export async function listSystemUsers(
   } catch (error) {
     if (error instanceof TypeError) {
       throw new Error(
-        'No se pudo conectar con la API de usuarios del sistema. Revisa CORS, la URL de la API y que API Gateway esté activo.'
+        'No se pudo conectar con la API de usuarios del sistema. Revisa CORS, la URL de la API y que API Gateway esté activo.',
       )
     }
 

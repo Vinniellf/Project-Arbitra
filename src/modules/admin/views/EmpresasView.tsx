@@ -2,7 +2,6 @@ import PageHeader from '../components/common/layout/PageHeader'
 import PageErrorState from '../components/common/feedback/PageErrorState'
 import { Building2, RefreshCw } from 'lucide-react'
 import { useAdminEmpresas } from '../hooks/useAdminEmpresas'
-// (creas este hook luego, igual que useAdminUsers)
 
 export default function EmpresasView() {
   const { empresas, loading, error } = useAdminEmpresas()
