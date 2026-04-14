@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
-import { SessionLoader } from '@/modules/auth/components/SessionLoader'
+import { SessionLoader } from '@/shared/components/ui/SessionLoader'
 import { hasRole } from '@/modules/auth/utils/role.utils'
 
 type Props = {

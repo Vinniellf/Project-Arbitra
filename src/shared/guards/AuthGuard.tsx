@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
-import { SessionLoader } from '@/modules/auth/components/SessionLoader'
+import { SessionLoader } from '@/shared/components/ui/SessionLoader'
 
 type Props = {
   children: React.ReactNode

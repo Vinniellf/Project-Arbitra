@@ -1,16 +1,23 @@
 import { useState } from 'react'
 import { Menu } from 'lucide-react'
-import Sidebar from '../components/layout/Sidebar'
+import { useNavigate } from 'react-router-dom'
 
-//import DashboardView from '../views/DashboardView'
+import Sidebar from '../components/layout/Sidebar'
 import UsuariosView from '../views/UsuariosView'
 import EmpresasView from '../views/EmpresasView'
+
+import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
+import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 
 type AdminView = 'dashboard' | 'usuarios' | 'empresas'
 
 export default function Admin() {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<AdminView>('dashboard')
+  const [showLogoutLoading, setShowLogoutLoading] = useState(false)
+
+  const { logout } = useAuthContext()
+  const navigate = useNavigate()
 
   const renderView = () => {
     switch (view) {
@@ -23,6 +30,21 @@ export default function Admin() {
     }
   }
 
+  if (showLogoutLoading) {
+    return (
+      <LoadingScreen
+        variant="logout"
+        onFinish={async () => {
+          try {
+            await logout()
+          } finally {
+            navigate('/login', { replace: true })
+          }
+        }}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar
@@ -30,6 +52,7 @@ export default function Admin() {
         setOpen={setOpen}
         setView={(value) => setView(value as AdminView)}
         currentView={view}
+        onLogout={() => setShowLogoutLoading(true)}
       />
 
       {open && (

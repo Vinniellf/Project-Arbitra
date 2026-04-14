@@ -7,15 +7,14 @@ import {
   MoreVertical,
   Bot,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
-import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 
 type SidebarProps = {
   open: boolean
   setOpen: (value: boolean) => void
   setView: (view: string) => void
   currentView: string
+  onLogout: () => void
 }
 
 type MenuItem = {
@@ -29,24 +28,21 @@ export default function Sidebar({
   setOpen,
   setView,
   currentView,
+  onLogout,
 }: SidebarProps) {
-  const navigate = useNavigate()
-  const { user, logout } = useAuthContext()
+  const { user } = useAuthContext()
 
-  const [showLogoutLoading, setShowLogoutLoading] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
-
   const accountMenuRef = useRef<HTMLDivElement | null>(null)
 
   const menuItems: MenuItem[] = [
-    //{ icon: LayoutDashboard, label: 'Dashboard', view: 'dashboard' },
     { icon: Users, label: 'Usuarios', view: 'usuarios' },
     { icon: Building2, label: 'Empresas', view: 'empresas' },
   ]
 
   const handleLogout = () => {
     setAccountMenuOpen(false)
-    setShowLogoutLoading(true)
+    onLogout()
   }
 
   useEffect(() => {
@@ -60,25 +56,11 @@ export default function Sidebar({
     }
 
     document.addEventListener('mousedown', handleClickOutside)
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-
-  if (showLogoutLoading) {
-    return (
-      <LoadingScreen
-        variant="logout"
-        onFinish={async () => {
-          try {
-            await logout()
-          } finally {
-            navigate('/login', { replace: true })
-          }
-        }}
-      />
-    )
-  }
 
   return (
     <aside
