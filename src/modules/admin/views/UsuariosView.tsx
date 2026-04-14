@@ -16,7 +16,8 @@ import UsersEmptyState from '../components/ui/users/UsersEmptyState'
 import InviteUserButton from '../components/ui/users/InviteUserButton'
 import UserTable from '../components/ui/users/UserTable'
 
-import { useAdminUsers } from '../hooks/useAdminUsers'
+//import { useAdminUsers } from '../hooks/useAdminUsers'
+import { useAdminSystemUsers } from '../hooks/useAdminSystemUsers'
 import { useAdminUserFilters } from '../hooks/useAdminUserFilters'
 import { useDisableAdminUser } from '../hooks/useDisableAdminUser'
 import { useEnableAdminUser } from '../hooks/useEnableAdminUser'
@@ -31,7 +32,8 @@ import { ADMIN_USER_ENABLED_FILTER } from '../constants/admin-user.constants'
 type ViewMode = 'cards' | 'table'
 
 export default function UsuariosView() {
-  const { users, loading, error, reloadUsers } = useAdminUsers()
+  //const { users, loading, error, reloadUsers } = useAdminUsers()
+  const { users, loading, error, reloadUsers } = useAdminSystemUsers()
   const { disableUser } = useDisableAdminUser()
   const { enableUser } = useEnableAdminUser()
 

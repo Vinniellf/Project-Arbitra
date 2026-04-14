@@ -1,12 +1,10 @@
 import { fetchAuthSession } from 'aws-amplify/auth'
+import { API } from '@/shared/config/api.config'
 import type {
   InviteUserRequest,
   InviteUserResponse,
   ListUsersResponse,
 } from '../types/user'
-
-const ADMIN_USERS_API_URL = import.meta.env.VITE_ADMIN_USERS_API_URL
-const INVITE_USER_API_URL = import.meta.env.VITE_INVITE_USER_API_URL
 
 type ApiErrorResponse = {
   message?: string
@@ -73,14 +71,10 @@ async function parseErrorResponse(response: Response): Promise<never> {
 }
 
 async function postAdminUserAction(
-  endpoint: '/admin/users/disable' | '/admin/users/enable',
+  endpoint: typeof API.admin.disableUser | typeof API.admin.enableUser,
   username: string,
   networkErrorMessage: string
 ): Promise<ToggleAdminUserResponse> {
-  if (!ADMIN_USERS_API_URL) {
-    throw new Error('Falta configurar VITE_ADMIN_USERS_API_URL')
-  }
-
   const normalizedUsername = username.trim()
 
   if (!normalizedUsername) {
@@ -90,7 +84,7 @@ async function postAdminUserAction(
   const accessToken = await getAccessToken()
 
   try {
-    const response = await fetch(`${ADMIN_USERS_API_URL}${endpoint}`, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,14 +108,10 @@ async function postAdminUserAction(
 }
 
 export async function listAdminUsers(): Promise<ListUsersResponse> {
-  if (!ADMIN_USERS_API_URL) {
-    throw new Error('Falta configurar VITE_ADMIN_USERS_API_URL')
-  }
-
   const accessToken = await getAccessToken()
 
   try {
-    const response = await fetch(`${ADMIN_USERS_API_URL}/admin/users`, {
+    const response = await fetch(API.admin.users, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -147,10 +137,6 @@ export async function listAdminUsers(): Promise<ListUsersResponse> {
 export async function inviteAdminUser(
   payload: InviteUserRequest
 ): Promise<InviteUserResponse> {
-  if (!INVITE_USER_API_URL) {
-    throw new Error('Falta configurar VITE_INVITE_USER_API_URL')
-  }
-
   const accessToken = await getAccessToken()
 
   const normalizedPayload: InviteUserRequest = {
@@ -176,7 +162,7 @@ export async function inviteAdminUser(
   }
 
   try {
-    const response = await fetch(INVITE_USER_API_URL, {
+    const response = await fetch(API.invite.create, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -205,7 +191,7 @@ export async function disableAdminUser(
   username: string
 ): Promise<ToggleAdminUserResponse> {
   return postAdminUserAction(
-    '/admin/users/disable',
+    API.admin.disableUser,
     username,
     'No se pudo conectar con la API de deshabilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.'
   )
@@ -215,7 +201,7 @@ export async function enableAdminUser(
   username: string
 ): Promise<ToggleAdminUserResponse> {
   return postAdminUserAction(
-    '/admin/users/enable',
+    API.admin.enableUser,
     username,
     'No se pudo conectar con la API de habilitación. Revisa CORS, la URL de la API y que API Gateway esté activo.'
   )
