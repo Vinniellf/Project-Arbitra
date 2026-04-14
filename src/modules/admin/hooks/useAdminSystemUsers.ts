@@ -1,12 +1,25 @@
 import { useEffect, useState, useCallback } from 'react'
-import { listSystemUsers } from '../services/admin-system-users.service'
-import type { AdminUser } from '../types/user'
+import { listSystemUsers } from '../services/system-users.service'
+import type { AdminUser } from '../types/admin-user'
+import type { SystemUser } from '../types/system-user'
 
 type UseAdminSystemUsersReturn = {
   users: AdminUser[]
   loading: boolean
   error: string | null
   reloadUsers: () => Promise<void>
+}
+
+function mapSystemUserToAdminUser(user: SystemUser): AdminUser {
+  return {
+    username: user.userId,
+    email: user.email ?? null,
+    name: user.name ?? null,
+    status: user.status ?? null,
+    enabled: user.enabled ?? false,
+    createdAt: user.createdAt ?? null,
+    role: user.role,
+  }
 }
 
 export function useAdminSystemUsers(): UseAdminSystemUsersReturn {
@@ -20,21 +33,7 @@ export function useAdminSystemUsers(): UseAdminSystemUsersReturn {
       setError(null)
 
       const data = await listSystemUsers()
-
-      const mappedUsers: AdminUser[] = data.users.map((user) => ({
-        username: user.userId,
-        email: user.email ?? null,
-        name: user.name ?? null,
-        status: user.status ?? null,
-        enabled: user.enabled ?? true,
-        createdAt: user.createdAt ?? null,
-
-        // campos extra por compatibilidad y futuro uso
-        userId: user.userId,
-        companyId: user.companyId,
-        role: user.role,
-        profileCompleted: user.profileCompleted,
-      }))
+      const mappedUsers = data.users.map(mapSystemUserToAdminUser)
 
       setUsers(mappedUsers)
     } catch (err) {

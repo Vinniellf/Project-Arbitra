@@ -1,7 +1,9 @@
 import FiltersCard from '../../common/filters/FiltersCard'
 import SearchInput from '../../common/filters/SearchInput'
+import FilterSelect from '../../common/filters/FilterSelect'
 import {
   ADMIN_USER_ENABLED_FILTER,
+  ADMIN_USER_STATUS_OPTIONS,
   type AdminUserEnabledFilter,
 } from '../../../constants/admin-user.constants'
 
@@ -11,18 +13,19 @@ import {
   RefreshCw,
   UserCheck,
   UserX,
-  KeyRound,
 } from 'lucide-react'
 
 type ViewMode = 'cards' | 'table'
 
 type UserFiltersProps = {
   search: string
+  statusFilter: string
   enabledFilter: AdminUserEnabledFilter
   resultsCount: number
   loading?: boolean
   viewMode: ViewMode
   onSearchChange: (value: string) => void
+  onStatusFilterChange: (value: string) => void
   onEnabledFilterChange: (value: AdminUserEnabledFilter) => void
   onViewModeChange: (value: ViewMode) => void
   onRefresh: () => void
@@ -30,11 +33,13 @@ type UserFiltersProps = {
 
 export default function UserFilters({
   search,
+  statusFilter,
   enabledFilter = ADMIN_USER_ENABLED_FILTER.ENABLED,
   resultsCount,
   loading = false,
   viewMode,
   onSearchChange,
+  onStatusFilterChange,
   onEnabledFilterChange,
   onViewModeChange,
   onRefresh,
@@ -52,6 +57,13 @@ export default function UserFilters({
           </div>
 
           <div className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 lg:flex lg:flex-row lg:items-center">
+            <div className="w-full lg:w-52">
+              <FilterSelect
+                value={statusFilter}
+                onChange={onStatusFilterChange}
+                options={ADMIN_USER_STATUS_OPTIONS}
+              />
+            </div>
 
             <div className="flex w-full items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-1 shadow-sm lg:w-auto">
               <button
@@ -67,24 +79,6 @@ export default function UserFilters({
               >
                 <UserCheck className="h-4 w-4 shrink-0" />
                 <span>Habilitados</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onEnabledFilterChange(
-                    ADMIN_USER_ENABLED_FILTER.FORCE_CHANGE_PASSWORD
-                  )
-                }
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold whitespace-nowrap transition-all sm:text-sm ${
-                  enabledFilter ===
-                  ADMIN_USER_ENABLED_FILTER.FORCE_CHANGE_PASSWORD
-                    ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300 shadow-sm'
-                    : 'text-slate-600 hover:bg-amber-50'
-                }`}
-              >
-                <KeyRound className="h-4 w-4 shrink-0" />
-                <span>Pendiente cambio</span>
               </button>
 
               <button

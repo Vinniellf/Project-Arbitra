@@ -1,4 +1,4 @@
-import type { AdminUser } from '../types/user'
+import type { AdminUser } from '../types/admin-user'
 import {
   ADMIN_USER_ENABLED_FILTER,
   ADMIN_USER_STATUS,
@@ -12,6 +12,7 @@ import {
 export function filterAdminUsers(
   users: AdminUser[],
   search: string,
+  statusFilter: string,
   enabledFilter: AdminUserEnabledFilter
 ) {
   const normalizedSearch = search.trim().toLowerCase()
@@ -21,33 +22,18 @@ export function filterAdminUsers(
       normalizedSearch.length === 0 ||
       (user.email ?? '').toLowerCase().includes(normalizedSearch) ||
       (user.name ?? '').toLowerCase().includes(normalizedSearch) ||
-      (user.username ?? '').toLowerCase().includes(normalizedSearch)
+      user.username.toLowerCase().includes(normalizedSearch)
 
     if (!matchesSearch) return false
 
-    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.ALL) {
-      return true
-    }
+    const matchesStatus =
+      statusFilter === 'ALL' || (user.status ?? '') === statusFilter
 
-    if (
-      enabledFilter === ADMIN_USER_ENABLED_FILTER.FORCE_CHANGE_PASSWORD
-    ) {
-      return user.status === ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
-    }
+    if (!matchesStatus) return false
 
-    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.DISABLED) {
-      return (
-        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
-        !user.enabled
-      )
-    }
-
-    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.ENABLED) {
-      return (
-        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
-        Boolean(user.enabled)
-      )
-    }
+    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.ALL) return true
+    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.ENABLED) return user.enabled
+    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.DISABLED) return !user.enabled
 
     return true
   })
@@ -57,17 +43,17 @@ export function getAdminUsersStats(users: AdminUser[]) {
   return {
     totalUsers: users.length,
     enabledUsers: users.filter(
-      (user) =>
-        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
-        Boolean(user.enabled)
+      (u) =>
+        u.enabled === true &&
+        u.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
     ).length,
     disabledUsers: users.filter(
-      (user) =>
-        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
-        !user.enabled
+      (u) =>
+        u.enabled === false &&
+        u.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
     ).length,
     forceChangePasswordUsers: users.filter(
-      (user) => user.status === ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
+      (u) => u.status === ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
     ).length,
   }
 }
@@ -90,10 +76,16 @@ export function getAdminUserStatusLabel(status?: string | null) {
   )
 }
 
-export function formatAdminUserDate(date?: string) {
+export function formatAdminUserDate(date?: string | null) {
   if (!date) return '-'
 
-  return new Date(date).toLocaleString('es-PE', {
+  const parsed = new Date(date)
+
+  if (Number.isNaN(parsed.getTime())) {
+    return '-'
+  }
+
+  return parsed.toLocaleString('es-PE', {
     dateStyle: 'medium',
     timeStyle: 'short',
   })

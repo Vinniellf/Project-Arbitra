@@ -1,26 +1,35 @@
-export interface AdminUser {
-  username: string | null
+export type AdminUser = {
+  username: string
   email: string | null
   name: string | null
-  status: string | null
+  role: string
   enabled: boolean
+  status: string | null
   createdAt: string | null
 }
 
-export interface ListUsersResponse {
+export type ListUsersResponse = {
   users: AdminUser[]
+}
+
+export type ToggleAdminUserResponse = {
+  message: string
+  username: string
+  executedBy?: string
+  requesterRole?: 'admin' | 'superadmin'
+  targetGroups?: string[]
 }
 
 export type InviteUserRole = 'ADMIN' | 'SUPER_ADMIN'
 
-export interface InviteUserRequest {
+export type InviteUserRequest = {
+  role: InviteUserRole
+  name?: string
   email?: string
   emails?: string[]
-  role?: InviteUserRole
-  name?: string
 }
 
-export interface InviteUserResult {
+export type InviteUserResult = {
   email: string
   success: boolean
   status: 'created' | 'resent' | 'invalid' | 'error'
@@ -28,8 +37,8 @@ export interface InviteUserResult {
   error?: string
 }
 
-export interface InviteUserResponse {
-  success: boolean
+export type InviteUserResponse = {
+  success?: boolean
   message: string
   summary?: {
     total: number
@@ -39,6 +48,8 @@ export interface InviteUserResponse {
     failed: number
   }
   results?: InviteUserResult[]
+  invitedUsers?: string[]
+  failedUsers?: string[]
   user?: {
     email: string
     role: string

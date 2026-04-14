@@ -13,7 +13,7 @@ import TableHead from '../../common/table/TableHead'
 import TableEmptyState from '../../common/table/TableEmptyState'
 import TableSkeleton from '../../common/table/TableSkeleton'
 
-import type { AdminUser } from '../../../types/user'
+import type { AdminUser } from '../../../types/admin-user'
 
 type UserTableVariant = 'enabled' | 'disabled'
 
@@ -21,9 +21,9 @@ type UserTableProps = {
   users: AdminUser[]
   loading?: boolean
   variant: UserTableVariant
-  formatDate: (date?: string) => string
-  getStatusBadge: (status?: string) => string
-  getStatusLabel: (status?: string) => string
+  formatDate: (date?: string | null) => string
+  getStatusBadge: (status?: string | null) => string
+  getStatusLabel: (status?: string | null) => string
   onToggleEnabled: (user: AdminUser) => void
   actionLoadingUserId?: string | null
 }
@@ -40,7 +40,7 @@ export default function UserTable({
 }: UserTableProps) {
   const columns = [
     { key: 'user', label: 'Usuario' },
-    { key: 'status', label: 'Estado Cognito' },
+    { key: 'status', label: 'Estado de cuenta' },
     { key: 'created', label: 'Creado' },
     { key: 'action', label: 'Acceso', align: 'right' as const },
   ]
@@ -75,8 +75,8 @@ export default function UserTable({
             className="divide-y divide-slate-100 bg-white"
           >
             {users.map((user) => {
-              const userKey = user.email ?? user.username ?? ''
-              const isEnabled = Boolean(user.enabled)
+              const userKey = user.username
+              const isEnabled = user.enabled
               const rowLoading = actionLoadingUserId === userKey
 
               return (
@@ -119,10 +119,10 @@ export default function UserTable({
                       <motion.span
                         layout
                         className={`rounded-md px-2 py-1 text-[10px] font-semibold ${getStatusBadge(
-                          user.status ?? undefined
+                          user.status
                         )}`}
                       >
-                        {getStatusLabel(user.status ?? undefined)}
+                        {getStatusLabel(user.status)}
                       </motion.span>
                     </div>
                   </td>
@@ -135,7 +135,7 @@ export default function UserTable({
                       </span>
 
                       <span className="text-[11px] font-medium text-slate-800">
-                        {formatDate(user.createdAt ?? undefined)}
+                        {formatDate(user.createdAt)}
                       </span>
                     </div>
                   </td>
