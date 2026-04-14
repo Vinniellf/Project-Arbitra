@@ -8,6 +8,7 @@ export type SystemUser = {
   companyId: string
   role: string
   status: string
+  enabled: boolean
   profileCompleted: boolean
   createdAt: string
 }

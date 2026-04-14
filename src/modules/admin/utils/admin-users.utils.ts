@@ -12,7 +12,6 @@ import {
 export function filterAdminUsers(
   users: AdminUser[],
   search: string,
-  statusFilter: string,
   enabledFilter: AdminUserEnabledFilter
 ) {
   const normalizedSearch = search.trim().toLowerCase()
@@ -24,23 +23,49 @@ export function filterAdminUsers(
       (user.name ?? '').toLowerCase().includes(normalizedSearch) ||
       (user.username ?? '').toLowerCase().includes(normalizedSearch)
 
-    const matchesStatus =
-      statusFilter === 'ALL' || (user.status ?? '') === statusFilter
+    if (!matchesSearch) return false
 
-    const matchesEnabled =
-      enabledFilter === ADMIN_USER_ENABLED_FILTER.ALL ||
-      (enabledFilter === ADMIN_USER_ENABLED_FILTER.ENABLED && user.enabled) ||
-      (enabledFilter === ADMIN_USER_ENABLED_FILTER.DISABLED && !user.enabled)
+    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.ALL) {
+      return true
+    }
 
-    return matchesSearch && matchesStatus && matchesEnabled
+    if (
+      enabledFilter === ADMIN_USER_ENABLED_FILTER.FORCE_CHANGE_PASSWORD
+    ) {
+      return user.status === ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
+    }
+
+    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.DISABLED) {
+      return (
+        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
+        !user.enabled
+      )
+    }
+
+    if (enabledFilter === ADMIN_USER_ENABLED_FILTER.ENABLED) {
+      return (
+        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
+        Boolean(user.enabled)
+      )
+    }
+
+    return true
   })
 }
 
 export function getAdminUsersStats(users: AdminUser[]) {
   return {
     totalUsers: users.length,
-    enabledUsers: users.filter((user) => user.enabled).length,
-    disabledUsers: users.filter((user) => !user.enabled).length,
+    enabledUsers: users.filter(
+      (user) =>
+        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
+        Boolean(user.enabled)
+    ).length,
+    disabledUsers: users.filter(
+      (user) =>
+        user.status !== ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD &&
+        !user.enabled
+    ).length,
     forceChangePasswordUsers: users.filter(
       (user) => user.status === ADMIN_USER_STATUS.FORCE_CHANGE_PASSWORD
     ).length,

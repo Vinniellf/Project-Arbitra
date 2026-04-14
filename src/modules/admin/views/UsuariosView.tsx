@@ -42,15 +42,8 @@ export default function UsuariosView() {
   )
   const [viewMode, setViewMode] = useState<ViewMode>('table')
 
-  const {
-    search,
-    statusFilter,
-    enabledFilter,
-    filteredUsers,
-    setSearch,
-    setStatusFilter,
-    setEnabledFilter,
-  } = useAdminUserFilters(users)
+  const { search, enabledFilter, filteredUsers, setSearch, setEnabledFilter } =
+    useAdminUserFilters(users)
 
   const handleToggleEnabled = async (user: AdminUser) => {
     const userKey = user.email ?? user.username ?? null
@@ -107,13 +100,11 @@ export default function UsuariosView() {
           <>
             <UserFilters
               search={search}
-              statusFilter={statusFilter}
               enabledFilter={enabledFilter}
               resultsCount={loading ? 0 : filteredUsers.length}
               loading={loading}
               viewMode={viewMode}
               onSearchChange={setSearch}
-              onStatusFilterChange={setStatusFilter}
               onEnabledFilterChange={setEnabledFilter}
               onViewModeChange={setViewMode}
               onRefresh={handleRefresh}

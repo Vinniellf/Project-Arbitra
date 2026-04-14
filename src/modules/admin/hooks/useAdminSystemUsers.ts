@@ -26,7 +26,7 @@ export function useAdminSystemUsers(): UseAdminSystemUsersReturn {
         email: user.email ?? null,
         name: user.name ?? null,
         status: user.status ?? null,
-        enabled: user.status === 'ACTIVE',
+        enabled: user.enabled ?? true,
         createdAt: user.createdAt ?? null,
 
         // campos extra por compatibilidad y futuro uso
