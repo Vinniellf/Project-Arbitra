@@ -1,8 +1,6 @@
 import { useState } from 'react'
-import {
-  enableAdminUser,
-  type ToggleAdminUserResponse,
-} from '../services/admin-users.service'
+import { enableAdminUser } from '../services/admin-user-actions.service'
+import type { ToggleAdminUserResponse } from '../types/admin-user'
 
 export function useEnableAdminUser() {
   const [loading, setLoading] = useState(false)

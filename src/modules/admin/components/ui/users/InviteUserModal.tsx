@@ -2,7 +2,7 @@ import { Loader2, Mail, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useInviteAdminUser } from '../../../hooks/useInviteAdminUser'
 import { useAdminRole } from '../../../hooks/useAdminRole'
-import type { InviteUserRequest } from '../../../types/user'
+import type { InviteUserRequest } from '../../../types/admin-user'
 import ConfirmModal from '../users/ConfirmModal'
 
 type InviteUserModalProps = {
@@ -118,7 +118,9 @@ export default function InviteUserModal({
   }
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = event.target
 
@@ -229,17 +231,17 @@ export default function InviteUserModal({
 
       if (form.mode === 'single') {
         setConfirmSuccess(
-          `La invitación para ${payload.email} se envió correctamente.`
+          `La invitación para ${payload.email} se envió correctamente.`,
         )
       } else {
         const total = response.summary?.total ?? parsedEmails.valid.length
         const created = response.summary?.created ?? 0
-        const resent = response.summary?.resent ?? 0
+        const existing = response.summary?.existing ?? 0
         const invalid = response.summary?.invalid ?? 0
         const failed = response.summary?.failed ?? 0
 
         setConfirmSuccess(
-          `Se procesaron ${total} invitaciones. Creados: ${created}, reenviados: ${resent}, inválidos: ${invalid}, fallidos: ${failed}.`
+          `Se procesaron ${total} invitaciones. Creados: ${created}, existentes: ${existing}, inválidos: ${invalid}, fallidos: ${failed}.`,
         )
       }
     } catch (err) {
@@ -389,7 +391,8 @@ export default function InviteUserModal({
                 />
 
                 <div className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  Puedes separar los correos por salto de línea, coma, punto y coma o espacio.
+                  Puedes separar los correos por salto de línea, coma, punto y
+                  coma o espacio.
                 </div>
 
                 {(parsedEmails.valid.length > 0 ||
@@ -398,13 +401,15 @@ export default function InviteUserModal({
                   <div className="mt-3 space-y-2">
                     {parsedEmails.valid.length > 0 && (
                       <div className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800">
-                        Correos válidos detectados: <strong>{parsedEmails.valid.length}</strong>
+                        Correos válidos detectados:{' '}
+                        <strong>{parsedEmails.valid.length}</strong>
                       </div>
                     )}
 
                     {parsedEmails.duplicates.length > 0 && (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                        Correos duplicados ignorados: {parsedEmails.duplicates.join(', ')}
+                        Correos duplicados ignorados:{' '}
+                        {parsedEmails.duplicates.join(', ')}
                       </div>
                     )}
 
@@ -471,8 +476,8 @@ export default function InviteUserModal({
                 {isBusy
                   ? 'Procesando...'
                   : form.mode === 'single'
-                  ? 'Enviar invitación'
-                  : 'Enviar invitaciones'}
+                    ? 'Enviar invitación'
+                    : 'Enviar invitaciones'}
               </button>
             </div>
           </form>
@@ -485,8 +490,8 @@ export default function InviteUserModal({
           confirmStatus === 'success'
             ? 'Invitación enviada'
             : confirmStatus === 'error'
-            ? 'No se pudo enviar'
-            : 'Confirmar invitación'
+              ? 'No se pudo enviar'
+              : 'Confirmar invitación'
         }
         message={confirmMessage}
         status={confirmStatus}

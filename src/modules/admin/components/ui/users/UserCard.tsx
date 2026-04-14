@@ -8,7 +8,7 @@ import {
   Loader2,
   ShieldCheck,
 } from 'lucide-react'
-import type { AdminUser } from '../../../types/user'
+import type { AdminUser } from '../../../types/admin-user'
 
 type Variant = 'enabled' | 'disabled'
 
@@ -16,9 +16,9 @@ type UserCardProps = {
   user: AdminUser
   index: number
   variant: Variant
-  formatDate: (date?: string) => string
-  getStatusBadge: (status?: string) => string
-  getStatusLabel: (status?: string) => string
+  formatDate: (date?: string | null) => string
+  getStatusBadge: (status?: string | null) => string
+  getStatusLabel: (status?: string | null) => string
   onToggleEnabled: (user: AdminUser) => void
   actionLoading?: boolean
 }
@@ -33,7 +33,7 @@ export default function UserCard({
   onToggleEnabled,
   actionLoading = false,
 }: UserCardProps) {
-  const isEnabled = Boolean(user.enabled)
+  const isEnabled = user.enabled
 
   const borderColor =
     variant === 'enabled'
@@ -84,10 +84,10 @@ export default function UserCard({
 
           <span
             className={`rounded-md px-2 py-1 text-[11px] font-semibold ${getStatusBadge(
-              user.status ?? undefined
+              user.status
             )}`}
           >
-            {getStatusLabel(user.status ?? undefined)}
+            {getStatusLabel(user.status)}
           </span>
         </div>
 
@@ -98,7 +98,7 @@ export default function UserCard({
           </span>
 
           <span className="max-w-[62%] text-right text-xs font-medium text-slate-800">
-            {formatDate(user.createdAt ?? undefined)}
+            {formatDate(user.createdAt)}
           </span>
         </div>
       </div>

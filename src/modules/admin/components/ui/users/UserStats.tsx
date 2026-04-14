@@ -1,5 +1,5 @@
 import { Users, CheckCircle2, XCircle, KeyRound } from 'lucide-react'
-import type { AdminUser } from '../../../types/user'
+import type { AdminUser } from '../../../types/admin-user'
 import { getAdminUsersStats } from '../../../utils/admin-users.utils'
 import StatCard from '../../common/stats/StatCard'
 import StatsGrid from '../../common/stats/StatsGrid'
@@ -10,7 +10,10 @@ type UserStatsProps = {
   loading?: boolean
 }
 
-export default function UserStats({ users, loading = false }: UserStatsProps) {
+export default function UserStats({
+  users,
+  loading = false,
+}: UserStatsProps) {
   if (loading) {
     return <StatsSkeleton count={4} />
   }

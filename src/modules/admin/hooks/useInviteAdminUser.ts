@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { inviteAdminUser } from '../services/admin-users.service'
-import type { InviteUserRequest, InviteUserResponse } from '../types/user'
+import { inviteAdminUser } from '../services/invite-users.service'
+import type { InviteUserRequest, InviteUserResponse } from '../types/admin-user'
 
 type UseInviteAdminUserReturn = {
   inviteUser: (payload: InviteUserRequest) => Promise<InviteUserResponse>
@@ -37,7 +37,7 @@ export function useInviteAdminUser(): UseInviteAdminUserReturn {
           : 'No se pudo procesar la invitación.'
 
       setError(message)
-      throw err
+      throw new Error(message)
     } finally {
       setLoading(false)
     }

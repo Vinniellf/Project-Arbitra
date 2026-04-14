@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import { disableAdminUser } from '../services/admin-users.service'
+import { disableAdminUser } from '../services/admin-user-actions.service'
+import type { ToggleAdminUserResponse } from '../types/admin-user'
 
 export function useDisableAdminUser() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const execute = async (username: string) => {
+  const execute = async (
+    username: string
+  ): Promise<ToggleAdminUserResponse> => {
     try {
       setLoading(true)
       setError(null)
 
-      const result = await disableAdminUser(username)
-      return result
+      return await disableAdminUser(username)
     } catch (err) {
       const message =
         err instanceof Error

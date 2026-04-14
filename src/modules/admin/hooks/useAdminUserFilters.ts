@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { AdminUser } from '../types/user'
+import type { AdminUser } from '../types/admin-user'
 import { filterAdminUsers } from '../utils/admin-users.utils'
 import {
   ADMIN_USER_ENABLED_FILTER,
