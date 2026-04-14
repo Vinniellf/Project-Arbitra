@@ -19,4 +19,4 @@ export const validatePassword = (password: string): PasswordRules => ({
 })
 
 export const isPasswordValid = (rules: PasswordRules) =>
-  Object.values(rules).every((rule) => rule === true)
+  Object.values(rules).every(Boolean)

@@ -1,5 +1,9 @@
 export function hasRole(userGroups: string[], allowedRoles: string[]): boolean {
-  return userGroups.some((group) => allowedRoles.includes(group.toLowerCase()))
+  const normalizedAllowedRoles = allowedRoles.map((role) => role.toLowerCase())
+
+  return userGroups.some((group) =>
+    normalizedAllowedRoles.includes(group.toLowerCase())
+  )
 }
 
 export function isAdminUser(userGroups: string[]): boolean {

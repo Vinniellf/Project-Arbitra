@@ -1,6 +1,25 @@
 import { fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth'
 import type { AuthUser } from '../types/auth.types'
 
+function normalizeGroups(rawGroups: unknown): string[] {
+  if (Array.isArray(rawGroups)) {
+    return rawGroups
+      .map((group) => String(group).trim().toLowerCase())
+      .filter(Boolean)
+  }
+
+  if (typeof rawGroups === 'string') {
+    return rawGroups
+      .replace(/^\[|\]$/g, '')
+      .replace(/"/g, '')
+      .split(',')
+      .map((group) => group.trim().toLowerCase())
+      .filter(Boolean)
+  }
+
+  return []
+}
+
 export async function getCurrentSessionUser(): Promise<AuthUser | null> {
   try {
     const session = await fetchAuthSession()
@@ -12,24 +31,15 @@ export async function getCurrentSessionUser(): Promise<AuthUser | null> {
     const rawGroups =
       idTokenPayload?.['cognito:groups'] ??
       accessTokenPayload?.['cognito:groups'] ??
-      idTokenPayload?.['groups'] ??
-      accessTokenPayload?.['groups'] ??
+      idTokenPayload?.groups ??
+      accessTokenPayload?.groups ??
       []
 
-    const groups = Array.isArray(rawGroups)
-      ? rawGroups.map((g) => String(g).trim().toLowerCase()).filter(Boolean)
-      : typeof rawGroups === 'string'
-        ? rawGroups
-            .replace(/^\[|\]$/g, '')
-            .replace(/"/g, '')
-            .split(',')
-            .map((g) => g.trim().toLowerCase())
-            .filter(Boolean)
-        : []
+    const groups = normalizeGroups(rawGroups)
 
     return {
       email: attributes.email,
-      name: attributes.name,
+      name: attributes.name || attributes.given_name || attributes.email,
       groups,
       isAuthenticated: true,
     }

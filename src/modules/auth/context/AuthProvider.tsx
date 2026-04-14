@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
-import { fetchUserAttributes, getCurrentUser } from 'aws-amplify/auth'
 
 import { AuthContext } from './AuthContext'
 import type { User } from './AuthContext'
@@ -13,15 +12,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loadUser = useCallback(async () => {
     try {
-      await getCurrentUser()
-
-      const attributes = await fetchUserAttributes()
       const sessionUser = await getCurrentSessionUser()
 
+      if (!sessionUser) {
+        setUser(null)
+        return
+      }
+
       setUser({
-        name: attributes.name || attributes.email,
-        email: attributes.email,
-        groups: sessionUser?.groups ?? [],
+        name: sessionUser.name || sessionUser.email,
+        email: sessionUser.email,
+        groups: sessionUser.groups,
       })
     } catch {
       setUser(null)
@@ -37,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    initAuth()
+    void initAuth()
   }, [loadUser])
 
   const refreshUser = async () => {

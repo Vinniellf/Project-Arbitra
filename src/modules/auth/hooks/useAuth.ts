@@ -1,61 +1,38 @@
 import { useState } from 'react'
-import { authService, type UpdateProfileData } from '../services/auth.service'
+import { authService } from '../services/auth.service'
+import type { UpdateProfileData } from '../types/auth.types'
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false)
 
-  const login = async (email: string, password: string) => {
+  const withLoading = async <T,>(callback: () => Promise<T>): Promise<T> => {
     setLoading(true)
     try {
-      return await authService.login(email, password)
+      return await callback()
     } finally {
       setLoading(false)
     }
   }
 
-  const confirmNewPassword = async (password: string) => {
-    setLoading(true)
-    try {
-      return await authService.confirmNewPassword(password)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const login = async (email: string, password: string) =>
+    withLoading(() => authService.login(email, password))
 
-  const updateProfile = async (data: UpdateProfileData) => {
-    setLoading(true)
-    try {
-      return await authService.updateProfile(data)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const confirmNewPassword = async (password: string) =>
+    withLoading(() => authService.confirmNewPassword(password))
 
-  const forgotPassword = async (email: string) => {
-    setLoading(true)
-    try {
-      return await authService.forgotPassword(email)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const updateProfile = async (data: UpdateProfileData) =>
+    withLoading(() => authService.updateProfile(data))
+
+  const forgotPassword = async (email: string) =>
+    withLoading(() => authService.forgotPassword(email))
 
   const confirmReset = async (
     email: string,
     code: string,
     password: string
-  ) => {
-    setLoading(true)
-    try {
-      return await authService.confirmReset(email, code, password)
-    } finally {
-      setLoading(false)
-    }
-  }
+  ) => withLoading(() => authService.confirmReset(email, code, password))
 
-  const logout = async () => {
-    return await authService.logout()
-  }
+  const logout = async () => authService.logout()
 
   return {
     login,

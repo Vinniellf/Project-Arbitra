@@ -29,6 +29,7 @@ const styles = {
 export const AuthErrorMessage = ({
   message,
   variant = 'error',
+  className = '',
 }: Props) => {
   if (!message) return null
 
@@ -39,9 +40,9 @@ export const AuthErrorMessage = ({
       className={`
         mb-4 flex items-start gap-3
         rounded-xl border p-3
-        text-sm
-        animate-fade-in
+        text-sm animate-fade-in
         ${container}
+        ${className}
       `}
     >
       <Icon size={18} className={`mt-0.5 shrink-0 ${icon}`} />

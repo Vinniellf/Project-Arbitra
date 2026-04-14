@@ -5,15 +5,10 @@ import {
   confirmResetPassword,
   confirmSignIn,
   updateUserAttributes,
-  fetchAuthSession,
 } from 'aws-amplify/auth'
 
-const UPDATE_PROFILE_URL = import.meta.env.VITE_UPDATE_PROFILE_API_URL
-
-export type UpdateProfileData = {
-  firstName: string
-  lastName: string
-}
+import type { UpdateProfileData } from '../types/auth.types'
+import { updateBackendProfile } from './user-profile.service'
 
 export const authService = {
   async login(email: string, password: string): Promise<{
@@ -36,7 +31,17 @@ export const authService = {
         error.name === 'UserAlreadyAuthenticatedException'
       ) {
         await signOut()
-        return this.login(email, password)
+
+        const retryResult = await signIn({
+          username: email,
+          password,
+        })
+
+        return {
+          requiresNewPassword:
+            retryResult.nextStep?.signInStep ===
+            'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED',
+        }
       }
 
       throw error
@@ -45,11 +50,9 @@ export const authService = {
 
   async confirmNewPassword(newPassword: string) {
     try {
-      const result = await confirmSignIn({
+      return await confirmSignIn({
         challengeResponse: newPassword,
       })
-
-      return result
     } catch (error: unknown) {
       console.error('Error cambiando contraseña inicial:', error)
       throw error
@@ -74,49 +77,10 @@ export const authService = {
         },
       })
 
-      const session = await fetchAuthSession()
-      const idToken = session.tokens?.idToken?.toString()
-
-      if (!idToken) {
-        throw new Error('No se pudo obtener el token del usuario')
-      }
-
-      if (!UPDATE_PROFILE_URL) {
-        throw new Error('Falta VITE_UPDATE_PROFILE_API_URL')
-      }
-
-      const response = await fetch(UPDATE_PROFILE_URL, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          name: fullName,
-          firstName,
-          lastName,
-        }),
+      const apiResult = await updateBackendProfile({
+        firstName,
+        lastName,
       })
-
-      let apiResult: unknown = null
-
-      try {
-        apiResult = await response.json()
-      } catch {
-        apiResult = null
-      }
-
-      if (!response.ok) {
-        const message =
-          typeof apiResult === 'object' &&
-          apiResult !== null &&
-          'message' in apiResult &&
-          typeof apiResult.message === 'string'
-            ? apiResult.message
-            : 'Error actualizando perfil'
-
-        throw new Error(message)
-      }
 
       return {
         cognitoResult,
