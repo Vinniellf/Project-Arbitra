@@ -1,14 +1,14 @@
 import { API_ROUTES } from './api-routes'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-const INVITE_BASE_URL = import.meta.env.VITE_INVITE_USER_BASE_URL
+const API_BASE_URL = import.meta.env.VITE_ADMIN_USERS_API_URL
+const INVITE_BASE_URL = import.meta.env.VITE_INVITE_USER_API_URL
 
 if (!API_BASE_URL) {
-  throw new Error('Falta configurar VITE_API_BASE_URL')
+  throw new Error('Falta configurar VITE_ADMIN_USERS_API_URL')
 }
 
 if (!INVITE_BASE_URL) {
-  throw new Error('Falta configurar VITE_INVITE_USER_BASE_URL')
+  throw new Error('Falta configurar VITE_INVITE_USER_API_URL')
 }
 
 export const API = {
