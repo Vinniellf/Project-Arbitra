@@ -1,3 +1,22 @@
+export type InviteMode = 'single' | 'multiple'
+
+export type ConfirmStatus = 'confirm' | 'loading' | 'success' | 'error'
+
+export type InviteFormState = {
+  mode: InviteMode
+  email: string
+  emailsText: string
+  role: InviteUserRole
+  name: string
+}
+
+export type ParsedEmailsResult = {
+  all: string[]
+  valid: string[]
+  invalid: string[]
+  duplicates: string[]
+}
+
 export type AdminUser = {
   username: string
   email: string | null
