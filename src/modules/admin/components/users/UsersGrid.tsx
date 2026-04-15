@@ -1,5 +1,5 @@
-import type { AdminUser } from '../../../types/admin-user'
-import EntityGrid from '../../common/listing/EntityGrid'
+import type { AdminUser } from '../../types/admin-user'
+import EntityGrid from '../common/listing/EntityGrid'
 import UserCard from './UserCard'
 
 type UsersGridVariant = 'enabled' | 'disabled'

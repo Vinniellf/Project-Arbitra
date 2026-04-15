@@ -1,9 +1,7 @@
 import { Loader2, Mail, Users, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { useInviteAdminUser } from '../../../hooks/useInviteAdminUser'
-import { useAdminRole } from '../../../hooks/useAdminRole'
-import type { InviteUserRequest } from '../../../types/admin-user'
+import type { InviteMode } from '../../types/admin-user'
 import ConfirmModal from '../users/ConfirmModal'
+import { useInviteUserModal } from '../../hooks/users/useInviteUserModal'
 
 type InviteUserModalProps = {
   open: boolean
@@ -11,291 +9,43 @@ type InviteUserModalProps = {
   onUserInvited?: () => Promise<void> | void
 }
 
-type ConfirmStatus = 'confirm' | 'loading' | 'success' | 'error'
-type InviteMode = 'single' | 'multiple'
-
-type InviteFormState = {
-  mode: InviteMode
-  email: string
-  emailsText: string
-  role: 'ADMIN' | 'SUPER_ADMIN'
-  name: string
-}
-
-type ParsedEmailsResult = {
-  all: string[]
-  valid: string[]
-  invalid: string[]
-  duplicates: string[]
-}
-
-const initialForm: InviteFormState = {
-  mode: 'single',
-  email: '',
-  emailsText: '',
-  role: 'ADMIN',
-  name: '',
-}
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const normalizeEmail = (value: string) => value.trim().toLowerCase()
-
-const tokenizeEmails = (value: string): string[] => {
-  return value
-    .split(/[\n,;]+/)
-    .flatMap((chunk) => chunk.split(/\s+/))
-    .map((token) => token.trim())
-    .filter(Boolean)
-}
-
-const parseEmails = (value: string): ParsedEmailsResult => {
-  const rawTokens = tokenizeEmails(value)
-  const normalizedTokens = rawTokens.map(normalizeEmail)
-
-  const seen = new Set<string>()
-  const duplicatesSet = new Set<string>()
-  const valid: string[] = []
-  const invalid: string[] = []
-
-  for (const email of normalizedTokens) {
-    if (seen.has(email)) {
-      duplicatesSet.add(email)
-      continue
-    }
-
-    seen.add(email)
-
-    if (EMAIL_REGEX.test(email)) {
-      valid.push(email)
-    } else {
-      invalid.push(email)
-    }
-  }
-
-  return {
-    all: normalizedTokens,
-    valid,
-    invalid,
-    duplicates: [...duplicatesSet],
-  }
-}
-
 export default function InviteUserModal({
   open,
   onClose,
   onUserInvited,
 }: InviteUserModalProps) {
-  const [form, setForm] = useState<InviteFormState>(initialForm)
-  const [formError, setFormError] = useState<string | null>(null)
-
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [confirmStatus, setConfirmStatus] = useState<ConfirmStatus>('confirm')
-  const [confirmError, setConfirmError] = useState<string | null>(null)
-  const [confirmSuccess, setConfirmSuccess] = useState<string | null>(null)
-
-  const { inviteUser, loading, error, resetState } = useInviteAdminUser()
-  const { role: currentUserRole, loadingRole } = useAdminRole()
-
-  const isSuperAdmin = currentUserRole === 'SUPER_ADMIN'
-  const isAdmin = currentUserRole === 'ADMIN'
-  const isBusy = loading || loadingRole || confirmStatus === 'loading'
-
-  const parsedEmails = useMemo(() => {
-    return form.mode === 'multiple'
-      ? parseEmails(form.emailsText)
-      : { all: [], valid: [], invalid: [], duplicates: [] }
-  }, [form.mode, form.emailsText])
-
-  const resetLocalState = () => {
-    setForm(initialForm)
-    setFormError(null)
-    setShowConfirmModal(false)
-    setConfirmStatus('confirm')
-    setConfirmError(null)
-    setConfirmSuccess(null)
-    resetState()
-  }
-
-  const handleChange = (
-    event: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    const { name, value } = event.target
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleModeChange = (mode: InviteMode) => {
-    if (isBusy) return
-
-    setForm((prev) => ({
-      ...prev,
-      mode,
-      email: mode === 'single' ? prev.email : '',
-      emailsText: mode === 'multiple' ? prev.emailsText : '',
-      name: mode === 'single' ? prev.name : '',
-    }))
-
-    setFormError(null)
-    setConfirmError(null)
-    setConfirmSuccess(null)
-  }
-
-  const validateForm = (): string | null => {
-    if (form.mode === 'single') {
-      const email = normalizeEmail(form.email)
-
-      if (!email) {
-        return 'El correo es obligatorio.'
-      }
-
-      if (!EMAIL_REGEX.test(email)) {
-        return 'Ingresa un correo válido.'
-      }
-    }
-
-    if (form.mode === 'multiple') {
-      if (!form.emailsText.trim()) {
-        return 'Debes ingresar al menos un correo.'
-      }
-
-      if (parsedEmails.all.length === 0) {
-        return 'No se detectaron correos.'
-      }
-
-      if (parsedEmails.valid.length === 0) {
-        return 'No se detectaron correos válidos.'
-      }
-
-      if (parsedEmails.invalid.length > 0) {
-        return `Hay correos con formato inválido: ${parsedEmails.invalid.join(', ')}`
-      }
-    }
-
-    if (isSuperAdmin && !form.role) {
-      return 'Selecciona un rol.'
-    }
-
-    return null
-  }
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    if (isBusy) return
-
-    const validationError = validateForm()
-    if (validationError) {
-      setFormError(validationError)
-      return
-    }
-
-    setFormError(null)
-    setConfirmError(null)
-    setConfirmSuccess(null)
-    setConfirmStatus('confirm')
-    setShowConfirmModal(true)
-  }
-
-  const handleConfirmInvite = async () => {
-    if (isBusy) return
-
-    setConfirmStatus('loading')
-    setConfirmError(null)
-    setConfirmSuccess(null)
-
-    try {
-      const payload: InviteUserRequest =
-        form.mode === 'single'
-          ? {
-              email: normalizeEmail(form.email),
-              name: form.name.trim() || undefined,
-            }
-          : {
-              emails: parsedEmails.valid,
-            }
-
-      if (isSuperAdmin) {
-        payload.role = form.role
-      }
-
-      const response = await inviteUser(payload)
-      await onUserInvited?.()
-
-      setConfirmStatus('success')
-
-      if (form.mode === 'single') {
-        setConfirmSuccess(
-          `La invitación para ${payload.email} se envió correctamente.`,
-        )
-      } else {
-        const total = response.summary?.total ?? parsedEmails.valid.length
-        const created = response.summary?.created ?? 0
-        const existing = response.summary?.existing ?? 0
-        const invalid = response.summary?.invalid ?? 0
-        const failed = response.summary?.failed ?? 0
-
-        setConfirmSuccess(
-          `Se procesaron ${total} invitaciones. Creados: ${created}, existentes: ${existing}, inválidos: ${invalid}, fallidos: ${failed}.`,
-        )
-      }
-    } catch (err) {
-      let message = 'No se pudo enviar la invitación. Inténtalo nuevamente.'
-
-      if (err instanceof Error && err.message.trim()) {
-        message = err.message
-      } else if (error) {
-        message = error
-      }
-
-      setConfirmStatus('error')
-      setConfirmError(message)
-    }
-  }
-
-  const handleCancelConfirm = () => {
-    if (isBusy) return
-    setShowConfirmModal(false)
-    setConfirmStatus('confirm')
-    setConfirmError(null)
-    setConfirmSuccess(null)
-  }
-
-  const handleCloseResult = () => {
-    if (confirmStatus === 'loading') return
-
-    if (confirmStatus === 'success') {
-      resetLocalState()
-      onClose()
-      return
-    }
-
-    if (confirmStatus === 'error') {
-      setShowConfirmModal(false)
-      setConfirmStatus('confirm')
-      return
-    }
-
-    setShowConfirmModal(false)
-  }
-
-  const handleClose = () => {
-    if (isBusy) return
-    resetLocalState()
-    onClose()
-  }
-
-  const confirmMessage =
-    form.mode === 'single'
-      ? `Se enviará una invitación al correo ${normalizeEmail(form.email)}. ¿Deseas continuar?`
-      : `Se enviarán invitaciones a ${parsedEmails.valid.length} correo(s) válido(s). ¿Deseas continuar?`
+  const {
+    form,
+    formError,
+    showConfirmModal,
+    confirmStatus,
+    confirmError,
+    confirmSuccess,
+    parsedEmails,
+    confirmMessage,
+    isSuperAdmin,
+    isAdmin,
+    isBusy,
+    handleChange,
+    handleModeChange,
+    handleSubmit,
+    handleConfirmInvite,
+    handleCancelConfirm,
+    handleCloseResult,
+    handleClose,
+  } = useInviteUserModal({
+    onClose,
+    onUserInvited,
+  })
 
   if (!open) return null
+
+  const getModeButtonClass = (mode: InviteMode) =>
+    `inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold transition ${
+      form.mode === mode
+        ? 'bg-violet-600 text-white shadow-sm'
+        : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+    }`
 
   return (
     <>
@@ -327,11 +77,7 @@ export default function InviteUserModal({
                 type="button"
                 onClick={() => handleModeChange('single')}
                 disabled={isBusy}
-                className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold transition ${
-                  form.mode === 'single'
-                    ? 'bg-violet-600 text-white shadow-sm'
-                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                }`}
+                className={getModeButtonClass('single')}
               >
                 <Mail className="h-4 w-4" />
                 Un usuario
@@ -341,11 +87,7 @@ export default function InviteUserModal({
                 type="button"
                 onClick={() => handleModeChange('multiple')}
                 disabled={isBusy}
-                className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold transition ${
-                  form.mode === 'multiple'
-                    ? 'bg-violet-600 text-white shadow-sm'
-                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                }`}
+                className={getModeButtonClass('multiple')}
               >
                 <Users className="h-4 w-4" />
                 Varios usuarios

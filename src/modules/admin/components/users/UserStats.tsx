@@ -1,9 +1,9 @@
 import { Users, CheckCircle2, XCircle, KeyRound } from 'lucide-react'
-import type { AdminUser } from '../../../types/admin-user'
-import { getAdminUsersStats } from '../../../utils/admin-users.utils'
-import StatCard from '../../common/stats/StatCard'
-import StatsGrid from '../../common/stats/StatsGrid'
-import StatsSkeleton from '../../common/stats/StatsSkeleton'
+import type { AdminUser } from '../../types/admin-user'
+import { getAdminUsersStats } from '../../utils/admin-users.utils'
+import StatCard from '../common/stats/StatCard'
+import StatsGrid from '../common/stats/StatsGrid'
+import StatsSkeleton from '../common/stats/StatsSkeleton'
 
 type UserStatsProps = {
   users: AdminUser[]
