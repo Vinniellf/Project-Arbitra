@@ -1,74 +1,167 @@
 import { useState } from 'react'
-import type { Message } from '../types/chat.types'
-import { streamPepeResponse } from '../services/pepe.service' 
+import type { Message, TicketPriority } from '../types/chat.types'
+import { streamPepeResponse } from '../services/pepe.service'
+import { isFailureFeedback } from '../utils/ticket-feedback.utils'
+import {
+  registerFailureAttempt,
+  resetFailureAttempts,
+} from '../utils/chat-ticket-attempts.utils'
+import { buildTicketSuccessMessage } from '../utils/ticket-message.utils'
+
+const MAX_FAILURE_ATTEMPTS = 2
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
+
+  const updateMessages = (
+    updater: (prev: Message[]) => Message[],
+    onMessagesChange?: (messages: Message[]) => void
+  ) => {
+    setMessages((prev) => {
+      const updated = updater(prev)
+      onMessagesChange?.(updated)
+      return updated
+    })
+  }
 
   const sendMessage = async (
     chatId: string,
     text: string,
     onMessagesChange?: (messages: Message[]) => void
   ) => {
-    if (!text.trim() || loading) return
+    const trimmedText = text.trim()
 
-    // 1. Inyectar el mensaje del usuario
+    if (!trimmedText || loading) return
+
+    const isFailureMessage = isFailureFeedback(trimmedText)
+    const failureCount = isFailureMessage ? registerFailureAttempt(chatId) : 0
+    const shouldOfferTicket = failureCount >= MAX_FAILURE_ATTEMPTS
+
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: text,
+      content: trimmedText,
+      kind: 'text',
     }
 
-    setMessages((prev) => {
-      const updated = [...prev, userMessage]
-      onMessagesChange?.(updated)
-      return updated
-    })
+    updateMessages((prev) => [...prev, userMessage], onMessagesChange)
 
     setLoading(true)
 
-    // 2. Crear una "burbuja" vacía para el asistente
     const botMessageId = crypto.randomUUID()
+
     const botMessage: Message = {
       id: botMessageId,
       role: 'assistant',
-      content: '', 
+      content: '',
+      kind: 'text',
     }
 
-    setMessages((prev) => {
-      const updated = [...prev, botMessage]
-      onMessagesChange?.(updated)
-      return updated
-    })
+    updateMessages((prev) => [...prev, botMessage], onMessagesChange)
 
-    // 3. Conectarse a Bedrock e ir llenando la burbuja
     try {
       await streamPepeResponse(
         chatId,
-        text,
+        trimmedText,
         (chunk: string) => {
-          setMessages((prev) => {
-            const updated = prev.map((msg) =>
-              msg.id === botMessageId
-                ? { ...msg, content: msg.content + chunk }
-                : msg
-            )
-            onMessagesChange?.(updated)
-            return updated
-          })
+          updateMessages(
+            (prev) =>
+              prev.map((msg) => {
+                if (msg.id !== botMessageId) return msg
+
+                return {
+                  ...msg,
+                  content: msg.content + chunk,
+                }
+              }),
+            onMessagesChange
+          )
         },
         () => {
+          updateMessages(
+            (prev) =>
+              prev.map((msg) => {
+                if (msg.id !== botMessageId) return msg
+                if (!shouldOfferTicket) return msg
+
+                return {
+                  ...msg,
+                  action: 'generate_ticket',
+                }
+              }),
+            onMessagesChange
+          )
+
           setLoading(false)
         }
       )
     } catch (error) {
-      console.error("Error en la conexión con el Agente:", error)
+      console.error('Error en la conexión con el Agente:', error)
       setLoading(false)
     }
   }
 
-  const resetChat = () => {
+  const insertTicketFormMessage = (
+    onMessagesChange?: (messages: Message[]) => void
+  ) => {
+    updateMessages((prev) => {
+      const formAlreadyExists = prev.some(
+        (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
+      )
+
+      if (formAlreadyExists) return prev
+
+      const formMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        kind: 'ticket_form',
+        content:
+          'Detecté que el problema persiste. Completa este pequeño formulario para generar tu ticket de soporte.',
+      }
+
+      return [...prev, formMessage]
+    }, onMessagesChange)
+  }
+
+  const submitTicketForm = (
+    data: {
+      subject: string
+      description: string
+      priority: TicketPriority
+    },
+    onMessagesChange?: (messages: Message[]) => void
+  ) => {
+    const userSummaryMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      kind: 'ticket_summary',
+      content: '',
+      ticketFormData: {
+        subject: data.subject,
+        description: data.description,
+        priority: data.priority,
+      },
+    }
+
+    const successMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      kind: 'text',
+      content: buildTicketSuccessMessage('TK-2026-001'),
+    }
+
+    updateMessages((prev) => {
+      const filteredMessages = prev.filter((msg) => msg.kind !== 'ticket_form')
+      return [...filteredMessages, userSummaryMessage, successMessage]
+    }, onMessagesChange)
+  }
+
+  const resetChat = (chatId?: string) => {
+    if (chatId) {
+      resetFailureAttempts(chatId)
+    }
+
     setMessages([])
   }
 
@@ -82,5 +175,7 @@ export const useChat = () => {
     loading,
     resetChat,
     loadMessages,
+    insertTicketFormMessage,
+    submitTicketForm,
   }
 }

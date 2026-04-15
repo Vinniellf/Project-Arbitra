@@ -1,5 +1,8 @@
 import type React from 'react'
-import type { Message } from '../../types/chat.types'
+import type {
+  Message,
+  TicketPriority,
+} from '../../types/chat.types'
 import { MessageBubble } from './MessageBubble'
 import pepeIcon from '@/assets/icon.webp'
 
@@ -8,6 +11,12 @@ type Props = {
   loading?: boolean
   lastAssistantRef?: React.RefObject<HTMLDivElement | null>
   bottomSpacer?: number
+  onGenerateTicket?: () => void
+  onSubmitTicketForm?: (data: {
+    subject: string
+    description: string
+    priority: TicketPriority
+  }) => void
 }
 
 export const ChatMessages = ({
@@ -15,9 +24,12 @@ export const ChatMessages = ({
   loading,
   lastAssistantRef,
   bottomSpacer,
+  onGenerateTicket,
+  onSubmitTicketForm,
 }: Props) => {
   const visibleMessages = messages.filter(
-    (msg) => !(msg.role === 'assistant' && !msg.content?.trim())
+    (msg) =>
+      !(msg.role === 'assistant' && !msg.content?.trim() && msg.kind !== 'ticket_form')
   )
 
   const lastAssistantIndex = [...visibleMessages]
@@ -36,7 +48,15 @@ export const ChatMessages = ({
               key={msg.id}
               ref={isLastAssistant ? lastAssistantRef : undefined}
             >
-              <MessageBubble role={msg.role} content={msg.content} />
+              <MessageBubble
+                role={msg.role}
+                content={msg.content}
+                action={msg.action}
+                kind={msg.kind}
+                ticketFormData={msg.ticketFormData}
+                onGenerateTicket={onGenerateTicket}
+                onSubmitTicketForm={onSubmitTicketForm}
+              />
             </div>
           )
         })}

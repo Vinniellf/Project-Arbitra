@@ -3,7 +3,9 @@ import { useChat } from '@/modules/chat/hooks/useChat'
 import { useChatUI } from '@/modules/chat/hooks/useChatUI'
 import { useChatHistory } from '@/modules/chat/hooks/useChatHistory'
 import { ChatLayout } from '@/modules/chat/layouts/ChatLayout'
-import type { Message } from '@/modules/chat/types/chat.types'
+import type { Chat, Message, TicketPriority } from '@/modules/chat/types/chat.types'
+import { resetFailureAttempts } from '@/modules/chat/utils/chat-ticket-attempts.utils'
+import { createChat } from '@/modules/chat/services/chat.service'
 
 const ACTIVE_CHAT_KEY = 'active_chat_id'
 
@@ -26,6 +28,19 @@ export const ChatContainer = () => {
     }
   }
 
+  const syncMessagesToHistory = (chatId: string, updatedMessages: Message[]) => {
+    const chatExists = history.chats.some((chatItem) => chatItem.id === chatId)
+
+    if (!chatExists) {
+      const newChat: Chat = createChat(updatedMessages, chatId)
+      history.addChat(newChat)
+      setActiveChat(chatId)
+      return
+    }
+
+    history.updateChat(chatId, updatedMessages)
+  }
+
   const handleSelectChat = (chatId: string) => {
     const selected = history.chats.find((c) => c.id === chatId)
     if (!selected) return
@@ -39,32 +54,56 @@ export const ChatContainer = () => {
     const currentChatId = activeChatId ?? crypto.randomUUID()
 
     chat.sendMessage(currentChatId, text, (updatedMessages: Message[]) => {
-      if (!activeChatId) {
-        const newChat = history.addChat(updatedMessages)
-        setActiveChat(newChat.id)
-      } else {
-        history.updateChat(currentChatId, updatedMessages)
-      }
+      syncMessagesToHistory(currentChatId, updatedMessages)
+    })
+  }
+
+  const handleGenerateTicket = () => {
+    const currentChatId = activeChatId ?? crypto.randomUUID()
+
+    chat.insertTicketFormMessage((updatedMessages: Message[]) => {
+      syncMessagesToHistory(currentChatId, updatedMessages)
+    })
+  }
+
+  const handleSubmitTicketForm = (data: {
+    subject: string
+    description: string
+    priority: TicketPriority
+  }) => {
+    const currentChatId = activeChatId ?? crypto.randomUUID()
+
+    chat.submitTicketForm(data, (updatedMessages: Message[]) => {
+      syncMessagesToHistory(currentChatId, updatedMessages)
     })
   }
 
   const handleResetChat = () => {
+    if (activeChatId) {
+      resetFailureAttempts(activeChatId)
+    }
+
     setActiveChat(null)
-    chat.resetChat()
+    chat.resetChat(activeChatId ?? undefined)
   }
 
   const handleDeleteChat = (chatId: string) => {
+    resetFailureAttempts(chatId)
     history.deleteChat(chatId)
 
     if (chatId === activeChatId) {
       setActiveChat(null)
-      chat.resetChat()
+      chat.resetChat(chatId)
     }
   }
 
   const handleNewChat = () => {
+    if (activeChatId) {
+      resetFailureAttempts(activeChatId)
+    }
+
     setActiveChat(null)
-    chat.resetChat()
+    chat.resetChat(activeChatId ?? undefined)
     ui.closeSidebar()
   }
 
@@ -84,6 +123,8 @@ export const ChatContainer = () => {
       activeChatId={activeChatId}
       onDeleteChat={handleDeleteChat}
       onNewChat={handleNewChat}
+      onGenerateTicket={handleGenerateTicket}
+      onSubmitTicketForm={handleSubmitTicketForm}
     />
   )
 }

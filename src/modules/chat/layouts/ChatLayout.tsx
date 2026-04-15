@@ -1,7 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
 import { useRef, useState } from 'react'
 import clsx from 'clsx'
-import type { Chat } from '../types/chat.types'
+import type { Chat, TicketPriority } from '../types/chat.types'
 
 import { ChatHeader } from '@/modules/chat/components/ChatHeader/ChatHeader'
 import { ChatSidebar } from '@/modules/chat/components/ChatSidebar/ChatSidebar'
@@ -16,6 +16,8 @@ type Message = {
   id: string
   content: string
   role: 'user' | 'assistant'
+  action?: 'generate_ticket'
+  kind?: 'text' | 'ticket_form' | 'ticket_summary'
 }
 
 type Props = {
@@ -33,6 +35,12 @@ type Props = {
   activeChatId: string | null
   onDeleteChat: (id: string) => void
   onNewChat: () => void
+  onGenerateTicket: () => void
+  onSubmitTicketForm: (data: {
+    subject: string
+    description: string
+    priority: TicketPriority
+  }) => void
 }
 
 export const ChatLayout = ({
@@ -50,6 +58,8 @@ export const ChatLayout = ({
   activeChatId,
   onDeleteChat,
   onNewChat,
+  onGenerateTicket,
+  onSubmitTicketForm,
 }: Props) => {
   const inputRef = useRef<HTMLDivElement | null>(null)
   const bottomSpacer = useBottomSpacer(inputRef)
@@ -113,13 +123,15 @@ export const ChatLayout = ({
                   loading={loading}
                   lastAssistantRef={lastAssistantRef}
                   bottomSpacer={bottomSpacer}
+                  onGenerateTicket={onGenerateTicket}
+                  onSubmitTicketForm={onSubmitTicketForm}
                 />
               )}
             </div>
 
             <div
               ref={inputRef}
-              className="sticky bottom-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 bg-white"
+              className="sticky bottom-0 w-full px-2.5 sm:px-3 md:px-4 pb-2 sm:pb-3 bg-white"
             >
               <ChatInput onSend={handleSendMessage} />
             </div>
