@@ -10,6 +10,8 @@ export type AuthContextType = {
   user: User | null
   isAuthenticated: boolean
   initialLoading: boolean
+  requiresNewPassword: boolean
+  setRequiresNewPassword: (value: boolean) => void
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }

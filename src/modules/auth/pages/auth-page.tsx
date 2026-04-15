@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -12,6 +12,9 @@ import { waitForSession } from '../utils/session.utils'
 
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 import icon from '@/assets/icon.webp'
+
+const cleanEmailInput = (value: string) => value.trim()
+const cleanPasswordInput = (value: string) => value.trim()
 
 export default function AuthPage() {
   const navigate = useNavigate()
@@ -27,7 +30,7 @@ export default function AuthPage() {
   const [error, setError] = useState('')
 
   const { login, loading } = useAuth()
-  const { refreshUser } = useAuthContext()
+  const { refreshUser, setRequiresNewPassword } = useAuthContext()
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -45,35 +48,37 @@ export default function AuthPage() {
       const result = await login(cleanEmail, cleanPassword)
 
       if (result.requiresNewPassword) {
+        setRequiresNewPassword(true)
+
         navigate('/new-password', {
+          replace: true,
           state: { email: cleanEmail },
         })
         return
       }
 
+      setRequiresNewPassword(false)
       await waitForSession()
       setShowLoading(true)
     } catch (error: unknown) {
+      setRequiresNewPassword(false)
       setError(getAuthErrorMessage(error))
     }
   }
 
+  const handleLoadingFinish = useCallback(async () => {
+    await refreshUser()
+
+    const sessionUser = await getCurrentSessionUser()
+    const redirectPath = isAdminUser(sessionUser?.groups ?? [])
+      ? '/admin'
+      : '/home'
+
+    navigate(redirectPath, { replace: true })
+  }, [navigate, refreshUser])
+
   if (showLoading) {
-    return (
-      <LoadingScreen
-        variant="login"
-        onFinish={async () => {
-          await refreshUser()
-
-          const sessionUser = await getCurrentSessionUser()
-          const redirectPath = isAdminUser(sessionUser?.groups ?? [])
-            ? '/admin'
-            : '/home'
-
-          navigate(redirectPath, { replace: true })
-        }}
-      />
-    )
+    return <LoadingScreen variant="login" onFinish={handleLoadingFinish} />
   }
 
   return (
@@ -127,7 +132,12 @@ export default function AuthPage() {
                     type="email"
                     placeholder="correo@empresa.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(cleanEmailInput(e.target.value))}
+                    onPaste={(e) => {
+                      e.preventDefault()
+                      const text = e.clipboardData.getData('text')
+                      setEmail(cleanEmailInput(text))
+                    }}
                     className={`
                       w-full pl-10 pr-4 py-3 border rounded-xl outline-none
                       hover:border-gray-300 focus:ring-2 focus:ring-[#5aa9e6]/40 transition
@@ -153,7 +163,14 @@ export default function AuthPage() {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Contraseña temporal"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) =>
+                      setPassword(cleanPasswordInput(e.target.value))
+                    }
+                    onPaste={(e) => {
+                      e.preventDefault()
+                      const text = e.clipboardData.getData('text')
+                      setPassword(cleanPasswordInput(text))
+                    }}
                     className={`
                       w-full pl-10 pr-10 py-3 border rounded-xl outline-none
                       hover:border-gray-300 focus:ring-2 focus:ring-[#5aa9e6]/40 transition

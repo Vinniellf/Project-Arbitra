@@ -7,9 +7,13 @@ type Props = {
 }
 
 export const PublicGuard = ({ children }: Props) => {
-  const { user, isAuthenticated, initialLoading } = useAuthContext()
+  const { user, isAuthenticated, initialLoading, requiresNewPassword } = useAuthContext()
 
   if (initialLoading) return null
+
+  if (requiresNewPassword) {
+    return <Navigate to="/new-password" replace />
+  }
 
   if (isAuthenticated) {
     const redirectPath = isAdminUser(user?.groups ?? [])

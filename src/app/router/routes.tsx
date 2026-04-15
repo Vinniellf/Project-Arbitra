@@ -1,5 +1,12 @@
 import { Route, Routes } from 'react-router-dom'
-import { publicRoutes, privateRoutes, adminRoutes } from './links'
+
+import {
+  publicRoutes,
+  privateRoutes,
+  adminRoutes,
+  standalonePrivateRoutes,
+} from './links'
+
 import { MainLayout } from '../layouts/MainLayout'
 import { AuthGuard } from '@/shared/guards/AuthGuard'
 
@@ -12,7 +19,14 @@ export const RoutesApp = () => {
         <Route key={route.path} path={route.path} element={route.element} />
       ))}
 
-      {/* RUTAS PRIVADAS CON LAYOUT PRINCIPAL */}
+      {/* RUTAS PRIVADAS SIN LAYOUT
+          (ej: new-password) */}
+      {standalonePrivateRoutes.map((route) => (
+        <Route key={route.path} path={route.path} element={route.element} />
+      ))}
+
+      {/* RUTAS PRIVADAS CON LAYOUT
+          (requieren login) */}
       <Route
         element={
           <AuthGuard>
@@ -25,7 +39,8 @@ export const RoutesApp = () => {
         ))}
       </Route>
 
-      {/* RUTAS ADMIN (fuera del MainLayout) */}
+      {/* RUTAS ADMIN
+          (roles + protección) */}
       {adminRoutes.map((route) => (
         <Route key={route.path} path={route.path} element={route.element}>
           {route.children?.map((child, index) => (

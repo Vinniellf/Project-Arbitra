@@ -7,7 +7,7 @@ type Props = {
 }
 
 export const AuthGuard = ({ children }: Props) => {
-  const { isAuthenticated, initialLoading } = useAuthContext()
+  const { isAuthenticated, initialLoading, requiresNewPassword } = useAuthContext()
 
   if (initialLoading) {
     return <SessionLoader />
@@ -15,6 +15,12 @@ export const AuthGuard = ({ children }: Props) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+
+  // Si tiene contraseña temporal pendiente,
+  // lo forzamos a completar el cambio primero
+  if (requiresNewPassword) {
+    return <Navigate to="/new-password" replace />
   }
 
   return <>{children}</>

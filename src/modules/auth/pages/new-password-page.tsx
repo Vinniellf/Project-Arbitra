@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, X, Eye, Sparkles, ShieldCheck, Zap } from 'lucide-react'
 
@@ -11,8 +11,10 @@ import {
   validatePassword,
   isPasswordValid,
 } from '../utils/password-validator'
+import { getCurrentSessionUser } from '../services/session.service'
 
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
+import { isAdminUser } from '@/modules/auth/utils/role.utils'
 
 type RuleItemProps = {
   valid: boolean
@@ -30,6 +32,9 @@ const RuleItem = ({ valid, label }: RuleItemProps) => (
   </div>
 )
 
+const cleanTextInput = (value: string) => value.replace(/^\s+/, '')
+const cleanPasswordInput = (value: string) => value.trim()
+
 export default function NewPasswordPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -40,7 +45,7 @@ export default function NewPasswordPage() {
   const [showLoading, setShowLoading] = useState(false)
 
   const { confirmNewPassword, updateProfile, loading } = useAuth()
-  const { refreshUser } = useAuthContext()
+  const { refreshUser, setRequiresNewPassword } = useAuthContext()
   const navigate = useNavigate()
 
   const rules = validatePassword(password)
@@ -54,8 +59,15 @@ export default function NewPasswordPage() {
 
     const cleanFirstName = firstName.trim()
     const cleanLastName = lastName.trim()
+    const cleanPassword = password.trim()
+    const cleanConfirmPassword = confirmPassword.trim()
 
-    if (!cleanFirstName || !cleanLastName || !password || !confirmPassword) {
+    if (
+      !cleanFirstName ||
+      !cleanLastName ||
+      !cleanPassword ||
+      !cleanConfirmPassword
+    ) {
       setError('Completa todos los campos')
       return
     }
@@ -70,13 +82,13 @@ export default function NewPasswordPage() {
       return
     }
 
-    if (password !== confirmPassword) {
+    if (cleanPassword !== cleanConfirmPassword) {
       setError(PASSWORD_ERRORS.PASSWORD_MISMATCH)
       return
     }
 
     try {
-      await confirmNewPassword(password)
+      await confirmNewPassword(cleanPassword)
 
       await updateProfile({
         firstName: cleanFirstName,
@@ -93,16 +105,20 @@ export default function NewPasswordPage() {
     }
   }
 
+  const handleLoadingFinish = useCallback(async () => {
+    await refreshUser()
+
+    const sessionUser = await getCurrentSessionUser()
+    const redirectPath = isAdminUser(sessionUser?.groups ?? [])
+      ? '/admin'
+      : '/home'
+
+    setRequiresNewPassword(false)
+    navigate(redirectPath, { replace: true })
+  }, [navigate, refreshUser, setRequiresNewPassword])
+
   if (showLoading) {
-    return (
-      <LoadingScreen
-        variant="welcome"
-        onFinish={async () => {
-          await refreshUser()
-          navigate('/home', { replace: true })
-        }}
-      />
-    )
+    return <LoadingScreen variant="welcome" onFinish={handleLoadingFinish} />
   }
 
   return (
@@ -132,7 +148,12 @@ export default function NewPasswordPage() {
               <input
                 type="text"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={(e) => setFirstName(cleanTextInput(e.target.value))}
+                onPaste={(e) => {
+                  e.preventDefault()
+                  const text = e.clipboardData.getData('text')
+                  setFirstName(cleanTextInput(text))
+                }}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition hover:border-gray-300 focus:ring-2 focus:ring-[#5aa9e6]/40"
                 placeholder="Nombre"
                 maxLength={50}
@@ -148,7 +169,12 @@ export default function NewPasswordPage() {
               <input
                 type="text"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={(e) => setLastName(cleanTextInput(e.target.value))}
+                onPaste={(e) => {
+                  e.preventDefault()
+                  const text = e.clipboardData.getData('text')
+                  setLastName(cleanTextInput(text))
+                }}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition hover:border-gray-300 focus:ring-2 focus:ring-[#5aa9e6]/40"
                 placeholder="Apellido"
                 maxLength={50}
@@ -165,7 +191,12 @@ export default function NewPasswordPage() {
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(cleanPasswordInput(e.target.value))}
+              onPaste={(e) => {
+                e.preventDefault()
+                const text = e.clipboardData.getData('text')
+                setPassword(cleanPasswordInput(text))
+              }}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition hover:border-gray-300 focus:ring-2 focus:ring-[#5aa9e6]/40"
               placeholder="Ingresa tu contraseña"
               autoComplete="new-password"
@@ -180,7 +211,14 @@ export default function NewPasswordPage() {
             <input
               type={showPassword ? 'text' : 'password'}
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) =>
+                setConfirmPassword(cleanPasswordInput(e.target.value))
+              }
+              onPaste={(e) => {
+                e.preventDefault()
+                const text = e.clipboardData.getData('text')
+                setConfirmPassword(cleanPasswordInput(text))
+              }}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition hover:border-gray-300 focus:ring-2 focus:ring-[#5aa9e6]/40"
               placeholder="Repite tu contraseña"
               autoComplete="new-password"

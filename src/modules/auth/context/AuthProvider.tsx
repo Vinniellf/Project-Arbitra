@@ -10,6 +10,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [initialLoading, setInitialLoading] = useState(true)
 
+  const [requiresNewPasswordState, setRequiresNewPasswordState] = useState(() => {
+    return sessionStorage.getItem('requiresNewPassword') === 'true'
+  })
+
+  const setRequiresNewPassword = (value: boolean) => {
+    setRequiresNewPasswordState(value)
+
+    if (value) {
+      sessionStorage.setItem('requiresNewPassword', 'true')
+    } else {
+      sessionStorage.removeItem('requiresNewPassword')
+    }
+  }
+
   const loadUser = useCallback(async () => {
     try {
       const sessionUser = await getCurrentSessionUser()
@@ -48,6 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     await authService.logout()
     setUser(null)
+    setRequiresNewPassword(false)
   }
 
   return (
@@ -56,6 +71,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isAuthenticated: !!user,
         initialLoading,
+        requiresNewPassword: requiresNewPasswordState,
+        setRequiresNewPassword,
         logout,
         refreshUser,
       }}

@@ -11,7 +11,7 @@ type Props = {
 }
 
 export const RoleGuard = ({ children, allowedRoles }: Props) => {
-  const { user, isAuthenticated, initialLoading } = useAuthContext()
+  const { user, isAuthenticated, initialLoading, requiresNewPassword } = useAuthContext()
 
   if (initialLoading) {
     return <SessionLoader />
@@ -19,6 +19,10 @@ export const RoleGuard = ({ children, allowedRoles }: Props) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+
+  if (requiresNewPassword) {
+    return <Navigate to="/new-password" replace />
   }
 
   const allowed = hasRole(user?.groups ?? [], allowedRoles)
