@@ -3,34 +3,17 @@ import { ChevronDown, LogOut, User, Menu, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import logoEmpresa from '@/assets/logo.webp'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
-import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 
-export const Header = () => {
-  const { user, logout } = useAuthContext()
+interface HeaderProps {
+  onLogout: () => void
+}
+
+export const Header = ({ onLogout }: HeaderProps) => {
+  const { user } = useAuthContext()
   const [open, setOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [showLogoutLoading, setShowLogoutLoading] = useState(false)
 
   const navigate = useNavigate()
-
-  const handleLogout = async () => {
-    setShowLogoutLoading(true)
-  }
-
-  if (showLogoutLoading) {
-    return (
-      <LoadingScreen
-        variant="logout"
-        onFinish={async () => {
-          try {
-            await logout()
-          } finally {
-            navigate('/login', { replace: true })
-          }
-        }}
-      />
-    )
-  }
 
   return (
     <div className="w-full flex justify-center relative z-50">
@@ -142,7 +125,7 @@ export const Header = () => {
               </button>
 
               <button
-                onClick={handleLogout}
+                onClick={onLogout}
                 className="
                   flex items-center gap-2 px-4 py-2.5 w-full
                   text-sm text-red-500
@@ -175,7 +158,7 @@ export const Header = () => {
                 <User size={16} /> Mi perfil
               </button>
               <button
-                onClick={handleLogout}
+                onClick={onLogout}
                 className="flex items-center gap-2 text-red-500"
               >
                 <LogOut size={16} /> Cerrar sesión

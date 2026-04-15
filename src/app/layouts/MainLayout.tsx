@@ -1,7 +1,33 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { Header } from '@/shared/components/layout/Header'
+import LoadingScreen from '@/shared/components/ui/LoadingScreen'
+import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
 
 export const MainLayout = () => {
+  const [showLogoutLoading, setShowLogoutLoading] = useState(false)
+  const { logout } = useAuthContext()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    setShowLogoutLoading(true)
+  }
+
+  if (showLogoutLoading) {
+    return (
+      <LoadingScreen
+        variant="logout"
+        onFinish={async () => {
+          try {
+            await logout()
+          } finally {
+            navigate('/login', { replace: true })
+          }
+        }}
+      />
+    )
+  }
+
   return (
     <div
       className="
@@ -12,7 +38,7 @@ export const MainLayout = () => {
         to-[#b7abec]
       "
     >
-      <Header />
+      <Header onLogout={handleLogout} />
 
       <main className="flex-1 flex justify-center p-4">
         <div className="w-full max-w-7xl">
