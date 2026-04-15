@@ -1,5 +1,5 @@
 import { Users } from 'lucide-react'
-import EmptyStateCard from '../../common/listing/EmptyStateCard'
+import EmptyStateCard from '../common/listing/EmptyStateCard'
 
 export default function UsersEmptyState() {
   return (

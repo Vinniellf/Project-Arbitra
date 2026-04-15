@@ -1,8 +1,8 @@
 import { Loader2, Mail, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useInviteAdminUser } from '../../../hooks/useInviteAdminUser'
-import { useAdminRole } from '../../../hooks/useAdminRole'
-import type { InviteUserRequest } from '../../../types/admin-user'
+import { useInviteAdminUser } from '../../hooks/users/useInviteAdminUser'
+import { useAdminRole } from '../../hooks/shared/useAdminRole'
+import type { InviteUserRequest } from '../../types/admin-user'
 import ConfirmModal from '../users/ConfirmModal'
 
 type InviteUserModalProps = {

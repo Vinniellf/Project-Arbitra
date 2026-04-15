@@ -8,7 +8,7 @@ import {
   Loader2,
   ShieldCheck,
 } from 'lucide-react'
-import type { AdminUser } from '../../../types/admin-user'
+import type { AdminUser } from '../../types/admin-user'
 
 type Variant = 'enabled' | 'disabled'
 

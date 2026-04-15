@@ -1,11 +1,11 @@
-import FiltersCard from '../../common/filters/FiltersCard'
-import SearchInput from '../../common/filters/SearchInput'
-import FilterSelect from '../../common/filters/FilterSelect'
+import FiltersCard from '../common/filters/FiltersCard'
+import SearchInput from '../common/filters/SearchInput'
+import FilterSelect from '../common/filters/FilterSelect'
 import {
   ADMIN_USER_ENABLED_FILTER,
   ADMIN_USER_STATUS_OPTIONS,
   type AdminUserEnabledFilter,
-} from '../../../constants/admin-user.constants'
+} from '../../constants/admin-user.constants'
 
 import {
   LayoutGrid,

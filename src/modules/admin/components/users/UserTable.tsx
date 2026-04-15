@@ -8,12 +8,12 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 
-import TableContainer from '../../common/table/TableContainer'
-import TableHead from '../../common/table/TableHead'
-import TableEmptyState from '../../common/table/TableEmptyState'
-import TableSkeleton from '../../common/table/TableSkeleton'
+import TableContainer from '../common/table/TableContainer'
+import TableHead from '../common/table/TableHead'
+import TableEmptyState from '../common/table/TableEmptyState'
+import TableSkeleton from '../common/table/TableSkeleton'
 
-import type { AdminUser } from '../../../types/admin-user'
+import type { AdminUser } from '../../types/admin-user'
 
 type UserTableVariant = 'enabled' | 'disabled'
 

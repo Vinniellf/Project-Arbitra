@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Users, RefreshCw } from 'lucide-react'
 
-import PageHeader from '../components/common/layout/PageHeader'
+import PageHeader from '../components/layout/PageHeader'
 import PageErrorState from '../components/common/feedback/PageErrorState'
 import StatsSkeleton from '../components/common/stats/StatsSkeleton'
 import CardsSkeleton from '../components/common/listing/CardsSkeleton'
@@ -9,17 +9,17 @@ import TableContainer from '../components/common/table/TableContainer'
 import TableHead from '../components/common/table/TableHead'
 import TableSkeleton from '../components/common/table/TableSkeleton'
 
-import UserStats from '../components/ui/users/UserStats'
-import UserFilters from '../components/ui/users/UserFilters'
-import UsersGrid from '../components/ui/users/UsersGrid'
-import UsersEmptyState from '../components/ui/users/UsersEmptyState'
-import InviteUserButton from '../components/ui/users/InviteUserButton'
-import UserTable from '../components/ui/users/UserTable'
+import UserStats from '../components/users/UserStats'
+import UserFilters from '../components/users/UserFilters'
+import UsersGrid from '../components/users/UsersGrid'
+import UsersEmptyState from '../components/users/UsersEmptyState'
+import InviteUserButton from '../components/users/InviteUserButton'
+import UserTable from '../components/users/UserTable'
 
-import { useAdminSystemUsers } from '../hooks/useAdminSystemUsers'
-import { useAdminUserFilters } from '../hooks/useAdminUserFilters'
-import { useDisableAdminUser } from '../hooks/useDisableAdminUser'
-import { useEnableAdminUser } from '../hooks/useEnableAdminUser'
+import { useAdminSystemUsers } from '../hooks/users/useAdminSystemUsers'
+import { useAdminUserFilters } from '../hooks/users/useAdminUserFilters'
+import { useDisableAdminUser } from '../hooks/users/useDisableAdminUser'
+import { useEnableAdminUser } from '../hooks/users/useEnableAdminUser'
 import type { AdminUser } from '../types/admin-user'
 import {
   formatAdminUserDate,
@@ -36,7 +36,7 @@ export default function UsuariosView() {
   const { enableUser } = useEnableAdminUser()
 
   const [actionLoadingUserId, setActionLoadingUserId] = useState<string | null>(
-    null
+    null,
   )
   const [viewMode, setViewMode] = useState<ViewMode>('table')
 

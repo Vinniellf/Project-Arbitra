@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { inviteAdminUser } from '../services/invite-users.service'
-import type { InviteUserRequest, InviteUserResponse } from '../types/admin-user'
+import { inviteAdminUser } from '../../services/users/invite-users.service'
+import type {
+  InviteUserRequest,
+  InviteUserResponse,
+} from '../../types/admin-user'
 
 type UseInviteAdminUserReturn = {
   inviteUser: (payload: InviteUserRequest) => Promise<InviteUserResponse>
@@ -16,7 +19,7 @@ export function useInviteAdminUser(): UseInviteAdminUserReturn {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const inviteUser = async (
-    payload: InviteUserRequest
+    payload: InviteUserRequest,
   ): Promise<InviteUserResponse> => {
     try {
       setLoading(true)
@@ -26,7 +29,7 @@ export function useInviteAdminUser(): UseInviteAdminUserReturn {
       const response = await inviteAdminUser(payload)
 
       setSuccessMessage(
-        response.message || 'Invitación procesada correctamente.'
+        response.message || 'Invitación procesada correctamente.',
       )
 
       return response

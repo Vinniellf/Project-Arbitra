@@ -1,7 +1,7 @@
-import { API } from '@/shared/config/api-config'
+import { API } from '@/shared/config/api'
 import { getAccessToken } from '@/shared/services/api-auth'
 import { parseErrorResponse } from '@/shared/services/api-errors'
-import type { ListSystemUsersResponse } from '../types/system-user'
+import type { ListSystemUsersResponse } from '../../types/system-user'
 
 export async function listSystemUsers(
   limit = 20,

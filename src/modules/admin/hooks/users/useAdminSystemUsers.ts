@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
-import { listSystemUsers } from '../services/system-users.service'
-import type { AdminUser } from '../types/admin-user'
-import type { SystemUser } from '../types/system-user'
+import { listSystemUsers } from '../../services/users/system-users.service'
+import type { AdminUser } from '../../types/admin-user'
+import type { SystemUser } from '../../types/system-user'
 
 type UseAdminSystemUsersReturn = {
   users: AdminUser[]

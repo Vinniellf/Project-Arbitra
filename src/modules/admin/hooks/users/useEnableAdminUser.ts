@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { enableAdminUser } from '../services/admin-user-actions.service'
-import type { ToggleAdminUserResponse } from '../types/admin-user'
+import { enableAdminUser } from '../../services/users/admin-user-actions.service'
+import type { ToggleAdminUserResponse } from '../../types/admin-user'
 
 export function useEnableAdminUser() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const enableUser = async (
-    username: string
+    username: string,
   ): Promise<ToggleAdminUserResponse> => {
     try {
       setLoading(true)
@@ -16,9 +16,7 @@ export function useEnableAdminUser() {
       return await enableAdminUser(username)
     } catch (err) {
       const message =
-        err instanceof Error
-          ? err.message
-          : 'No se pudo habilitar el usuario'
+        err instanceof Error ? err.message : 'No se pudo habilitar el usuario'
 
       setError(message)
       throw new Error(message)

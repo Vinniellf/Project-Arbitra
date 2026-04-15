@@ -5,7 +5,7 @@ import {
   Building2,
   LogOut,
   MoreVertical,
-  Bot,
+  BotMessageSquare,
 } from 'lucide-react'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
 
@@ -83,7 +83,7 @@ export default function Sidebar({
               rounded-2xl bg-violet-600 text-white shadow-sm
             "
           >
-            <Bot size={20} strokeWidth={2.1} />
+            <BotMessageSquare size={20} strokeWidth={2.1} />
           </div>
 
           <div className="min-w-0">
