@@ -11,6 +11,17 @@ export const resetPepeState = (chatId: string) => {
   delete chatSessions[chatId]
 }
 
+// NUEVO: Buscador dinámico del Access Token
+const getCognitoAccessToken = (): string | null => {
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.includes('CognitoIdentityServiceProvider') && key.endsWith('.idToken')) {
+      return localStorage.getItem(key);
+    }
+  }
+  return null;
+}
+
 export const streamPepeResponse = async (
   chatId: string, 
   message: string, 
@@ -23,8 +34,15 @@ export const streamPepeResponse = async (
   if (!currentPrompt) return; 
 
   try {
-    // 1. Obtener tu token de sesión 
-    const token = localStorage.getItem('session_token'); 
+    // 1. Obtener tu token de sesión dinámicamente
+    const token = getCognitoAccessToken();
+
+    if (!token) {
+      console.error("No se encontró el Access Token en el localStorage.");
+      onChunk("\n⚠️ Error de autenticación: Por favor inicia sesión nuevamente.");
+      onComplete();
+      return; 
+    }
 
     // 2. Hacer la petición a tu Lambda 
     const response = await fetch(import.meta.env.VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL, {
