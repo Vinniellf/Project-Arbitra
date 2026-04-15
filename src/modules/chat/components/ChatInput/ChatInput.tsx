@@ -24,7 +24,10 @@ export const ChatInput = ({ onSend }: Props) => {
     }
 
     window.addEventListener('keydown', handleGlobalKey)
-    return () => window.removeEventListener('keydown', handleGlobalKey)
+
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKey)
+    }
   }, [])
 
   useEffect(() => {
@@ -32,7 +35,7 @@ export const ChatInput = ({ onSend }: Props) => {
     if (!textarea) return
 
     textarea.style.height = '0px'
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 128)}px`
   }, [text])
 
   const handleSend = () => {
@@ -43,7 +46,7 @@ export const ChatInput = ({ onSend }: Props) => {
     setText('')
 
     if (textareaRef.current) {
-      textareaRef.current.style.height = '44px'
+      textareaRef.current.style.height = '36px'
     }
   }
 
@@ -58,11 +61,12 @@ export const ChatInput = ({ onSend }: Props) => {
     <div className="w-full flex justify-center">
       <div
         className="
-          w-full max-w-3xl
-          flex items-end gap-2
-          rounded-2xl border border-gray-200
+          w-full max-w-2xl
+          flex items-center gap-1.5
+          rounded-xl border border-gray-200
           bg-white shadow-sm
-          px-3 py-2
+          px-2.5 py-1.5
+          focus-within:ring-2 focus-within:ring-blue-100
         "
       >
         <textarea
@@ -74,17 +78,18 @@ export const ChatInput = ({ onSend }: Props) => {
           placeholder="Escribe tu mensaje..."
           className="
             flex-1
-            min-h-11
-            max-h-40
+            min-h-9
+            max-h-32
             resize-none
             overflow-y-auto
             bg-transparent
-            px-1 py-2
-            text-sm sm:text-base
+            px-1
+            py-1.5
+            text-sm
             text-gray-700
             placeholder:text-gray-400
             outline-none
-            leading-6
+            leading-5
           "
         />
 
@@ -93,13 +98,13 @@ export const ChatInput = ({ onSend }: Props) => {
           disabled={!text.trim()}
           type="button"
           className="
-            flex h-11 w-11 shrink-0 items-center justify-center
-            rounded-xl bg-blue-500 text-white shadow-sm
+            flex h-9 w-9 shrink-0 items-center justify-center
+            rounded-lg bg-blue-500 text-white shadow-sm
             transition hover:bg-blue-600
             disabled:cursor-not-allowed disabled:opacity-50
           "
         >
-          <Send size={18} />
+          <Send size={16} />
         </button>
       </div>
     </div>

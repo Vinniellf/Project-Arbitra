@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Chat, Message } from '../types/chat.types'
-import { getChats, saveChats, createChat } from '../services/chat.service'
+import { getChats, saveChats } from '../services/chat.service'
 
 export const useChatHistory = () => {
   const [chats, setChats] = useState<Chat[]>(() => getChats())
@@ -10,11 +10,10 @@ export const useChatHistory = () => {
     saveChats(updated)
   }
 
-  const addChat = (messages: Message[]): Chat => {
-    const newChat = createChat(messages)
-    const updated = [newChat, ...chats].slice(0, 20)
+  const addChat = (chat: Chat): Chat => {
+    const updated = [chat, ...chats].slice(0, 20)
     persist(updated)
-    return newChat
+    return chat
   }
 
   const updateChat = (id: string, messages: Message[]) => {
