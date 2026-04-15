@@ -3,13 +3,22 @@ import pepeIcon from '@/assets/icon.webp'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ReactNode } from 'react'
+import { GenerateTicketButton } from '@/modules/chat/components/GenerateTicketButton/GenerateTicketButton'
+import type { MessageAction } from '../../types/chat.types'
 
 type Props = {
   role: 'user' | 'assistant'
   content: string
+  action?: MessageAction
+  onGenerateTicket?: () => void
 }
 
-export const MessageBubble = ({ role, content }: Props) => {
+export const MessageBubble = ({
+  role,
+  content,
+  action,
+  onGenerateTicket,
+}: Props) => {
   const isUser = role === 'user'
 
   return (
@@ -137,6 +146,10 @@ export const MessageBubble = ({ role, content }: Props) => {
             >
               {content}
             </ReactMarkdown>
+
+            {action === 'generate_ticket' && onGenerateTicket && (
+              <GenerateTicketButton onClick={onGenerateTicket} />
+            )}
           </div>
         )}
       </div>

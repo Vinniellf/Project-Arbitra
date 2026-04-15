@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Message } from '../types/chat.types'
-import { streamPepeResponse } from '../services/pepe.service' 
+import { streamPepeResponse } from '../services/pepe.service'
+import { isFailureFeedback } from '../utils/ticket-feedback.utils'
+import { registerFailureAttempt } from '../utils/chat-ticket-attempts.utils'
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
@@ -13,7 +15,10 @@ export const useChat = () => {
   ) => {
     if (!text.trim() || loading) return
 
-    // 1. Inyectar el mensaje del usuario
+    const isFailureMessage = isFailureFeedback(text)
+    const failureCount = isFailureMessage ? registerFailureAttempt(chatId) : 0
+    const shouldOfferTicket = failureCount >= 2
+
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -21,49 +26,70 @@ export const useChat = () => {
     }
 
     setMessages((prev) => {
-      const updated = [...prev, userMessage]
+      const updated: Message[] = [...prev, userMessage]
       onMessagesChange?.(updated)
       return updated
     })
 
     setLoading(true)
 
-    // 2. Crear una "burbuja" vacía para el asistente
     const botMessageId = crypto.randomUUID()
     const botMessage: Message = {
       id: botMessageId,
       role: 'assistant',
-      content: '', 
+      content: '',
     }
 
     setMessages((prev) => {
-      const updated = [...prev, botMessage]
+      const updated: Message[] = [...prev, botMessage]
       onMessagesChange?.(updated)
       return updated
     })
 
-    // 3. Conectarse a Bedrock e ir llenando la burbuja
     try {
       await streamPepeResponse(
         chatId,
         text,
         (chunk: string) => {
           setMessages((prev) => {
-            const updated = prev.map((msg) =>
-              msg.id === botMessageId
-                ? { ...msg, content: msg.content + chunk }
-                : msg
-            )
+            const updated: Message[] = prev.map((msg) => {
+              if (msg.id !== botMessageId) return msg
+
+              const nextMessage: Message = {
+                ...msg,
+                content: msg.content + chunk,
+              }
+
+              return nextMessage
+            })
+
             onMessagesChange?.(updated)
             return updated
           })
         },
         () => {
+          setMessages((prev) => {
+            const updated: Message[] = prev.map((msg) => {
+              if (msg.id !== botMessageId) return msg
+              if (!shouldOfferTicket) return msg
+
+              const nextMessage: Message = {
+                ...msg,
+                action: 'generate_ticket',
+              }
+
+              return nextMessage
+            })
+
+            onMessagesChange?.(updated)
+            return updated
+          })
+
           setLoading(false)
         }
       )
     } catch (error) {
-      console.error("Error en la conexión con el Agente:", error)
+      console.error('Error en la conexión con el Agente:', error)
       setLoading(false)
     }
   }
