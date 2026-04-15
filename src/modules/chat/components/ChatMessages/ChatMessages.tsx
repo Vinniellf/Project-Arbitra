@@ -8,6 +8,7 @@ type Props = {
   loading?: boolean
   lastAssistantRef?: React.RefObject<HTMLDivElement | null>
   bottomSpacer?: number
+  onGenerateTicket?: () => void
 }
 
 export const ChatMessages = ({
@@ -15,6 +16,7 @@ export const ChatMessages = ({
   loading,
   lastAssistantRef,
   bottomSpacer,
+  onGenerateTicket,
 }: Props) => {
   const visibleMessages = messages.filter(
     (msg) => !(msg.role === 'assistant' && !msg.content?.trim())
@@ -36,7 +38,12 @@ export const ChatMessages = ({
               key={msg.id}
               ref={isLastAssistant ? lastAssistantRef : undefined}
             >
-              <MessageBubble role={msg.role} content={msg.content} />
+              <MessageBubble
+                role={msg.role}
+                content={msg.content}
+                action={msg.action}
+                onGenerateTicket={onGenerateTicket}
+              />
             </div>
           )
         })}

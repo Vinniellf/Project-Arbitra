@@ -4,6 +4,7 @@ import { useChatUI } from '@/modules/chat/hooks/useChatUI'
 import { useChatHistory } from '@/modules/chat/hooks/useChatHistory'
 import { ChatLayout } from '@/modules/chat/layouts/ChatLayout'
 import type { Message } from '@/modules/chat/types/chat.types'
+import { resetFailureAttempts } from '@/modules/chat/utils/chat-ticket-attempts.utils'
 
 const ACTIVE_CHAT_KEY = 'active_chat_id'
 
@@ -49,11 +50,16 @@ export const ChatContainer = () => {
   }
 
   const handleResetChat = () => {
+    if (activeChatId) {
+      resetFailureAttempts(activeChatId)
+    }
+
     setActiveChat(null)
     chat.resetChat()
   }
 
   const handleDeleteChat = (chatId: string) => {
+    resetFailureAttempts(chatId)
     history.deleteChat(chatId)
 
     if (chatId === activeChatId) {
@@ -63,9 +69,21 @@ export const ChatContainer = () => {
   }
 
   const handleNewChat = () => {
+    if (activeChatId) {
+      resetFailureAttempts(activeChatId)
+    }
+
     setActiveChat(null)
     chat.resetChat()
     ui.closeSidebar()
+  }
+
+  const handleGenerateTicket = () => {
+    console.log('Abrir flujo para generar ticket')
+    // Aquí luego conectas:
+    // - un modal
+    // - una ruta como /tickets/new
+    // - o un POST a tu API
   }
 
   return (
@@ -84,6 +102,7 @@ export const ChatContainer = () => {
       activeChatId={activeChatId}
       onDeleteChat={handleDeleteChat}
       onNewChat={handleNewChat}
+      onGenerateTicket={handleGenerateTicket}
     />
   )
 }

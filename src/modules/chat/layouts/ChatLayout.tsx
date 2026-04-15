@@ -16,6 +16,7 @@ type Message = {
   id: string
   content: string
   role: 'user' | 'assistant'
+  action?: 'generate_ticket'
 }
 
 type Props = {
@@ -33,6 +34,7 @@ type Props = {
   activeChatId: string | null
   onDeleteChat: (id: string) => void
   onNewChat: () => void
+  onGenerateTicket: () => void
 }
 
 export const ChatLayout = ({
@@ -50,6 +52,7 @@ export const ChatLayout = ({
   activeChatId,
   onDeleteChat,
   onNewChat,
+  onGenerateTicket,
 }: Props) => {
   const inputRef = useRef<HTMLDivElement | null>(null)
   const bottomSpacer = useBottomSpacer(inputRef)
@@ -113,6 +116,7 @@ export const ChatLayout = ({
                   loading={loading}
                   lastAssistantRef={lastAssistantRef}
                   bottomSpacer={bottomSpacer}
+                  onGenerateTicket={onGenerateTicket}
                 />
               )}
             </div>
