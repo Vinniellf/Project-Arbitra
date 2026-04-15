@@ -15,7 +15,7 @@ export const ChatWelcome = () => {
         className="flex flex-col items-center"
       >
         <div className="relative w-20 h-20 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full bg-white/80 flex items-center justify-center shadow-xl shadow-blue-500/10 border border-white/40">
-          <div className="absolute w-24 h-24 sm:w-40 sm:h-40 md:w-44 md:h-44 bg-blue-400/20 rounded-full" />
+          <div className="absolute w-24 h-24 sm:w-40 sm:h-40 md:w-36 md:h-36 bg-blue-400/20 rounded-full" />
 
           <img
             src={icon}
