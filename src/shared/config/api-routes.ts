@@ -4,6 +4,7 @@ export const API_ROUTES = {
     systemUsers: '/admin/system-users',
     disableUser: '/admin/users/disable',
     enableUser: '/admin/users/enable',
+    companies: '/admin/companies',
   },
   invite: {
     create: '/default/invite-user',
