@@ -6,6 +6,7 @@ import NewPasswordPage from '@/modules/auth/pages/new-password-page'
 import ForgotPasswordPage from '@/modules/auth/pages/forgot-password-page'
 import { HomePage } from '@/modules/home/pages/home-page'
 import Admin from '@/modules/admin/pages/Admin'
+import { ProfilePage } from '@/modules/profile/pages/profile-page'
 
 import { PublicGuard } from '@/shared/guards/PublicGuard'
 import { RoleGuard } from '@/shared/guards/RoleGuard'
@@ -57,6 +58,10 @@ export const privateRoutes: RouteObject[] = [
   {
     path: ROUTES.HOME,
     element: <HomePage />,
+  },
+  {
+    path: ROUTES.PROFILE,
+    element: <ProfilePage />,
   },
 ]
 

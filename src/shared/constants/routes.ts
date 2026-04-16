@@ -5,4 +5,5 @@ export const ROUTES = {
   NEW_PASSWORD: '/new-password',
   HOME: '/home',
   ADMIN: '/admin',
+  PROFILE: '/profile',
 } as const

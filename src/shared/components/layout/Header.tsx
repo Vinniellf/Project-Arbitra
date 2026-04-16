@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, LogOut, User, Menu, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import logoEmpresa from '@/assets/logo.webp'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
+import { ROUTES } from '@/shared/constants/routes'
 
 interface HeaderProps {
   onLogout: () => void
@@ -14,6 +15,55 @@ export const Header = ({ onLogout }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const navigate = useNavigate()
+
+  const desktopMenuRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+
+      if (
+        desktopMenuRef.current &&
+        !desktopMenuRef.current.contains(target)
+      ) {
+        setOpen(false)
+      }
+
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target)
+      ) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const closeMenus = () => {
+    setOpen(false)
+    setMenuOpen(false)
+  }
+
+  const goToHome = () => {
+    closeMenus()
+    navigate(ROUTES.HOME)
+  }
+
+  const goToProfile = () => {
+    closeMenus()
+    navigate(ROUTES.PROFILE)
+  }
+
+  const handleLogout = () => {
+    closeMenus()
+    onLogout()
+  }
 
   return (
     <div className="w-full flex justify-center relative z-50">
@@ -29,7 +79,7 @@ export const Header = ({ onLogout }: HeaderProps) => {
         "
       >
         <div
-          onClick={() => navigate('/home')}
+          onClick={goToHome}
           className="flex items-center gap-3 cursor-pointer"
         >
           <img
@@ -43,7 +93,7 @@ export const Header = ({ onLogout }: HeaderProps) => {
         </div>
 
         <button
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() => setMenuOpen((prev) => !prev)}
           className="
             md:hidden
             p-2 rounded-lg
@@ -54,9 +104,9 @@ export const Header = ({ onLogout }: HeaderProps) => {
           {menuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        <div className="hidden md:block relative">
+        <div ref={desktopMenuRef} className="hidden md:block relative">
           <button
-            onClick={() => setOpen(!open)}
+            onClick={() => setOpen((prev) => !prev)}
             className="
               flex items-center gap-2
               bg-white/60 backdrop-blur-md
@@ -113,7 +163,7 @@ export const Header = ({ onLogout }: HeaderProps) => {
 
             <div className="py-1">
               <button
-                onClick={() => navigate('/profile')}
+                onClick={goToProfile}
                 className="
                   flex items-center gap-2 px-4 py-2.5 w-full
                   text-sm text-gray-700
@@ -125,7 +175,7 @@ export const Header = ({ onLogout }: HeaderProps) => {
               </button>
 
               <button
-                onClick={onLogout}
+                onClick={handleLogout}
                 className="
                   flex items-center gap-2 px-4 py-2.5 w-full
                   text-sm text-red-500
@@ -143,6 +193,7 @@ export const Header = ({ onLogout }: HeaderProps) => {
       {menuOpen && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40">
           <div
+            ref={mobileMenuRef}
             className="
               absolute top-24 left-1/2 -translate-x-1/2
               w-[90%] max-w-sm
@@ -152,13 +203,13 @@ export const Header = ({ onLogout }: HeaderProps) => {
             <div className="flex flex-col gap-4 text-gray-700">
               <hr />
               <button
-                onClick={() => navigate('/profile')}
+                onClick={goToProfile}
                 className="flex items-center gap-2"
               >
                 <User size={16} /> Mi perfil
               </button>
               <button
-                onClick={onLogout}
+                onClick={handleLogout}
                 className="flex items-center gap-2 text-red-500"
               >
                 <LogOut size={16} /> Cerrar sesión
