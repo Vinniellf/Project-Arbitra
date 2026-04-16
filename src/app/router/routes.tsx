@@ -13,7 +13,6 @@ import { AuthGuard } from '@/shared/guards/AuthGuard'
 export const RoutesApp = () => {
   return (
     <Routes>
-
       {/* RUTAS PÚBLICAS */}
       {publicRoutes.map((route) => (
         <Route key={route.path} path={route.path} element={route.element} />
@@ -53,7 +52,6 @@ export const RoutesApp = () => {
           ))}
         </Route>
       ))}
-
     </Routes>
   )
 }

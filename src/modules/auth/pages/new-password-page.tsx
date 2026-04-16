@@ -15,6 +15,7 @@ import { getCurrentSessionUser } from '../services/session.service'
 
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 import { isAdminUser } from '@/modules/auth/utils/role.utils'
+import { ROUTES } from '@/shared/constants/routes'
 
 type RuleItemProps = {
   valid: boolean
@@ -33,7 +34,7 @@ const RuleItem = ({ valid, label }: RuleItemProps) => (
 )
 
 const cleanTextInput = (value: string) => value.replace(/^\s+/, '')
-const cleanPasswordInput = (value: string) => value.trim()
+const cleanPasswordInput = (value: string) => value
 
 export default function NewPasswordPage() {
   const [firstName, setFirstName] = useState('')
@@ -59,8 +60,8 @@ export default function NewPasswordPage() {
 
     const cleanFirstName = firstName.trim()
     const cleanLastName = lastName.trim()
-    const cleanPassword = password.trim()
-    const cleanConfirmPassword = confirmPassword.trim()
+    const cleanPassword = password
+    const cleanConfirmPassword = confirmPassword
 
     if (
       !cleanFirstName ||
@@ -110,8 +111,8 @@ export default function NewPasswordPage() {
 
     const sessionUser = await getCurrentSessionUser()
     const redirectPath = isAdminUser(sessionUser?.groups ?? [])
-      ? '/admin'
-      : '/home'
+      ? ROUTES.ADMIN
+      : ROUTES.HOME
 
     setRequiresNewPassword(false)
     navigate(redirectPath, { replace: true })
