@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Pencil,
   Save,
@@ -10,56 +10,63 @@ import {
 } from 'lucide-react'
 import { authService } from '@/modules/auth/services/auth.service'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
+import { useAsyncBlock } from '@/shared/hooks/useAsyncBlock'
 
 export const ProfilePage = () => {
   const { user, refreshUser } = useAuthContext()
+  const { runWithBlock, isBlocked } = useAsyncBlock()
+
+  const parsedUserName = useMemo(() => {
+    const rawName = user?.name?.trim() || ''
+    const parts = rawName ? rawName.split(' ') : []
+    const firstName = parts[0] || ''
+    const lastName = parts.slice(1).join(' ') || ''
+
+    return {
+      firstName,
+      lastName,
+    }
+  }, [user?.name])
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [isEditing, setIsEditing] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!user?.name) return
-
-    const parts = user.name.trim().split(' ')
-    const inferredFirstName = parts[0] || ''
-    const inferredLastName = parts.slice(1).join(' ') || ''
-
-    setFirstName(inferredFirstName)
-    setLastName(inferredLastName)
-  }, [user])
+  const displayFirstName = isEditing ? firstName : parsedUserName.firstName
+  const displayLastName = isEditing ? lastName : parsedUserName.lastName
 
   const initials = useMemo(() => {
     const first =
-      firstName?.charAt(0).toUpperCase() ||
+      displayFirstName?.charAt(0).toUpperCase() ||
       user?.name?.charAt(0).toUpperCase() ||
       'U'
-    const last = lastName?.charAt(0).toUpperCase() || ''
-    return `${first}${last}`
-  }, [firstName, lastName, user?.name])
+    const last = displayLastName?.charAt(0).toUpperCase() || ''
 
-  const fullNamePreview =
-    `${firstName} ${lastName}`.trim() || user?.name || 'Usuario'
+    return `${first}${last}`
+  }, [displayFirstName, displayLastName, user?.name])
+
+  const fullNamePreview = useMemo(() => {
+    const fullName = `${displayFirstName} ${displayLastName}`.trim()
+    return fullName || user?.name || 'Usuario'
+  }, [displayFirstName, displayLastName, user?.name])
 
   const handleEdit = () => {
+    if (isBlocked) return
+
     setMessage('')
     setError('')
+    setFirstName(parsedUserName.firstName)
+    setLastName(parsedUserName.lastName)
     setIsEditing(true)
   }
 
   const handleCancel = () => {
-    if (user?.name) {
-      const parts = user.name.trim().split(' ')
-      const inferredFirstName = parts[0] || ''
-      const inferredLastName = parts.slice(1).join(' ') || ''
+    if (isBlocked) return
 
-      setFirstName(inferredFirstName)
-      setLastName(inferredLastName)
-    }
-
+    setFirstName(parsedUserName.firstName)
+    setLastName(parsedUserName.lastName)
     setMessage('')
     setError('')
     setIsEditing(false)
@@ -67,25 +74,28 @@ export const ProfilePage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setMessage('')
     setError('')
 
     try {
-      await authService.updateProfile({
-        firstName,
-        lastName,
-      })
+      await runWithBlock(
+        async () => {
+          await authService.updateProfile({
+            firstName,
+            lastName,
+          })
 
-      await refreshUser?.()
+          await refreshUser?.()
+        },
+        'Guardando cambios...'
+      )
+
       setMessage('Tus datos se actualizaron correctamente.')
       setIsEditing(false)
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'No se pudo actualizar tu perfil.'
       setError(message)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -120,7 +130,8 @@ export const ProfilePage = () => {
                 <button
                   type="button"
                   onClick={handleEdit}
-                  className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
+                  disabled={isBlocked}
+                  className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Pencil size={15} />
                   Editar perfil
@@ -130,8 +141,8 @@ export const ProfilePage = () => {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    disabled={loading}
-                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                    disabled={isBlocked}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <X size={15} />
                     Cancelar
@@ -139,11 +150,11 @@ export const ProfilePage = () => {
 
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:opacity-50"
+                    disabled={isBlocked}
+                    className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Save size={15} />
-                    {loading ? 'Guardando...' : 'Guardar'}
+                    Guardar
                   </button>
                 </>
               )}
@@ -176,9 +187,9 @@ export const ProfilePage = () => {
                 </label>
                 <input
                   type="text"
-                  value={firstName}
+                  value={displayFirstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  disabled={!isEditing || loading}
+                  disabled={!isEditing || isBlocked}
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                   placeholder="Ingresa tu nombre"
                 />
@@ -191,9 +202,9 @@ export const ProfilePage = () => {
                 </label>
                 <input
                   type="text"
-                  value={lastName}
+                  value={displayLastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  disabled={!isEditing || loading}
+                  disabled={!isEditing || isBlocked}
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                   placeholder="Ingresa tu apellido"
                 />
