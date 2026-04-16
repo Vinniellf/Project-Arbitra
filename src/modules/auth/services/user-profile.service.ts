@@ -1,15 +1,18 @@
 import { fetchAuthSession } from 'aws-amplify/auth'
+import { API } from '@/shared/config/api'
 import type { UpdateProfileData } from '../types/auth.types'
 
-const UPDATE_PROFILE_URL = import.meta.env.VITE_UPDATE_PROFILE_API_URL
+type ApiErrorResponse = {
+  message?: string
+}
 
 export async function updateBackendProfile(data: UpdateProfileData) {
   const firstName = data.firstName.trim()
   const lastName = data.lastName.trim()
   const fullName = `${firstName} ${lastName}`.trim()
 
-  if (!UPDATE_PROFILE_URL) {
-    throw new Error('Falta VITE_UPDATE_PROFILE_API_URL')
+  if (!firstName || !lastName) {
+    throw new Error('El nombre y apellido son obligatorios')
   }
 
   const session = await fetchAuthSession()
@@ -19,7 +22,7 @@ export async function updateBackendProfile(data: UpdateProfileData) {
     throw new Error('No se pudo obtener el token del usuario')
   }
 
-  const response = await fetch(UPDATE_PROFILE_URL, {
+  const response = await fetch(API.profile.update, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -32,7 +35,7 @@ export async function updateBackendProfile(data: UpdateProfileData) {
     }),
   })
 
-  let apiResult: unknown = null
+  let apiResult: ApiErrorResponse | null = null
 
   try {
     apiResult = await response.json()
@@ -41,15 +44,7 @@ export async function updateBackendProfile(data: UpdateProfileData) {
   }
 
   if (!response.ok) {
-    const message =
-      typeof apiResult === 'object' &&
-      apiResult !== null &&
-      'message' in apiResult &&
-      typeof apiResult.message === 'string'
-        ? apiResult.message
-        : 'Error actualizando perfil'
-
-    throw new Error(message)
+    throw new Error(apiResult?.message || 'Error actualizando perfil')
   }
 
   return apiResult

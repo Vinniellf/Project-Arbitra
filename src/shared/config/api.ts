@@ -9,6 +9,9 @@ export const API = {
     enableUser: `${API_CONFIG.baseUrl}${API_ROUTES.admin.enableUser}`,
     companies: `${API_CONFIG.baseUrl}${API_ROUTES.admin.companies}`,
   },
+  profile: {
+    update: `${API_CONFIG.baseUrl}${API_ROUTES.profile.update}`,
+  },
   invite: {
     create: `${API_CONFIG.inviteBaseUrl}${API_ROUTES.invite.create}`,
   },

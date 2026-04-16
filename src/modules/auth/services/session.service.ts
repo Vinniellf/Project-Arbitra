@@ -37,9 +37,14 @@ export async function getCurrentSessionUser(): Promise<AuthUser | null> {
 
     const groups = normalizeGroups(rawGroups)
 
+    const fullName =
+      attributes.name ||
+      [attributes.given_name, attributes.family_name].filter(Boolean).join(' ') ||
+      attributes.email
+
     return {
       email: attributes.email,
-      name: attributes.name || attributes.given_name || attributes.email,
+      name: fullName,
       groups,
       isAuthenticated: true,
     }

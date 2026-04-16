@@ -5,6 +5,6 @@ const amplifyConfig = {
       userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID,
     },
   },
-};
+}
 
-export default amplifyConfig;
+export default amplifyConfig

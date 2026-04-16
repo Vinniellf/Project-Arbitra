@@ -4,7 +4,6 @@ import {
   resetPassword,
   confirmResetPassword,
   confirmSignIn,
-  updateUserAttributes,
 } from 'aws-amplify/auth'
 
 import type { UpdateProfileData } from '../types/auth.types'
@@ -69,29 +68,15 @@ export const authService = {
     try {
       const firstName = data.firstName.trim()
       const lastName = data.lastName.trim()
-      const fullName = `${firstName} ${lastName}`.trim()
 
       if (!firstName || !lastName) {
         throw new Error('El nombre y apellido son obligatorios')
       }
 
-      const cognitoResult = await updateUserAttributes({
-        userAttributes: {
-          name: fullName,
-          given_name: firstName,
-          family_name: lastName,
-        },
-      })
-
-      const apiResult = await updateBackendProfile({
+      return await updateBackendProfile({
         firstName,
         lastName,
       })
-
-      return {
-        cognitoResult,
-        apiResult,
-      }
     } catch (error: unknown) {
       console.error('Error actualizando perfil:', error)
       throw error

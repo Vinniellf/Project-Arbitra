@@ -6,6 +6,9 @@ export const API_ROUTES = {
     enableUser: '/admin/users/enable',
     companies: '/admin/companies',
   },
+  profile: {
+    update: '/update-profile',
+  },
   invite: {
     create: '/default/invite-user',
   },
