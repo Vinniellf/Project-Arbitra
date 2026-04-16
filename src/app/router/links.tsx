@@ -3,25 +3,35 @@ import { Navigate } from 'react-router-dom'
 
 import AuthPage from '@/modules/auth/pages/auth-page'
 import NewPasswordPage from '@/modules/auth/pages/new-password-page'
+import ForgotPasswordPage from '@/modules/auth/pages/forgot-password-page'
 import { HomePage } from '@/modules/home/pages/home-page'
 import Admin from '@/modules/admin/pages/Admin'
 
 import { PublicGuard } from '@/shared/guards/PublicGuard'
 import { RoleGuard } from '@/shared/guards/RoleGuard'
 import { NewPasswordGuard } from '@/shared/guards/NewPasswordGuard'
+import { ROUTES } from '@/shared/constants/routes'
 
 // RUTAS PÚBLICAS
 // Solo accesibles si NO estás autenticado
 export const publicRoutes: RouteObject[] = [
   {
-    path: '/',
-    element: <Navigate to="/login" replace />,
+    path: ROUTES.ROOT,
+    element: <Navigate to={ROUTES.LOGIN} replace />,
   },
   {
-    path: '/login',
+    path: ROUTES.LOGIN,
     element: (
       <PublicGuard>
         <AuthPage />
+      </PublicGuard>
+    ),
+  },
+  {
+    path: ROUTES.FORGOT_PASSWORD,
+    element: (
+      <PublicGuard>
+        <ForgotPasswordPage />
       </PublicGuard>
     ),
   },
@@ -32,7 +42,7 @@ export const publicRoutes: RouteObject[] = [
 // NO usan MainLayout
 export const standalonePrivateRoutes: RouteObject[] = [
   {
-    path: '/new-password',
+    path: ROUTES.NEW_PASSWORD,
     element: (
       <NewPasswordGuard>
         <NewPasswordPage />
@@ -45,7 +55,7 @@ export const standalonePrivateRoutes: RouteObject[] = [
 // Estas sí usan MainLayout + AuthGuard
 export const privateRoutes: RouteObject[] = [
   {
-    path: '/home',
+    path: ROUTES.HOME,
     element: <HomePage />,
   },
 ]
@@ -53,7 +63,7 @@ export const privateRoutes: RouteObject[] = [
 // RUTAS ADMIN (con roles)
 export const adminRoutes: RouteObject[] = [
   {
-    path: '/admin',
+    path: ROUTES.ADMIN,
     element: (
       <RoleGuard allowedRoles={['admin', 'superadmin']}>
         <Admin />

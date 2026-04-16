@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 
 import { useAuth } from '../hooks/useAuth'
 import { useAuthContext } from '../hooks/useAuthContext'
@@ -11,10 +11,15 @@ import { getCurrentSessionUser } from '../services/session.service'
 import { waitForSession } from '../utils/session.utils'
 
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
+import { ROUTES } from '@/shared/constants/routes'
 import icon from '@/assets/icon.webp'
 
 const cleanEmailInput = (value: string) => value.trim()
-const cleanPasswordInput = (value: string) => value.trim()
+const cleanPasswordInput = (value: string) => value
+
+type AuthLocationState = {
+  successMessage?: string
+}
 
 export default function AuthPage() {
   const navigate = useNavigate()
@@ -22,6 +27,9 @@ export default function AuthPage() {
 
   const initialEmail =
     new URLSearchParams(location.search).get('email')?.trim() ?? ''
+
+  const locationState = (location.state as AuthLocationState | null) ?? null
+  const successMessage = locationState?.successMessage ?? ''
 
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState(initialEmail)
@@ -32,25 +40,36 @@ export default function AuthPage() {
   const { login, loading } = useAuth()
   const { refreshUser, setRequiresNewPassword } = useAuthContext()
 
+  useEffect(() => {
+    if (!locationState?.successMessage) return
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: location.search,
+      },
+      { replace: true, state: null }
+    )
+  }, [location.pathname, location.search, locationState?.successMessage, navigate])
+
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
 
     const cleanEmail = email.trim()
-    const cleanPassword = password.trim()
 
-    if (!cleanEmail || !cleanPassword) {
+    if (!cleanEmail || !password) {
       setError('Completa todos los campos')
       return
     }
 
     try {
-      const result = await login(cleanEmail, cleanPassword)
+      const result = await login(cleanEmail, password)
 
       if (result.requiresNewPassword) {
         setRequiresNewPassword(true)
 
-        navigate('/new-password', {
+        navigate(ROUTES.NEW_PASSWORD, {
           replace: true,
           state: { email: cleanEmail },
         })
@@ -71,8 +90,8 @@ export default function AuthPage() {
 
     const sessionUser = await getCurrentSessionUser()
     const redirectPath = isAdminUser(sessionUser?.groups ?? [])
-      ? '/admin'
-      : '/home'
+      ? ROUTES.ADMIN
+      : ROUTES.HOME
 
     navigate(redirectPath, { replace: true })
   }, [navigate, refreshUser])
@@ -161,7 +180,7 @@ export default function AuthPage() {
                   />
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Contraseña temporal"
+                    placeholder="Contraseña"
                     value={password}
                     onChange={(e) =>
                       setPassword(cleanPasswordInput(e.target.value))
@@ -191,6 +210,23 @@ export default function AuthPage() {
                   </button>
                 </div>
               </div>
+
+              <div className="flex justify-end -mt-3">
+                <Link
+                  to={`${ROUTES.FORGOT_PASSWORD}${
+                    email ? `?email=${encodeURIComponent(email)}` : ''
+                  }`}
+                  className="text-sm font-medium text-[#1E6F9F] hover:text-[#0F3D5E] transition"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
+
+              <AuthErrorMessage
+                message={successMessage}
+                variant="info"
+                className="mt-2"
+              />
 
               <AuthErrorMessage message={error} className="mt-2" />
 

@@ -10,6 +10,12 @@ import {
 import type { UpdateProfileData } from '../types/auth.types'
 import { updateBackendProfile } from './user-profile.service'
 
+type CognitoLikeError = {
+  name?: string
+  message?: string
+  __type?: string
+}
+
 export const authService = {
   async login(email: string, password: string): Promise<{
     requiresNewPassword: boolean
@@ -94,7 +100,7 @@ export const authService = {
 
   async forgotPassword(email: string) {
     try {
-      await resetPassword({
+      return await resetPassword({
         username: email,
       })
     } catch (error: unknown) {
@@ -105,13 +111,21 @@ export const authService = {
 
   async confirmReset(email: string, code: string, newPassword: string) {
     try {
-      await confirmResetPassword({
+      return await confirmResetPassword({
         username: email,
         confirmationCode: code,
         newPassword,
       })
     } catch (error: unknown) {
-      console.error('Error confirmando reset:', error)
+      const err = error as CognitoLikeError
+
+      console.error('Error confirmando reset:', {
+        name: err?.name,
+        message: err?.message,
+        type: err?.__type,
+        fullError: error,
+      })
+
       throw error
     }
   },

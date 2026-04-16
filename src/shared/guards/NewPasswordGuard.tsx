@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
 import { SessionLoader } from '@/shared/components/ui/SessionLoader'
+import { ROUTES } from '@/shared/constants/routes'
 
 type Props = {
   children: ReactNode
@@ -16,15 +17,19 @@ export const NewPasswordGuard = ({ children }: Props) => {
   }
 
   // Caso especial:
-  // si no hay usuario autenticado normal, pero sí hay reto pendiente,
+  // si no hay sesión normal, pero sí existe reto pendiente,
   // se permite entrar a /new-password.
-  if (!isAuthenticated && !requiresNewPassword) {
-    return <Navigate to="/login" replace />
+  if (requiresNewPassword) {
+    return <>{children}</>
   }
 
-  if (!requiresNewPassword) {
-    return <Navigate to="/home" replace />
+  // Si ya no necesita cambiar contraseña pero sí está autenticado,
+  // lo enviamos al home.
+  if (isAuthenticated) {
+    return <Navigate to={ROUTES.HOME} replace />
   }
 
-  return <>{children}</>
+  // Si no está autenticado ni tiene reto pendiente,
+  // vuelve al login.
+  return <Navigate to={ROUTES.LOGIN} replace />
 }
