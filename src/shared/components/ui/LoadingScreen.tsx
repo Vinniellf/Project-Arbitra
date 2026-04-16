@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import icon from '@/assets/icon.webp'
 
-type LoadingVariant = 'login' | 'logout' | 'welcome'
+type LoadingVariant = 'login' | 'logout' | 'welcome' | 'inactivity'
 
 type Props = {
   onFinish: () => void | Promise<void>
@@ -24,6 +24,10 @@ const contentByVariant: Record<
     title: 'Bienvenido a PEPE',
     subtitle: 'Estamos preparando tu espacio por primera vez',
   },
+  inactivity: {
+    title: 'Sesión expirada por inactividad',
+    subtitle: 'Protegiendo tu cuenta en PEPE AI',
+  },
 }
 
 export default function LoadingScreen({
@@ -35,7 +39,6 @@ export default function LoadingScreen({
 
   const content = contentByVariant[variant]
 
-  // Mantiene actualizada la referencia sin reiniciar la animación
   useEffect(() => {
     onFinishRef.current = onFinish
   }, [onFinish])
@@ -72,7 +75,6 @@ export default function LoadingScreen({
         return
       }
 
-      // Evita que retroceda
       setProgress((prev) => (value > prev ? value : prev))
     }, 50)
 
@@ -83,7 +85,7 @@ export default function LoadingScreen({
   }, [])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#eef6fb] via-white to-[#e3edf7] overflow-hidden relative">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-linear-to-br from-[#eef6fb] via-white to-[#e3edf7]">
       <div className="absolute w-150 h-150 bg-[#5aa9e6]/15 blur-[150px] rounded-full animate-pulse" />
       <div className="absolute w-100 h-100 bg-[#4a8fd9]/10 blur-[120px] rounded-full -top-20 -left-20 animate-pulse" />
       <div className="absolute w-100 h-100 bg-[#5aa9e6]/10 blur-[120px] rounded-full -bottom-20 -right-20 animate-pulse" />

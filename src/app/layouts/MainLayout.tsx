@@ -1,8 +1,10 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+
 import { Header } from '@/shared/components/layout/Header'
 import LoadingScreen from '@/shared/components/ui/LoadingScreen'
 import { useAuthContext } from '@/modules/auth/hooks/useAuthContext'
+import { ROUTES } from '@/shared/constants/routes'
 
 export const MainLayout = () => {
   const [showLogoutLoading, setShowLogoutLoading] = useState(false)
@@ -21,7 +23,7 @@ export const MainLayout = () => {
           try {
             await logout()
           } finally {
-            navigate('/login', { replace: true })
+            navigate(ROUTES.LOGIN, { replace: true })
           }
         }}
       />

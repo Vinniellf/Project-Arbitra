@@ -1,7 +1,10 @@
 import { API } from '@/shared/config/api'
-import { getAccessToken } from '@/shared/services/api-auth'
-import { parseErrorResponse } from '@/shared/services/api-errors'
-import type { InviteUserRequest, InviteUserResponse } from '../../types/admin-user'
+import { getAccessToken } from '@/shared/api/api-auth'
+import { parseErrorResponse } from '@/shared/api/api-errors'
+import type {
+  InviteUserRequest,
+  InviteUserResponse,
+} from '../../types/admin-user'
 
 export async function inviteAdminUser(
   payload: InviteUserRequest,
