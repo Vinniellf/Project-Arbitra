@@ -12,4 +12,7 @@ export const API_ROUTES = {
   invite: {
     create: '/default/invite-user',
   },
+  chat: {
+    send: '/chat',
+  },
 } as const

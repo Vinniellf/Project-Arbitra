@@ -88,13 +88,7 @@ const markdownComponents = {
   pre: ({ children }: { children?: ReactNode }) => (
     <pre className="my-2 overflow-x-auto">{children}</pre>
   ),
-  a: ({
-    href,
-    children,
-  }: {
-    href?: string
-    children?: ReactNode
-  }) => (
+  a: ({ href, children }: { href?: string; children?: ReactNode }) => (
     <a
       href={href}
       target="_blank"
@@ -172,7 +166,10 @@ export const MessageBubble = ({
             )}
 
             {isTicketForm && onSubmitTicketForm && (
-              <TicketFormCard onSubmit={onSubmitTicketForm} />
+              <TicketFormCard
+                onSubmit={onSubmitTicketForm}
+                initialData={ticketFormData}
+              />
             )}
           </div>
         )}

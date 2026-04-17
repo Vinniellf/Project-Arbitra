@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import type { Message, TicketPriority } from '../types/chat.types'
-import { streamPepeResponse } from '../services/pepe.service'
 import { isFailureFeedback } from '../utils/ticket-feedback.utils'
 import {
   registerFailureAttempt,
   resetFailureAttempts,
 } from '../utils/chat-ticket-attempts.utils'
 import { buildTicketSuccessMessage } from '../utils/ticket-message.utils'
+import { sendPepeAgentMessage } from '../services/pepe-agent-api.service'
 
 const MAX_FAILURE_ATTEMPTS = 2
 
@@ -32,7 +32,6 @@ export const useChat = () => {
   ) => {
     const trimmedText = text.trim()
 
-    // BLOQUEO TOTAL
     if (!trimmedText || loading) return
 
     const isFailureMessage = isFailureFeedback(trimmedText)
@@ -40,7 +39,7 @@ export const useChat = () => {
       ? registerFailureAttempt(chatId)
       : 0
 
-    const shouldOfferTicket = failureCount >= MAX_FAILURE_ATTEMPTS
+    const shouldOfferTicketByFallback = failureCount >= MAX_FAILURE_ATTEMPTS
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -50,74 +49,77 @@ export const useChat = () => {
     }
 
     updateMessages((prev) => [...prev, userMessage], onMessagesChange)
-
     setLoading(true)
 
-    const botMessageId = crypto.randomUUID()
-
-    const botMessage: Message = {
-      id: botMessageId,
-      role: 'assistant',
-      content: '',
-      kind: 'text',
-    }
-
-    updateMessages((prev) => [...prev, botMessage], onMessagesChange)
-
     try {
-      await streamPepeResponse(
-        chatId,
-        trimmedText,
-        (chunk: string) => {
-          updateMessages(
-            (prev) =>
-              prev.map((msg) => {
-                if (msg.id !== botMessageId) return msg
+      const response = await sendPepeAgentMessage({
+        message: trimmedText,
+        sessionId: chatId,
+      })
 
-                return {
-                  ...msg,
-                  content: msg.content + chunk,
-                }
-              }),
-            onMessagesChange
-          )
-        },
-        () => {
-          updateMessages(
-            (prev) =>
-              prev.map((msg) => {
-                if (msg.id !== botMessageId) return msg
-                if (!shouldOfferTicket) return msg
+      const parsed = response.parsed
+      const assistantReply =
+        parsed?.reply?.trim() || response.cleaned?.trim() || response.raw?.trim()
 
-                return {
-                  ...msg,
-                  action: 'generate_ticket',
-                }
-              }),
-            onMessagesChange
-          )
-
-          setLoading(false)
+      if (assistantReply) {
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: assistantReply,
+          kind: 'text',
         }
-      )
+
+        updateMessages((prev) => [...prev, assistantMessage], onMessagesChange)
+      }
+
+      const shouldOfferTicket =
+        parsed?.suggestTicket === true || shouldOfferTicketByFallback
+
+      if (shouldOfferTicket) {
+        const ticketDraft = parsed?.ticketDraft
+
+        const formAlreadyExists = messages.some(
+          (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
+        )
+
+        if (!formAlreadyExists) {
+          const formMessage: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            kind: 'ticket_form',
+            content:
+              'He preparado un borrador del ticket con la información detectada. Revísalo antes de enviarlo.',
+            ticketFormData: ticketDraft
+              ? {
+                  subject: ticketDraft.subject,
+                  description: ticketDraft.description,
+                  priority: ticketDraft.priority,
+                }
+              : {
+                  subject: '',
+                  description: trimmedText,
+                  priority: 'media',
+                },
+          }
+
+          updateMessages((prev) => [...prev, formMessage], onMessagesChange)
+        }
+      }
     } catch (error) {
       console.error('Error en la conexión con el Agente:', error)
 
-      updateMessages(
-        (prev) =>
-          prev.map((msg) => {
-            if (msg.id !== botMessageId) return msg
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content:
+          error instanceof Error
+            ? `⚠️ ${error.message}`
+            : '⚠️ Lo siento, tuve un problema de conexión con el servidor.',
+        kind: 'text',
+      }
 
-            return {
-              ...msg,
-              content:
-                msg.content +
-                '\n Lo siento, hubo un problema de conexión con el servidor.',
-            }
-          }),
-        onMessagesChange
-      )
-
+      updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
+    } finally {
       setLoading(false)
     }
   }
@@ -172,9 +174,7 @@ export const useChat = () => {
     }
 
     updateMessages((prev) => {
-      const filteredMessages = prev.filter(
-        (msg) => msg.kind !== 'ticket_form'
-      )
+      const filteredMessages = prev.filter((msg) => msg.kind !== 'ticket_form')
       return [...filteredMessages, userSummaryMessage, successMessage]
     }, onMessagesChange)
   }
@@ -185,7 +185,7 @@ export const useChat = () => {
     }
 
     setMessages([])
-    setLoading(false) 
+    setLoading(false)
   }
 
   const loadMessages = (newMessages: Message[]) => {

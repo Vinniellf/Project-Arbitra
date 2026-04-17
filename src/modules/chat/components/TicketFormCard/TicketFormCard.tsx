@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import type { TicketPriority } from '../../types/chat.types'
 
@@ -8,6 +8,11 @@ type Props = {
     description: string
     priority: TicketPriority
   }) => void
+  initialData?: Partial<{
+    subject: string
+    description: string
+    priority: TicketPriority
+  }>
 }
 
 type PriorityOption = {
@@ -21,10 +26,14 @@ const PRIORITY_OPTIONS: PriorityOption[] = [
   { value: 'baja', label: 'Baja' },
 ]
 
-export const TicketFormCard = ({ onSubmit }: Props) => {
-  const [subject, setSubject] = useState('')
-  const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState<TicketPriority>('media')
+export const TicketFormCard = ({ onSubmit, initialData }: Props) => {
+  const [subject, setSubject] = useState(initialData?.subject ?? '')
+  const [description, setDescription] = useState(
+    initialData?.description ?? ''
+  )
+  const [priority, setPriority] = useState<TicketPriority>(
+    initialData?.priority ?? 'media'
+  )
   const [isPriorityOpen, setIsPriorityOpen] = useState(false)
 
   const priorityRef = useRef<HTMLDivElement>(null)
@@ -35,30 +44,6 @@ export const TicketFormCard = ({ onSubmit }: Props) => {
       PRIORITY_OPTIONS[1]
     )
   }, [priority])
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!priorityRef.current) return
-
-      if (!priorityRef.current.contains(event.target as Node)) {
-        setIsPriorityOpen(false)
-      }
-    }
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsPriorityOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscape)
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

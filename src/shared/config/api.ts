@@ -15,4 +15,7 @@ export const API = {
   invite: {
     create: `${API_CONFIG.inviteBaseUrl}${API_ROUTES.invite.create}`,
   },
+  chat: {
+    send: `${API_CONFIG.baseUrl}${API_ROUTES.chat.send}`,
+  },
 } as const
