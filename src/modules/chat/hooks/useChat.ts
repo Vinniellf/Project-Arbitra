@@ -32,10 +32,14 @@ export const useChat = () => {
   ) => {
     const trimmedText = text.trim()
 
+    // BLOQUEO TOTAL
     if (!trimmedText || loading) return
 
     const isFailureMessage = isFailureFeedback(trimmedText)
-    const failureCount = isFailureMessage ? registerFailureAttempt(chatId) : 0
+    const failureCount = isFailureMessage
+      ? registerFailureAttempt(chatId)
+      : 0
+
     const shouldOfferTicket = failureCount >= MAX_FAILURE_ATTEMPTS
 
     const userMessage: Message = {
@@ -98,6 +102,22 @@ export const useChat = () => {
       )
     } catch (error) {
       console.error('Error en la conexión con el Agente:', error)
+
+      updateMessages(
+        (prev) =>
+          prev.map((msg) => {
+            if (msg.id !== botMessageId) return msg
+
+            return {
+              ...msg,
+              content:
+                msg.content +
+                '\n Lo siento, hubo un problema de conexión con el servidor.',
+            }
+          }),
+        onMessagesChange
+      )
+
       setLoading(false)
     }
   }
@@ -152,7 +172,9 @@ export const useChat = () => {
     }
 
     updateMessages((prev) => {
-      const filteredMessages = prev.filter((msg) => msg.kind !== 'ticket_form')
+      const filteredMessages = prev.filter(
+        (msg) => msg.kind !== 'ticket_form'
+      )
       return [...filteredMessages, userSummaryMessage, successMessage]
     }, onMessagesChange)
   }
@@ -163,6 +185,7 @@ export const useChat = () => {
     }
 
     setMessages([])
+    setLoading(false) 
   }
 
   const loadMessages = (newMessages: Message[]) => {
