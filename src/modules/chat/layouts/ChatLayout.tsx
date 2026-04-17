@@ -74,6 +74,8 @@ export const ChatLayout = ({
   })
 
   const handleSendMessage = (msg: string) => {
+    if (loading) return
+
     setShouldScrollToNextAssistant(true)
     sendMessage(msg)
   }
@@ -133,7 +135,7 @@ export const ChatLayout = ({
               ref={inputRef}
               className="sticky bottom-0 w-full px-2.5 sm:px-3 md:px-4 pb-2 sm:pb-3 bg-white"
             >
-              <ChatInput onSend={handleSendMessage} />
+              <ChatInput onSend={handleSendMessage} loading={loading} />
             </div>
           </div>
         </div>

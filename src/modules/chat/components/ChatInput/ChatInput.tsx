@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from 'react'
 
 type Props = {
   onSend: (text: string) => void
+  loading?: boolean
 }
 
-export const ChatInput = ({ onSend }: Props) => {
+export const ChatInput = ({ onSend, loading = false }: Props) => {
   const [text, setText] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -39,6 +40,8 @@ export const ChatInput = ({ onSend }: Props) => {
   }, [text])
 
   const handleSend = () => {
+    if (loading) return
+
     const message = text.trim()
     if (!message) return
 
@@ -51,6 +54,8 @@ export const ChatInput = ({ onSend }: Props) => {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (loading) return
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -75,7 +80,8 @@ export const ChatInput = ({ onSend }: Props) => {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Escribe tu mensaje..."
+          placeholder={loading ? 'Pepe está escribiendo...' : 'Escribe tu mensaje...'}
+          disabled={loading}
           className="
             flex-1
             min-h-9
@@ -90,12 +96,14 @@ export const ChatInput = ({ onSend }: Props) => {
             placeholder:text-gray-400
             outline-none
             leading-5
+            disabled:cursor-not-allowed
+            disabled:opacity-60
           "
         />
 
         <button
           onClick={handleSend}
-          disabled={!text.trim()}
+          disabled={loading || !text.trim()}
           type="button"
           className="
             flex h-9 w-9 shrink-0 items-center justify-center
