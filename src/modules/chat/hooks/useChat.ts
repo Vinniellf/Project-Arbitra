@@ -61,6 +61,8 @@ export const useChat = () => {
       const assistantReply =
         parsed?.reply?.trim() || response.cleaned?.trim() || response.raw?.trim()
 
+      let updatedMessagesSnapshot: Message[] = []
+
       if (assistantReply) {
         const assistantMessage: Message = {
           id: crypto.randomUUID(),
@@ -69,7 +71,13 @@ export const useChat = () => {
           kind: 'text',
         }
 
-        updateMessages((prev) => [...prev, assistantMessage], onMessagesChange)
+        updateMessages((prev) => {
+          const updated = [...prev, assistantMessage]
+          updatedMessagesSnapshot = updated
+          return updated
+        }, onMessagesChange)
+      } else {
+        updatedMessagesSnapshot = messages
       }
 
       const shouldOfferTicket =
@@ -78,7 +86,7 @@ export const useChat = () => {
       if (shouldOfferTicket) {
         const ticketDraft = parsed?.ticketDraft
 
-        const formAlreadyExists = messages.some(
+        const formAlreadyExists = updatedMessagesSnapshot.some(
           (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
         )
 

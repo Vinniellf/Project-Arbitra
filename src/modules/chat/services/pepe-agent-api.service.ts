@@ -1,36 +1,22 @@
+import { fetchAuthSession } from 'aws-amplify/auth'
 import { API } from '@/shared/config/api'
 import type { PepeAgentApiResponse } from '../types/pepe-agent.types'
-
-const getCognitoToken = (): string | null => {
-  let idToken: string | null = null
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-
-    if (!key || !key.includes('CognitoIdentityServiceProvider')) continue
-
-    if (key.endsWith('.accessToken')) {
-      return localStorage.getItem(key)
-    }
-
-    if (key.endsWith('.idToken')) {
-      idToken = localStorage.getItem(key)
-    }
-  }
-
-  return idToken
-}
 
 type SendPepeAgentMessageInput = {
   message: string
   sessionId: string
 }
 
+const getCognitoIdToken = async (): Promise<string | null> => {
+  const session = await fetchAuthSession()
+  return session.tokens?.idToken?.toString() ?? null
+}
+
 export const sendPepeAgentMessage = async ({
   message,
   sessionId,
 }: SendPepeAgentMessageInput): Promise<PepeAgentApiResponse> => {
-  const token = getCognitoToken()
+  const token = await getCognitoIdToken()
 
   if (!token) {
     throw new Error('No se encontró el token de autenticación.')
@@ -43,7 +29,7 @@ export const sendPepeAgentMessage = async ({
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      message,
+      prompt: message,
       sessionId,
     }),
   })
