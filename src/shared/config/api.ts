@@ -18,4 +18,7 @@ export const API = {
   chat: {
     send: `${API_CONFIG.baseUrl}${API_ROUTES.chat.send}`,
   },
+  tickets: {
+    create: `${API_CONFIG.baseUrl}${API_ROUTES.tickets.create}`,
+  },
 } as const

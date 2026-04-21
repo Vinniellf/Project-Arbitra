@@ -1,7 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
 import { useRef, useState } from 'react'
 import clsx from 'clsx'
-import type { Chat, TicketPriority } from '../types/chat.types'
+import type { Chat } from '../types/chat.types'
 
 import { ChatHeader } from '@/modules/chat/components/ChatHeader/ChatHeader'
 import { ChatSidebar } from '@/modules/chat/components/ChatSidebar/ChatSidebar'
@@ -18,6 +18,10 @@ type Message = {
   role: 'user' | 'assistant'
   action?: 'generate_ticket'
   kind?: 'text' | 'ticket_form' | 'ticket_summary'
+  ticketFormData?: {
+    subject?: string
+    description?: string
+  }
 }
 
 type Props = {
@@ -39,7 +43,6 @@ type Props = {
   onSubmitTicketForm: (data: {
     subject: string
     description: string
-    priority: TicketPriority
   }) => void
 }
 

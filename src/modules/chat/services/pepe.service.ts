@@ -38,7 +38,6 @@ export const streamPepeResponse = async (
     const token = await getCognitoIdToken()
 
     if (!token) {
-      console.error('No se encontró el ID Token.')
       onChunk('\n⚠️ Error de autenticación: Por favor inicia sesión nuevamente.')
       onComplete()
       return

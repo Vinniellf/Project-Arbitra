@@ -29,7 +29,7 @@ export const sendPepeAgentMessage = async ({
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      prompt: message,
+      message,
       sessionId,
     }),
   })

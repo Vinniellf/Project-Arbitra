@@ -9,7 +9,6 @@ import { TicketSummaryCard } from '@/modules/chat/components/TicketSummaryCard/T
 import type {
   MessageAction,
   MessageKind,
-  TicketPriority,
   TicketFormData,
 } from '../../types/chat.types'
 
@@ -23,7 +22,6 @@ type Props = {
   onSubmitTicketForm?: (data: {
     subject: string
     description: string
-    priority: TicketPriority
   }) => void
 }
 

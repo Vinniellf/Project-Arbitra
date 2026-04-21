@@ -15,4 +15,7 @@ export const API_ROUTES = {
   chat: {
     send: '/chat',
   },
+  tickets: {
+    create: '/tickets',
+  },
 } as const

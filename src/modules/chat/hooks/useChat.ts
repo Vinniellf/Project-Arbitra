@@ -1,19 +1,18 @@
 import { useState } from 'react'
-import type { Message, TicketPriority } from '../types/chat.types'
-import { isFailureFeedback } from '../utils/ticket-feedback.utils'
-import {
-  registerFailureAttempt,
-  resetFailureAttempts,
-} from '../utils/chat-ticket-attempts.utils'
-import { buildTicketSuccessMessage } from '../utils/ticket-message.utils'
+import type { Message } from '../types/chat.types'
 import { sendPepeAgentMessage } from '../services/pepe-agent-api.service'
+import { createSupportTicket } from '../services/create-ticket-api.service'
 
-const MAX_FAILURE_ATTEMPTS = 2
+type TicketFormSubmitData = {
+  subject: string
+  description: string
+}
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
 
+  // helper para actualizar mensajes y sincronizar con history
   const updateMessages = (
     updater: (prev: Message[]) => Message[],
     onMessagesChange?: (messages: Message[]) => void
@@ -32,15 +31,10 @@ export const useChat = () => {
   ) => {
     const trimmedText = text.trim()
 
+    // evita envíos vacíos o duplicados
     if (!trimmedText || loading) return
 
-    const isFailureMessage = isFailureFeedback(trimmedText)
-    const failureCount = isFailureMessage
-      ? registerFailureAttempt(chatId)
-      : 0
-
-    const shouldOfferTicketByFallback = failureCount >= MAX_FAILURE_ATTEMPTS
-
+    // agrega mensaje del usuario
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -58,10 +52,55 @@ export const useChat = () => {
       })
 
       const parsed = response.parsed
-      const assistantReply =
-        parsed?.reply?.trim() || response.cleaned?.trim() || response.raw?.trim()
 
-      let updatedMessagesSnapshot: Message[] = []
+      // si backend no pudo interpretar respuesta
+      if (!parsed) {
+        const invalidMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          kind: 'text',
+          content:
+            '⚠️ El agente devolvió una respuesta inválida. No pude interpretarla.',
+        }
+
+        updateMessages((prev) => [...prev, invalidMessage], onMessagesChange)
+        return
+      }
+
+      // ================================
+      // CASO 1: FORMULARIO DE TICKET
+      // ================================
+      if (parsed.showTicketForm) {
+        updateMessages((prev) => {
+          // evita duplicar formulario
+          const alreadyExists = prev.some(
+            (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
+          )
+
+          if (alreadyExists) return prev
+
+          const formMessage: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            kind: 'ticket_form',
+            content:
+              'He preparado el borrador del ticket con la información detectada. Revísalo antes de enviarlo.',
+            ticketFormData: {
+              subject: parsed.ticketDraft?.subject ?? '',
+              description: parsed.ticketDraft?.description ?? '',
+            },
+          }
+
+          return [...prev, formMessage]
+        }, onMessagesChange)
+
+        return // importante: no continuar para evitar duplicar mensaje
+      }
+
+      // ================================
+      // CASO 2: RESPUESTA NORMAL
+      // ================================
+      const assistantReply = parsed.reply.trim()
 
       if (assistantReply) {
         const assistantMessage: Message = {
@@ -69,61 +108,23 @@ export const useChat = () => {
           role: 'assistant',
           content: assistantReply,
           kind: 'text',
+          // activa botón de ticket en frontend
+          action: parsed.suggestTicket ? 'generate_ticket' : undefined,
         }
 
-        updateMessages((prev) => {
-          const updated = [...prev, assistantMessage]
-          updatedMessagesSnapshot = updated
-          return updated
-        }, onMessagesChange)
-      } else {
-        updatedMessagesSnapshot = messages
-      }
-
-      const shouldOfferTicket =
-        parsed?.suggestTicket === true || shouldOfferTicketByFallback
-
-      if (shouldOfferTicket) {
-        const ticketDraft = parsed?.ticketDraft
-
-        const formAlreadyExists = updatedMessagesSnapshot.some(
-          (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
-        )
-
-        if (!formAlreadyExists) {
-          const formMessage: Message = {
-            id: crypto.randomUUID(),
-            role: 'assistant',
-            kind: 'ticket_form',
-            content:
-              'He preparado un borrador del ticket con la información detectada. Revísalo antes de enviarlo.',
-            ticketFormData: ticketDraft
-              ? {
-                  subject: ticketDraft.subject,
-                  description: ticketDraft.description,
-                  priority: ticketDraft.priority,
-                }
-              : {
-                  subject: '',
-                  description: trimmedText,
-                  priority: 'media',
-                },
-          }
-
-          updateMessages((prev) => [...prev, formMessage], onMessagesChange)
-        }
+        updateMessages((prev) => [...prev, assistantMessage], onMessagesChange)
       }
     } catch (error) {
-      console.error('Error en la conexión con el Agente:', error)
+      console.error('Error en la conexión con el agente:', error)
 
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
+        kind: 'text',
         content:
           error instanceof Error
             ? `⚠️ ${error.message}`
-            : '⚠️ Lo siento, tuve un problema de conexión con el servidor.',
-        kind: 'text',
+            : '⚠️ Error de conexión con el servidor.',
       }
 
       updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
@@ -132,66 +133,76 @@ export const useChat = () => {
     }
   }
 
-  const insertTicketFormMessage = (
+  // envío del formulario a backend (/tickets)
+  const submitTicketForm = async (
+    chatId: string,
+    data: TicketFormSubmitData,
     onMessagesChange?: (messages: Message[]) => void
   ) => {
-    updateMessages((prev) => {
-      const formAlreadyExists = prev.some(
-        (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
-      )
+    const subject = data.subject.trim()
+    const description = data.description.trim()
 
-      if (formAlreadyExists) return prev
+    if (!subject || !description || loading) return
 
-      const formMessage: Message = {
+    setLoading(true)
+
+    try {
+      const response = await createSupportTicket({
+        subject,
+        description,
+        sessionId: chatId,
+        source: 'chat-form',
+      })
+
+      // mensaje resumen del usuario
+      const summaryMessage: Message = {
         id: crypto.randomUUID(),
-        role: 'assistant',
-        kind: 'ticket_form',
-        content:
-          'Detecté que el problema persiste. Completa este pequeño formulario para generar tu ticket de soporte.',
+        role: 'user',
+        kind: 'ticket_summary',
+        content: '',
+        ticketFormData: {
+          subject,
+          description,
+        },
       }
 
-      return [...prev, formMessage]
-    }, onMessagesChange)
+      // mensaje de éxito del sistema
+      const successMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        kind: 'text',
+        content: [
+          response.message,
+          '',
+          `**Código de ticket:** ${response.ticketId}`,
+        ].join('\n'),
+      }
+
+      // elimina el formulario y agrega resultado
+      updateMessages((prev) => {
+        const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
+        return [...filtered, summaryMessage, successMessage]
+      }, onMessagesChange)
+    } catch (error) {
+      console.error('Error al crear el ticket:', error)
+
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        kind: 'text',
+        content:
+          error instanceof Error
+            ? `⚠️ ${error.message}`
+            : '⚠️ Error al crear el ticket.',
+      }
+
+      updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const submitTicketForm = (
-    data: {
-      subject: string
-      description: string
-      priority: TicketPriority
-    },
-    onMessagesChange?: (messages: Message[]) => void
-  ) => {
-    const userSummaryMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      kind: 'ticket_summary',
-      content: '',
-      ticketFormData: {
-        subject: data.subject,
-        description: data.description,
-        priority: data.priority,
-      },
-    }
-
-    const successMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      kind: 'text',
-      content: buildTicketSuccessMessage('TK-2026-001'),
-    }
-
-    updateMessages((prev) => {
-      const filteredMessages = prev.filter((msg) => msg.kind !== 'ticket_form')
-      return [...filteredMessages, userSummaryMessage, successMessage]
-    }, onMessagesChange)
-  }
-
-  const resetChat = (chatId?: string) => {
-    if (chatId) {
-      resetFailureAttempts(chatId)
-    }
-
+  const resetChat = () => {
     setMessages([])
     setLoading(false)
   }
@@ -206,7 +217,6 @@ export const useChat = () => {
     loading,
     resetChat,
     loadMessages,
-    insertTicketFormMessage,
     submitTicketForm,
   }
 }

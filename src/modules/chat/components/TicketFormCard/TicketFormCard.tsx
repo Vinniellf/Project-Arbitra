@@ -1,49 +1,21 @@
-import { useMemo, useRef, useState } from 'react'
-import { Check, ChevronDown } from 'lucide-react'
-import type { TicketPriority } from '../../types/chat.types'
+import { useState } from 'react'
 
 type Props = {
   onSubmit: (data: {
     subject: string
     description: string
-    priority: TicketPriority
   }) => void
   initialData?: Partial<{
     subject: string
     description: string
-    priority: TicketPriority
   }>
 }
-
-type PriorityOption = {
-  value: TicketPriority
-  label: string
-}
-
-const PRIORITY_OPTIONS: PriorityOption[] = [
-  { value: 'alta', label: 'Alta' },
-  { value: 'media', label: 'Media' },
-  { value: 'baja', label: 'Baja' },
-]
 
 export const TicketFormCard = ({ onSubmit, initialData }: Props) => {
   const [subject, setSubject] = useState(initialData?.subject ?? '')
   const [description, setDescription] = useState(
     initialData?.description ?? ''
   )
-  const [priority, setPriority] = useState<TicketPriority>(
-    initialData?.priority ?? 'media'
-  )
-  const [isPriorityOpen, setIsPriorityOpen] = useState(false)
-
-  const priorityRef = useRef<HTMLDivElement>(null)
-
-  const selectedPriority = useMemo(() => {
-    return (
-      PRIORITY_OPTIONS.find((option) => option.value === priority) ??
-      PRIORITY_OPTIONS[1]
-    )
-  }, [priority])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -56,7 +28,6 @@ export const TicketFormCard = ({ onSubmit, initialData }: Props) => {
     onSubmit({
       subject: trimmedSubject,
       description: trimmedDescription,
-      priority,
     })
   }
 
@@ -92,7 +63,7 @@ export const TicketFormCard = ({ onSubmit, initialData }: Props) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Describe brevemente el problema."
-          rows={3}
+          rows={4}
           className="
             w-full rounded-lg border border-slate-200 bg-white
             px-3 py-2 text-sm text-slate-700 outline-none resize-none
@@ -100,78 +71,6 @@ export const TicketFormCard = ({ onSubmit, initialData }: Props) => {
             focus:border-blue-300 focus:ring-2 focus:ring-blue-100
           "
         />
-      </div>
-
-      <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-700">
-          Prioridad
-        </label>
-
-        <div ref={priorityRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setIsPriorityOpen((prev) => !prev)}
-            className="
-              flex h-10 w-full items-center justify-between
-              rounded-lg border border-slate-200 bg-white
-              px-3 text-left
-              transition
-              hover:border-slate-300
-              focus:outline-none focus:ring-2 focus:ring-blue-100
-            "
-          >
-            <span className="text-sm text-slate-700">
-              {selectedPriority.label}
-            </span>
-
-            <ChevronDown
-              size={15}
-              className={`shrink-0 text-slate-400 transition-transform ${
-                isPriorityOpen ? 'rotate-180' : ''
-              }`}
-            />
-          </button>
-
-          {isPriorityOpen && (
-            <div
-              className="
-                absolute left-0 right-0 top-[calc(100%+6px)] z-30
-                overflow-hidden rounded-lg border border-slate-200
-                bg-white shadow-lg
-              "
-            >
-              <div className="py-1">
-                {PRIORITY_OPTIONS.map((option) => {
-                  const isSelected = option.value === priority
-
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => {
-                        setPriority(option.value)
-                        setIsPriorityOpen(false)
-                      }}
-                      className="
-                        flex h-9 w-full items-center justify-between
-                        px-3 text-left
-                        transition hover:bg-slate-50
-                      "
-                    >
-                      <span className="text-sm text-slate-700">
-                        {option.label}
-                      </span>
-
-                      {isSelected && (
-                        <Check size={15} className="text-blue-600" />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className="flex justify-end pt-0.5">

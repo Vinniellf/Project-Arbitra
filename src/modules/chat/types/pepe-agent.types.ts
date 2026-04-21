@@ -1,14 +1,12 @@
-import type { TicketPriority } from './chat.types'
-
 export interface PepeTicketDraft {
   subject: string
   description: string
-  priority: TicketPriority
 }
 
 export interface PepeParsedResponse {
   reply: string
   suggestTicket: boolean
+  showTicketForm: boolean
   ticketDraft?: PepeTicketDraft
 }
 

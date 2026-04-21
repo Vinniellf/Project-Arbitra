@@ -1,8 +1,5 @@
 import type React from 'react'
-import type {
-  Message,
-  TicketPriority,
-} from '../../types/chat.types'
+import type { Message } from '../../types/chat.types'
 import { MessageBubble } from './MessageBubble'
 import pepeIcon from '@/assets/icon.webp'
 
@@ -15,7 +12,6 @@ type Props = {
   onSubmitTicketForm?: (data: {
     subject: string
     description: string
-    priority: TicketPriority
   }) => void
 }
 

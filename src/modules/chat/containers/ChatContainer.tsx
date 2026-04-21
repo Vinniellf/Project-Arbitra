@@ -3,8 +3,7 @@ import { useChat } from '@/modules/chat/hooks/useChat'
 import { useChatUI } from '@/modules/chat/hooks/useChatUI'
 import { useChatHistory } from '@/modules/chat/hooks/useChatHistory'
 import { ChatLayout } from '@/modules/chat/layouts/ChatLayout'
-import type { Chat, Message, TicketPriority } from '@/modules/chat/types/chat.types'
-import { resetFailureAttempts } from '@/modules/chat/utils/chat-ticket-attempts.utils'
+import type { Chat, Message } from '@/modules/chat/types/chat.types'
 import { createChat } from '@/modules/chat/services/chat.service'
 
 const ACTIVE_CHAT_KEY = 'active_chat_id'
@@ -61,49 +60,47 @@ export const ChatContainer = () => {
   const handleGenerateTicket = () => {
     const currentChatId = activeChatId ?? crypto.randomUUID()
 
-    chat.insertTicketFormMessage((updatedMessages: Message[]) => {
-      syncMessagesToHistory(currentChatId, updatedMessages)
-    })
+    chat.sendMessage(
+      currentChatId,
+      'generar ticket',
+      (updatedMessages: Message[]) => {
+        syncMessagesToHistory(currentChatId, updatedMessages)
+      }
+    )
   }
 
   const handleSubmitTicketForm = (data: {
     subject: string
     description: string
-    priority: TicketPriority
   }) => {
     const currentChatId = activeChatId ?? crypto.randomUUID()
 
-    chat.submitTicketForm(data, (updatedMessages: Message[]) => {
-      syncMessagesToHistory(currentChatId, updatedMessages)
-    })
+    chat.submitTicketForm(
+      currentChatId,
+      data,
+      (updatedMessages: Message[]) => {
+        syncMessagesToHistory(currentChatId, updatedMessages)
+      }
+    )
   }
 
   const handleResetChat = () => {
-    if (activeChatId) {
-      resetFailureAttempts(activeChatId)
-    }
-
     setActiveChat(null)
-    chat.resetChat(activeChatId ?? undefined)
+    chat.resetChat()
   }
 
   const handleDeleteChat = (chatId: string) => {
-    resetFailureAttempts(chatId)
     history.deleteChat(chatId)
 
     if (chatId === activeChatId) {
       setActiveChat(null)
-      chat.resetChat(chatId)
+      chat.resetChat()
     }
   }
 
   const handleNewChat = () => {
-    if (activeChatId) {
-      resetFailureAttempts(activeChatId)
-    }
-
     setActiveChat(null)
-    chat.resetChat(activeChatId ?? undefined)
+    chat.resetChat()
     ui.closeSidebar()
   }
 
