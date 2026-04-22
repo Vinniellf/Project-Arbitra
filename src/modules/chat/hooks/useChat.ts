@@ -5,6 +5,14 @@ import { createSupportTicket } from '../services/create-ticket-api.service'
 
 type TicketFormSubmitData = {
   subject: string
+  category: string
+  subcategory: string
+  requester: string
+  userCompany: string
+  businessUnit: string
+  site: string
+  equipmentModel: string
+  serial: string
   description: string
 }
 
@@ -12,7 +20,7 @@ export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
 
-  // helper para actualizar mensajes y sincronizar con history
+  // actualiza mensajes y sincroniza con history si aplica
   const updateMessages = (
     updater: (prev: Message[]) => Message[],
     onMessagesChange?: (messages: Message[]) => void
@@ -31,10 +39,10 @@ export const useChat = () => {
   ) => {
     const trimmedText = text.trim()
 
-    // evita envíos vacíos o duplicados
+    // evita envíos vacíos o mientras ya se está procesando uno
     if (!trimmedText || loading) return
 
-    // agrega mensaje del usuario
+    // agrega el mensaje del usuario al chat
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -53,7 +61,7 @@ export const useChat = () => {
 
       const parsed = response.parsed
 
-      // si backend no pudo interpretar respuesta
+      // si el backend no pudo interpretar la respuesta del agente
       if (!parsed) {
         const invalidMessage: Message = {
           id: crypto.randomUUID(),
@@ -67,12 +75,10 @@ export const useChat = () => {
         return
       }
 
-      // ================================
-      // CASO 1: FORMULARIO DE TICKET
-      // ================================
+      // si el agente pide mostrar formulario, solo se muestra el formulario
+      // y no se agrega además un mensaje de texto normal
       if (parsed.showTicketForm) {
         updateMessages((prev) => {
-          // evita duplicar formulario
           const alreadyExists = prev.some(
             (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
           )
@@ -87,6 +93,14 @@ export const useChat = () => {
               'He preparado el borrador del ticket con la información detectada. Revísalo antes de enviarlo.',
             ticketFormData: {
               subject: parsed.ticketDraft?.subject ?? '',
+              category: parsed.ticketDraft?.category ?? '',
+              subcategory: parsed.ticketDraft?.subcategory ?? '',
+              requester: parsed.ticketDraft?.requester ?? '',
+              userCompany: parsed.ticketDraft?.userCompany ?? '',
+              businessUnit: parsed.ticketDraft?.businessUnit ?? '',
+              site: parsed.ticketDraft?.site ?? '',
+              equipmentModel: parsed.ticketDraft?.equipmentModel ?? '',
+              serial: parsed.ticketDraft?.serial ?? '',
               description: parsed.ticketDraft?.description ?? '',
             },
           }
@@ -94,12 +108,10 @@ export const useChat = () => {
           return [...prev, formMessage]
         }, onMessagesChange)
 
-        return // importante: no continuar para evitar duplicar mensaje
+        return
       }
 
-      // ================================
-      // CASO 2: RESPUESTA NORMAL
-      // ================================
+      // respuesta conversacional normal
       const assistantReply = parsed.reply.trim()
 
       if (assistantReply) {
@@ -108,7 +120,6 @@ export const useChat = () => {
           role: 'assistant',
           content: assistantReply,
           kind: 'text',
-          // activa botón de ticket en frontend
           action: parsed.suggestTicket ? 'generate_ticket' : undefined,
         }
 
@@ -133,28 +144,58 @@ export const useChat = () => {
     }
   }
 
-  // envío del formulario a backend (/tickets)
+  // envía el formulario final al backend /tickets
   const submitTicketForm = async (
     chatId: string,
     data: TicketFormSubmitData,
     onMessagesChange?: (messages: Message[]) => void
   ) => {
     const subject = data.subject.trim()
+    const category = data.category.trim()
+    const subcategory = data.subcategory.trim()
+    const requester = data.requester.trim()
+    const userCompany = data.userCompany.trim()
+    const businessUnit = data.businessUnit.trim()
+    const site = data.site.trim()
+    const equipmentModel = data.equipmentModel.trim()
+    const serial = data.serial.trim()
     const description = data.description.trim()
 
-    if (!subject || !description || loading) return
+    if (
+      !subject ||
+      !category ||
+      !subcategory ||
+      !requester ||
+      !userCompany ||
+      !businessUnit ||
+      !site ||
+      !equipmentModel ||
+      !serial ||
+      !description ||
+      loading
+    ) {
+      return
+    }
 
     setLoading(true)
 
     try {
       const response = await createSupportTicket({
         subject,
+        category,
+        subcategory,
+        requester,
+        userCompany,
+        businessUnit,
+        site,
+        equipmentModel,
+        serial,
         description,
         sessionId: chatId,
         source: 'chat-form',
       })
 
-      // mensaje resumen del usuario
+      // resumen visible en el lado del usuario
       const summaryMessage: Message = {
         id: crypto.randomUUID(),
         role: 'user',
@@ -162,11 +203,19 @@ export const useChat = () => {
         content: '',
         ticketFormData: {
           subject,
+          category,
+          subcategory,
+          requester,
+          userCompany,
+          businessUnit,
+          site,
+          equipmentModel,
+          serial,
           description,
         },
       }
 
-      // mensaje de éxito del sistema
+      // confirmación del sistema
       const successMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -178,7 +227,7 @@ export const useChat = () => {
         ].join('\n'),
       }
 
-      // elimina el formulario y agrega resultado
+      // elimina el formulario del chat y agrega el resumen + éxito
       updateMessages((prev) => {
         const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
         return [...filtered, summaryMessage, successMessage]

@@ -5,6 +5,7 @@ import type {
   CreateTicketResponse,
 } from '../types/ticket.types'
 
+// obtiene el token JWT de Cognito
 const getCognitoIdToken = async (): Promise<string | null> => {
   const session = await fetchAuthSession()
   return session.tokens?.idToken?.toString() ?? null
@@ -12,6 +13,14 @@ const getCognitoIdToken = async (): Promise<string | null> => {
 
 export const createSupportTicket = async ({
   subject,
+  category,
+  subcategory,
+  requester,
+  userCompany,
+  businessUnit,
+  site,
+  equipmentModel,
+  serial,
   description,
   sessionId,
   source = 'chat-form',
@@ -30,6 +39,14 @@ export const createSupportTicket = async ({
     },
     body: JSON.stringify({
       subject,
+      category,
+      subcategory,
+      requester,
+      userCompany,
+      businessUnit,
+      site,
+      equipmentModel,
+      serial,
       description,
       sessionId,
       source,

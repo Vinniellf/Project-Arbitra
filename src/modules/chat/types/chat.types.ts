@@ -4,6 +4,14 @@ export type MessageKind = 'text' | 'ticket_form' | 'ticket_summary'
 
 export interface TicketFormData {
   subject: string
+  category: string
+  subcategory: string
+  requester: string
+  userCompany: string
+  businessUnit: string
+  site: string
+  equipmentModel: string
+  serial: string
   description: string
 }
 

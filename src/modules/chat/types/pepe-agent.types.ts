@@ -1,5 +1,13 @@
 export interface PepeTicketDraft {
   subject: string
+  category: string
+  subcategory: string
+  requester: string
+  userCompany: string
+  businessUnit: string
+  site: string
+  equipmentModel: string
+  serial: string
   description: string
 }
 
