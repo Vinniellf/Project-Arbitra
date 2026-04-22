@@ -1,29 +1,15 @@
 import { useState } from 'react'
-import type { Message } from '../types/chat.types'
-import { sendPepeAgentMessage } from '../services/pepe-agent-api.service'
-import { createSupportTicket } from '../services/create-ticket-api.service'
-
-type TicketFormSubmitData = {
-  subject: string
-  category: string
-  subcategory: string
-  requester: string
-  userCompany: string
-  businessUnit: string
-  site: string
-  equipmentModel: string
-  serial: string
-  description: string
-}
+import type { Message, TicketFormData } from '../types/chat.types'
+import { sendPepeAgentMessage } from '../services/generate-ticket-api.service'
+import { createSupportTicket } from '../services/send-ticket-api.service'
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
 
-  // actualiza mensajes y sincroniza con history si aplica
   const updateMessages = (
     updater: (prev: Message[]) => Message[],
-    onMessagesChange?: (messages: Message[]) => void
+    onMessagesChange?: (messages: Message[]) => void,
   ) => {
     setMessages((prev) => {
       const updated = updater(prev)
@@ -35,14 +21,12 @@ export const useChat = () => {
   const sendMessage = async (
     chatId: string,
     text: string,
-    onMessagesChange?: (messages: Message[]) => void
+    onMessagesChange?: (messages: Message[]) => void,
   ) => {
     const trimmedText = text.trim()
 
-    // evita envíos vacíos o mientras ya se está procesando uno
     if (!trimmedText || loading) return
 
-    // agrega el mensaje del usuario al chat
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -61,7 +45,6 @@ export const useChat = () => {
 
       const parsed = response.parsed
 
-      // si el backend no pudo interpretar la respuesta del agente
       if (!parsed) {
         const invalidMessage: Message = {
           id: crypto.randomUUID(),
@@ -75,12 +58,10 @@ export const useChat = () => {
         return
       }
 
-      // si el agente pide mostrar formulario, solo se muestra el formulario
-      // y no se agrega además un mensaje de texto normal
       if (parsed.showTicketForm) {
         updateMessages((prev) => {
           const alreadyExists = prev.some(
-            (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form'
+            (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form',
           )
 
           if (alreadyExists) return prev
@@ -111,7 +92,6 @@ export const useChat = () => {
         return
       }
 
-      // respuesta conversacional normal
       const assistantReply = parsed.reply.trim()
 
       if (assistantReply) {
@@ -144,11 +124,10 @@ export const useChat = () => {
     }
   }
 
-  // envía el formulario final al backend /tickets
   const submitTicketForm = async (
     chatId: string,
-    data: TicketFormSubmitData,
-    onMessagesChange?: (messages: Message[]) => void
+    data: TicketFormData,
+    onMessagesChange?: (messages: Message[]) => void,
   ) => {
     const subject = data.subject.trim()
     const category = data.category.trim()
@@ -195,7 +174,6 @@ export const useChat = () => {
         source: 'chat-form',
       })
 
-      // resumen visible en el lado del usuario
       const summaryMessage: Message = {
         id: crypto.randomUUID(),
         role: 'user',
@@ -215,7 +193,6 @@ export const useChat = () => {
         },
       }
 
-      // confirmación del sistema
       const successMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -227,7 +204,6 @@ export const useChat = () => {
         ].join('\n'),
       }
 
-      // elimina el formulario del chat y agrega el resumen + éxito
       updateMessages((prev) => {
         const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
         return [...filtered, summaryMessage, successMessage]

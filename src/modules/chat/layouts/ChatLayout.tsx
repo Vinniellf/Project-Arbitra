@@ -1,7 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
 import { useRef, useState } from 'react'
 import clsx from 'clsx'
-import type { Chat } from '../types/chat.types'
+import type { Chat, TicketFormData } from '../types/chat.types'
 
 import { ChatHeader } from '@/modules/chat/components/ChatHeader/ChatHeader'
 import { ChatSidebar } from '@/modules/chat/components/ChatSidebar/ChatSidebar'
@@ -18,10 +18,7 @@ type Message = {
   role: 'user' | 'assistant'
   action?: 'generate_ticket'
   kind?: 'text' | 'ticket_form' | 'ticket_summary'
-  ticketFormData?: {
-    subject?: string
-    description?: string
-  }
+  ticketFormData?: Partial<TicketFormData>
 }
 
 type Props = {
@@ -40,10 +37,7 @@ type Props = {
   onDeleteChat: (id: string) => void
   onNewChat: () => void
   onGenerateTicket: () => void
-  onSubmitTicketForm: (data: {
-    subject: string
-    description: string
-  }) => void
+  onSubmitTicketForm: (data: TicketFormData) => void
 }
 
 export const ChatLayout = ({
@@ -87,7 +81,7 @@ export const ChatLayout = ({
     'bg-white backdrop-blur-xl shadow-xl overflow-hidden flex',
     isFullscreen
       ? 'fixed inset-0 z-[9999] w-screen h-screen rounded-none'
-      : 'relative w-full h-screen sm:h-[85vh] md:h-[90vh] rounded-none sm:rounded-2xl'
+      : 'relative w-full h-screen sm:h-[85vh] md:h-[90vh] rounded-none sm:rounded-2xl',
   )
 
   return (
@@ -145,4 +139,4 @@ export const ChatLayout = ({
       </div>
     </div>
   )
-}
+} 

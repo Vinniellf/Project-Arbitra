@@ -1,5 +1,5 @@
 import type React from 'react'
-import type { Message } from '../../types/chat.types'
+import type { Message, TicketFormData } from '../../types/chat.types'
 import { MessageBubble } from './MessageBubble'
 import pepeIcon from '@/assets/icon.webp'
 
@@ -9,10 +9,7 @@ type Props = {
   lastAssistantRef?: React.RefObject<HTMLDivElement | null>
   bottomSpacer?: number
   onGenerateTicket?: () => void
-  onSubmitTicketForm?: (data: {
-    subject: string
-    description: string
-  }) => void
+  onSubmitTicketForm?: (data: TicketFormData) => void
 }
 
 export const ChatMessages = ({

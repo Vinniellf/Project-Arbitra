@@ -19,10 +19,7 @@ type Props = {
   kind?: MessageKind
   ticketFormData?: Partial<TicketFormData>
   onGenerateTicket?: () => void
-  onSubmitTicketForm?: (data: {
-    subject: string
-    description: string
-  }) => void
+  onSubmitTicketForm?: (data: TicketFormData) => void
 }
 
 const markdownComponents = {
