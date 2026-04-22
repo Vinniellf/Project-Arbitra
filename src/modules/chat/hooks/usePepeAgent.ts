@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { sendPepeAgentMessage } from '../services/pepe-agent-api.service'
+import { sendPepeAgentMessage } from '../services/generate-ticket-api.service'
 import type { PepeAgentApiResponse } from '../types/pepe-agent.types'
 
 export const usePepeAgent = () => {

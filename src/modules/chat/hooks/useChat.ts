@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Message } from '../types/chat.types'
-import { sendPepeAgentMessage } from '../services/pepe-agent-api.service'
-import { createSupportTicket } from '../services/create-ticket-api.service'
+import { sendPepeAgentMessage } from '../services/generate-ticket-api.service'
+import { createSupportTicket } from '../services/send-ticket-api.service'
 
 type TicketFormSubmitData = {
   subject: string
