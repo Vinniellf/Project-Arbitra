@@ -77,6 +77,13 @@ export const ChatLayout = ({
     sendMessage(msg)
   }
 
+  const handleGenerateTicket = () => {
+    if (loading) return
+
+    setShouldScrollToNextAssistant(true)
+    onGenerateTicket()
+  }
+
   const containerClasses = clsx(
     'bg-white backdrop-blur-xl shadow-xl overflow-hidden flex',
     isFullscreen
@@ -122,7 +129,7 @@ export const ChatLayout = ({
                   loading={loading}
                   lastAssistantRef={lastAssistantRef}
                   bottomSpacer={bottomSpacer}
-                  onGenerateTicket={onGenerateTicket}
+                  onGenerateTicket={handleGenerateTicket}
                   onSubmitTicketForm={onSubmitTicketForm}
                 />
               )}
@@ -139,4 +146,4 @@ export const ChatLayout = ({
       </div>
     </div>
   )
-} 
+}

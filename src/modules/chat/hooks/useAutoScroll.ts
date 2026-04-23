@@ -61,7 +61,12 @@ export const useAutoScroll = (
 
     if (shouldScrollToNextAssistant) {
       requestAnimationFrame(() => {
-        scrollContainerToAssistant('smooth')
+        if (lastMessage.kind === 'ticket_form') {
+          scrollContainerToBottom('smooth')
+        } else {
+          scrollContainerToAssistant('smooth')
+        }
+
         onScrolledToNextAssistant?.()
       })
     }

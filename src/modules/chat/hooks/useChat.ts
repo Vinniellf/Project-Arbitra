@@ -40,21 +40,33 @@ const hasMeaningfulDraftData = (ticketDraft?: Partial<PepeTicketDraft>) => {
   )
 }
 
-const shouldSuggestTicket = (reply: string, missingFields: string[]) => {
+const containsTicketIntentInReply = (reply: string) => {
   const normalizedReply = reply.toLowerCase()
 
-  const containsTicketIntent =
+  return (
     normalizedReply.includes('ticket') ||
     normalizedReply.includes('crear ticket') ||
     normalizedReply.includes('generar ticket') ||
     normalizedReply.includes('abrir ticket')
+  )
+}
 
-  return containsTicketIntent || missingFields.length === 0
+const containsUserTicketIntent = (text: string) => {
+  const normalizedText = text.toLowerCase()
+
+  return (
+    normalizedText.includes('ticket') ||
+    normalizedText.includes('crear ticket') ||
+    normalizedText.includes('generar ticket') ||
+    normalizedText.includes('abrir ticket')
+  )
 }
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
+  const [currentTicketDraft, setCurrentTicketDraft] =
+    useState<PepeTicketDraft>(EMPTY_TICKET_DRAFT)
 
   const updateMessages = (
     updater: (prev: Message[]) => Message[],
@@ -97,51 +109,28 @@ export const useChat = () => {
       const ticketDraft = draft?.ticketDraft ?? EMPTY_TICKET_DRAFT
       const hasDraftData = hasMeaningfulDraftData(ticketDraft)
 
+      setCurrentTicketDraft(ticketDraft)
+
       const normalizedReply =
         assistantReply || 'Recibí tu mensaje y estoy listo para seguir ayudándote.'
+
+      const userExplicitlyAskedForTicket = containsUserTicketIntent(trimmedText)
+
+      const shouldShowGenerateTicketButton =
+        userExplicitlyAskedForTicket ||
+        containsTicketIntentInReply(normalizedReply) ||
+        draft.status === 'draft_ready' ||
+        (draft.missingFields.length === 0 && hasDraftData)
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content: normalizedReply,
         kind: 'text',
-        action: shouldSuggestTicket(normalizedReply, draft.missingFields)
-          ? 'generate_ticket'
-          : undefined,
+        action: shouldShowGenerateTicketButton ? 'generate_ticket' : undefined,
       }
 
       updateMessages((prev) => [...prev, assistantMessage], onMessagesChange)
-
-      const userExplicitlyAskedForTicket =
-        trimmedText.toLowerCase().includes('generar ticket') ||
-        trimmedText.toLowerCase().includes('crear ticket') ||
-        trimmedText.toLowerCase().includes('abrir ticket')
-
-      const shouldShowTicketForm =
-        userExplicitlyAskedForTicket ||
-        draft.status === 'draft_ready' ||
-        (draft.missingFields.length === 0 && hasDraftData)
-
-      if (shouldShowTicketForm) {
-        updateMessages((prev) => {
-          const alreadyExists = prev.some(
-            (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form',
-          )
-
-          if (alreadyExists) return prev
-
-          const formMessage: Message = {
-            id: crypto.randomUUID(),
-            role: 'assistant',
-            kind: 'ticket_form',
-            content:
-              'He preparado el borrador del ticket con la información detectada. Revísalo antes de enviarlo.',
-            ticketFormData: normalizeTicketFormData(ticketDraft),
-          }
-
-          return [...prev, formMessage]
-        }, onMessagesChange)
-      }
     } catch (error) {
       console.error('Error en la conexión con el agente:', error)
 
@@ -159,6 +148,26 @@ export const useChat = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const openTicketForm = (
+    onMessagesChange?: (messages: Message[]) => void,
+  ) => {
+    if (loading) return
+
+    const formMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      kind: 'ticket_form',
+      content:
+        'He preparado el formulario del ticket con la información detectada. Revísalo antes de enviarlo.',
+      ticketFormData: normalizeTicketFormData(currentTicketDraft),
+    }
+
+    updateMessages((prev) => {
+      const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
+      return [...filtered, formMessage]
+    }, onMessagesChange)
   }
 
   const submitTicketForm = async (
@@ -267,10 +276,37 @@ export const useChat = () => {
   const resetChat = () => {
     setMessages([])
     setLoading(false)
+    setCurrentTicketDraft(EMPTY_TICKET_DRAFT)
   }
 
   const loadMessages = (newMessages: Message[]) => {
     setMessages(newMessages)
+
+    const latestDraftSource = [...newMessages]
+      .reverse()
+      .find(
+        (msg) =>
+          (msg.kind === 'ticket_form' || msg.kind === 'ticket_summary') &&
+          msg.ticketFormData,
+      )
+
+    if (latestDraftSource?.ticketFormData) {
+      setCurrentTicketDraft({
+        subject: latestDraftSource.ticketFormData.subject ?? '',
+        category: latestDraftSource.ticketFormData.category ?? '',
+        subcategory: latestDraftSource.ticketFormData.subcategory ?? '',
+        requester: latestDraftSource.ticketFormData.requester ?? '',
+        userCompany: latestDraftSource.ticketFormData.userCompany ?? '',
+        businessUnit: latestDraftSource.ticketFormData.businessUnit ?? '',
+        site: latestDraftSource.ticketFormData.site ?? '',
+        equipmentModel: latestDraftSource.ticketFormData.equipmentModel ?? '',
+        serial: latestDraftSource.ticketFormData.serial ?? '',
+        description: latestDraftSource.ticketFormData.description ?? '',
+      })
+      return
+    }
+
+    setCurrentTicketDraft(EMPTY_TICKET_DRAFT)
   }
 
   return {
@@ -280,5 +316,6 @@ export const useChat = () => {
     resetChat,
     loadMessages,
     submitTicketForm,
+    openTicketForm,
   }
 }

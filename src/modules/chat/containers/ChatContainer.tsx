@@ -60,13 +60,9 @@ export const ChatContainer = () => {
   const handleGenerateTicket = () => {
     const currentChatId = activeChatId ?? crypto.randomUUID()
 
-    chat.sendMessage(
-      currentChatId,
-      'generar ticket',
-      (updatedMessages: Message[]) => {
-        syncMessagesToHistory(currentChatId, updatedMessages)
-      }
-    )
+    chat.openTicketForm((updatedMessages: Message[]) => {
+      syncMessagesToHistory(currentChatId, updatedMessages)
+    })
   }
 
   const handleSubmitTicketForm = (data: TicketFormData) => {
