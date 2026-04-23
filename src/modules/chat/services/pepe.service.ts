@@ -27,12 +27,15 @@ export const streamPepeResponse = async (
   chatId: string,
   message: string,
   onChunk: (chunk: string) => void,
-  onComplete: () => void
+  onComplete: () => void,
 ) => {
   const sessionId = getOrCreateSessionId(chatId)
   const currentPrompt = message.trim()
 
-  if (!currentPrompt) return
+  if (!currentPrompt) {
+    onComplete()
+    return
+  }
 
   try {
     const token = await getCognitoIdToken()
@@ -43,20 +46,25 @@ export const streamPepeResponse = async (
       return
     }
 
-    const response = await fetch(
-      import.meta.env.VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          prompt: currentPrompt,
-          sessionId,
-        }),
-      }
-    )
+    const endpoint = import.meta.env.VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL
+
+    if (!endpoint) {
+      onChunk('\n⚠️ No está configurado el endpoint de streaming del agente.')
+      onComplete()
+      return
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        prompt: currentPrompt,
+        sessionId,
+      }),
+    })
 
     if (!response.ok) {
       throw new Error('Error comunicando con AgentCore')

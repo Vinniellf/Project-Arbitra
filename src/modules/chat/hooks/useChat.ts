@@ -2,6 +2,55 @@ import { useState } from 'react'
 import type { Message, TicketFormData } from '../types/chat.types'
 import { sendPepeAgentMessage } from '../services/generate-ticket-api.service'
 import { createSupportTicket } from '../services/send-ticket-api.service'
+import type { PepeTicketDraft } from '../types/pepe-agent.types'
+
+const EMPTY_TICKET_DRAFT: PepeTicketDraft = {
+  subject: '',
+  category: '',
+  subcategory: '',
+  requester: '',
+  userCompany: '',
+  businessUnit: '',
+  site: '',
+  equipmentModel: '',
+  serial: '',
+  description: '',
+}
+
+const normalizeTicketFormData = (
+  ticketDraft?: Partial<PepeTicketDraft>,
+): Partial<TicketFormData> => ({
+  subject: ticketDraft?.subject ?? '',
+  category: ticketDraft?.category ?? '',
+  subcategory: ticketDraft?.subcategory ?? '',
+  requester: ticketDraft?.requester ?? '',
+  userCompany: ticketDraft?.userCompany ?? '',
+  businessUnit: ticketDraft?.businessUnit ?? '',
+  site: ticketDraft?.site ?? '',
+  equipmentModel: ticketDraft?.equipmentModel ?? '',
+  serial: ticketDraft?.serial ?? '',
+  description: ticketDraft?.description ?? '',
+})
+
+const hasMeaningfulDraftData = (ticketDraft?: Partial<PepeTicketDraft>) => {
+  if (!ticketDraft) return false
+
+  return Object.values(ticketDraft).some(
+    (value) => typeof value === 'string' && value.trim().length > 0,
+  )
+}
+
+const shouldSuggestTicket = (reply: string, missingFields: string[]) => {
+  const normalizedReply = reply.toLowerCase()
+
+  const containsTicketIntent =
+    normalizedReply.includes('ticket') ||
+    normalizedReply.includes('crear ticket') ||
+    normalizedReply.includes('generar ticket') ||
+    normalizedReply.includes('abrir ticket')
+
+  return containsTicketIntent || missingFields.length === 0
+}
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
@@ -43,22 +92,37 @@ export const useChat = () => {
         sessionId: chatId,
       })
 
-      const parsed = response.parsed
+      const assistantReply = response.reply.trim()
+      const draft = response.draft
+      const ticketDraft = draft?.ticketDraft ?? EMPTY_TICKET_DRAFT
+      const hasDraftData = hasMeaningfulDraftData(ticketDraft)
 
-      if (!parsed) {
-        const invalidMessage: Message = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          kind: 'text',
-          content:
-            '⚠️ El agente devolvió una respuesta inválida. No pude interpretarla.',
-        }
+      const normalizedReply =
+        assistantReply || 'Recibí tu mensaje y estoy listo para seguir ayudándote.'
 
-        updateMessages((prev) => [...prev, invalidMessage], onMessagesChange)
-        return
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: normalizedReply,
+        kind: 'text',
+        action: shouldSuggestTicket(normalizedReply, draft.missingFields)
+          ? 'generate_ticket'
+          : undefined,
       }
 
-      if (parsed.showTicketForm) {
+      updateMessages((prev) => [...prev, assistantMessage], onMessagesChange)
+
+      const userExplicitlyAskedForTicket =
+        trimmedText.toLowerCase().includes('generar ticket') ||
+        trimmedText.toLowerCase().includes('crear ticket') ||
+        trimmedText.toLowerCase().includes('abrir ticket')
+
+      const shouldShowTicketForm =
+        userExplicitlyAskedForTicket ||
+        draft.status === 'draft_ready' ||
+        (draft.missingFields.length === 0 && hasDraftData)
+
+      if (shouldShowTicketForm) {
         updateMessages((prev) => {
           const alreadyExists = prev.some(
             (msg) => msg.role === 'assistant' && msg.kind === 'ticket_form',
@@ -72,38 +136,11 @@ export const useChat = () => {
             kind: 'ticket_form',
             content:
               'He preparado el borrador del ticket con la información detectada. Revísalo antes de enviarlo.',
-            ticketFormData: {
-              subject: parsed.ticketDraft?.subject ?? '',
-              category: parsed.ticketDraft?.category ?? '',
-              subcategory: parsed.ticketDraft?.subcategory ?? '',
-              requester: parsed.ticketDraft?.requester ?? '',
-              userCompany: parsed.ticketDraft?.userCompany ?? '',
-              businessUnit: parsed.ticketDraft?.businessUnit ?? '',
-              site: parsed.ticketDraft?.site ?? '',
-              equipmentModel: parsed.ticketDraft?.equipmentModel ?? '',
-              serial: parsed.ticketDraft?.serial ?? '',
-              description: parsed.ticketDraft?.description ?? '',
-            },
+            ticketFormData: normalizeTicketFormData(ticketDraft),
           }
 
           return [...prev, formMessage]
         }, onMessagesChange)
-
-        return
-      }
-
-      const assistantReply = parsed.reply.trim()
-
-      if (assistantReply) {
-        const assistantMessage: Message = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: assistantReply,
-          kind: 'text',
-          action: parsed.suggestTicket ? 'generate_ticket' : undefined,
-        }
-
-        updateMessages((prev) => [...prev, assistantMessage], onMessagesChange)
       }
     } catch (error) {
       console.error('Error en la conexión con el agente:', error)
