@@ -20,5 +20,6 @@ export const API = {
   },
   tickets: {
     create: `${API_CONFIG.baseUrl}${API_ROUTES.tickets.create}`,
+    saveDraft: `${API_CONFIG.baseUrl}${API_ROUTES.tickets.saveDraft}`,
   },
 } as const

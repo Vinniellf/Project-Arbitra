@@ -17,5 +17,6 @@ export const API_ROUTES = {
   },
   tickets: {
     create: '/tickets',
+    saveDraft: '/tickets/draft',
   },
 } as const
