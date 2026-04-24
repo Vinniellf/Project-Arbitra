@@ -1,25 +1,15 @@
 import { useState } from 'react'
 import type { Message, TicketFormData } from '../types/chat.types'
-import { sendPepeAgentMessage } from '../services/generate-ticket-api.service'
-import { createSupportTicket } from '../services/send-ticket-api.service'
-import type { PepeTicketDraft } from '../types/pepe-agent.types'
-
-const EMPTY_TICKET_DRAFT: PepeTicketDraft = {
-  subject: '',
-  category: '',
-  subcategory: '',
-  requester: '',
-  userCompany: '',
-  businessUnit: '',
-  site: '',
-  equipmentModel: '',
-  serial: '',
-  description: '',
-}
+import {
+  streamPepeResponse,
+  resetPepeState,
+  getPepeSessionId,
+} from '../services/pepe.service'
+import { getMemoryBySession } from '../services/memory-api.service'
 
 const normalizeTicketFormData = (
-  ticketDraft?: Partial<PepeTicketDraft>,
-): Partial<TicketFormData> => ({
+  ticketDraft?: Partial<TicketFormData>,
+): TicketFormData => ({
   subject: ticketDraft?.subject ?? '',
   category: ticketDraft?.category ?? '',
   subcategory: ticketDraft?.subcategory ?? '',
@@ -32,41 +22,11 @@ const normalizeTicketFormData = (
   description: ticketDraft?.description ?? '',
 })
 
-const hasMeaningfulDraftData = (ticketDraft?: Partial<PepeTicketDraft>) => {
-  if (!ticketDraft) return false
-
-  return Object.values(ticketDraft).some(
-    (value) => typeof value === 'string' && value.trim().length > 0,
-  )
-}
-
-const containsTicketIntentInReply = (reply: string) => {
-  const normalizedReply = reply.toLowerCase()
-
-  return (
-    normalizedReply.includes('ticket') ||
-    normalizedReply.includes('crear ticket') ||
-    normalizedReply.includes('generar ticket') ||
-    normalizedReply.includes('abrir ticket')
-  )
-}
-
-const containsUserTicketIntent = (text: string) => {
-  const normalizedText = text.toLowerCase()
-
-  return (
-    normalizedText.includes('ticket') ||
-    normalizedText.includes('crear ticket') ||
-    normalizedText.includes('generar ticket') ||
-    normalizedText.includes('abrir ticket')
-  )
-}
-
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
-  const [currentTicketDraft, setCurrentTicketDraft] =
-    useState<PepeTicketDraft>(EMPTY_TICKET_DRAFT)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const [submittingTicket, setSubmittingTicket] = useState(false)
 
   const updateMessages = (
     updater: (prev: Message[]) => Message[],
@@ -86,7 +46,7 @@ export const useChat = () => {
   ) => {
     const trimmedText = text.trim()
 
-    if (!trimmedText || loading) return
+    if (!trimmedText || loading || savingDraft || submittingTicket) return
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -95,45 +55,76 @@ export const useChat = () => {
       kind: 'text',
     }
 
-    updateMessages((prev) => [...prev, userMessage], onMessagesChange)
+    const assistantMessageId = crypto.randomUUID()
+
+    updateMessages(
+      (prev) => [
+        ...prev,
+        userMessage,
+        {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          kind: 'text',
+        },
+      ],
+      onMessagesChange,
+    )
+
     setLoading(true)
 
+    await streamPepeResponse(
+      chatId,
+      trimmedText,
+      (chunk, action) => {
+        updateMessages(
+          (prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? {
+                    ...msg,
+                    content: msg.content + chunk,
+                    action: action ?? msg.action,
+                  }
+                : msg,
+            ),
+          onMessagesChange,
+        )
+      },
+      () => {
+        setLoading(false)
+      },
+    )
+  }
+
+  const openTicketForm = async (
+    chatId: string,
+    onMessagesChange?: (messages: Message[]) => void,
+  ) => {
+    if (loading || savingDraft || submittingTicket) return
+
     try {
-      const response = await sendPepeAgentMessage({
-        message: trimmedText,
-        sessionId: chatId,
-      })
+      const sessionId = getPepeSessionId(chatId)
+      const data = await getMemoryBySession(sessionId)
+      const ticketFormData = normalizeTicketFormData(data.memory)
 
-      const assistantReply = response.reply.trim()
-      const draft = response.draft
-      const ticketDraft = draft?.ticketDraft ?? EMPTY_TICKET_DRAFT
-      const hasDraftData = hasMeaningfulDraftData(ticketDraft)
-
-      setCurrentTicketDraft(ticketDraft)
-
-      const normalizedReply =
-        assistantReply || 'Recibí tu mensaje y estoy listo para seguir ayudándote.'
-
-      const userExplicitlyAskedForTicket = containsUserTicketIntent(trimmedText)
-
-      const shouldShowGenerateTicketButton =
-        userExplicitlyAskedForTicket ||
-        containsTicketIntentInReply(normalizedReply) ||
-        draft.status === 'draft_ready' ||
-        (draft.missingFields.length === 0 && hasDraftData)
-
-      const assistantMessage: Message = {
+      const formMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: normalizedReply,
-        kind: 'text',
-        action: shouldShowGenerateTicketButton ? 'generate_ticket' : undefined,
+        kind: 'ticket_form',
+        content:
+          'Puedes revisar la información detectada antes de enviar la solicitud.',
+        ticketFormData,
       }
 
-      updateMessages((prev) => [...prev, assistantMessage], onMessagesChange)
+      updateMessages(
+        (prev) => {
+          const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
+          return [...filtered, formMessage]
+        },
+        onMessagesChange,
+      )
     } catch (error) {
-      console.error('Error en la conexión con el agente:', error)
-
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -141,181 +132,92 @@ export const useChat = () => {
         content:
           error instanceof Error
             ? `⚠️ ${error.message}`
-            : '⚠️ Error de conexión con el servidor.',
+            : '⚠️ No se pudo cargar la información del formulario.',
       }
 
       updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
-    } finally {
-      setLoading(false)
     }
   }
 
-  const openTicketForm = (
-    onMessagesChange?: (messages: Message[]) => void,
-  ) => {
-    if (loading) return
-
-    const formMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      kind: 'ticket_form',
-      content:
-        'He preparado el formulario del ticket con la información detectada. Revísalo antes de enviarlo.',
-      ticketFormData: normalizeTicketFormData(currentTicketDraft),
-    }
-
-    updateMessages((prev) => {
-      const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
-      return [...filtered, formMessage]
-    }, onMessagesChange)
-  }
-
-  const submitTicketForm = async (
-    chatId: string,
+  const saveTicketDraft = async (
+    _chatId: string,
     data: TicketFormData,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    const subject = data.subject.trim()
-    const category = data.category.trim()
-    const subcategory = data.subcategory.trim()
-    const requester = data.requester.trim()
-    const userCompany = data.userCompany.trim()
-    const businessUnit = data.businessUnit.trim()
-    const site = data.site.trim()
-    const equipmentModel = data.equipmentModel.trim()
-    const serial = data.serial.trim()
-    const description = data.description.trim()
+    if (savingDraft || loading || submittingTicket) return
 
-    if (
-      !subject ||
-      !category ||
-      !subcategory ||
-      !requester ||
-      !userCompany ||
-      !businessUnit ||
-      !site ||
-      !equipmentModel ||
-      !serial ||
-      !description ||
-      loading
-    ) {
-      return
-    }
-
-    setLoading(true)
+    setSavingDraft(true)
 
     try {
-      const response = await createSupportTicket({
-        subject,
-        category,
-        subcategory,
-        requester,
-        userCompany,
-        businessUnit,
-        site,
-        equipmentModel,
-        serial,
-        description,
-        sessionId: chatId,
-        source: 'chat-form',
-      })
-
-      const summaryMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'user',
-        kind: 'ticket_summary',
-        content: '',
-        ticketFormData: {
-          subject,
-          category,
-          subcategory,
-          requester,
-          userCompany,
-          businessUnit,
-          site,
-          equipmentModel,
-          serial,
-          description,
-        },
-      }
-
-      const successMessage: Message = {
+      const formMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        kind: 'text',
-        content: [
-          response.message,
-          '',
-          `**Código de ticket:** ${response.ticketId}`,
-        ].join('\n'),
+        kind: 'ticket_form',
+        content: 'Cambios actualizados localmente.',
+        ticketFormData: data,
       }
 
-      updateMessages((prev) => {
-        const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
-        return [...filtered, summaryMessage, successMessage]
-      }, onMessagesChange)
-    } catch (error) {
-      console.error('Error al crear el ticket:', error)
+      updateMessages(
+        (prev) => {
+          const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
+          return [...filtered, formMessage]
+        },
+        onMessagesChange,
+      )
+    } finally {
+      setSavingDraft(false)
+    }
+  }
 
-      const errorMessage: Message = {
+  const submitTicketForm = async (
+    _chatId: string,
+    _data: TicketFormData,
+    onMessagesChange?: (messages: Message[]) => void,
+  ) => {
+    if (loading || savingDraft || submittingTicket) return
+
+    setSubmittingTicket(true)
+
+    try {
+      const warningMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
         kind: 'text',
         content:
-          error instanceof Error
-            ? `⚠️ ${error.message}`
-            : '⚠️ Error al crear el ticket.',
+          'El formulario está listo. Falta conectar el nuevo endpoint final para crear la solicitud.',
       }
 
-      updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
+      updateMessages((prev) => [...prev, warningMessage], onMessagesChange)
     } finally {
-      setLoading(false)
+      setSubmittingTicket(false)
     }
   }
 
-  const resetChat = () => {
+  const resetChat = (chatId?: string) => {
+    if (chatId) {
+      resetPepeState(chatId)
+    }
+
     setMessages([])
     setLoading(false)
-    setCurrentTicketDraft(EMPTY_TICKET_DRAFT)
+    setSavingDraft(false)
+    setSubmittingTicket(false)
   }
 
   const loadMessages = (newMessages: Message[]) => {
     setMessages(newMessages)
-
-    const latestDraftSource = [...newMessages]
-      .reverse()
-      .find(
-        (msg) =>
-          (msg.kind === 'ticket_form' || msg.kind === 'ticket_summary') &&
-          msg.ticketFormData,
-      )
-
-    if (latestDraftSource?.ticketFormData) {
-      setCurrentTicketDraft({
-        subject: latestDraftSource.ticketFormData.subject ?? '',
-        category: latestDraftSource.ticketFormData.category ?? '',
-        subcategory: latestDraftSource.ticketFormData.subcategory ?? '',
-        requester: latestDraftSource.ticketFormData.requester ?? '',
-        userCompany: latestDraftSource.ticketFormData.userCompany ?? '',
-        businessUnit: latestDraftSource.ticketFormData.businessUnit ?? '',
-        site: latestDraftSource.ticketFormData.site ?? '',
-        equipmentModel: latestDraftSource.ticketFormData.equipmentModel ?? '',
-        serial: latestDraftSource.ticketFormData.serial ?? '',
-        description: latestDraftSource.ticketFormData.description ?? '',
-      })
-      return
-    }
-
-    setCurrentTicketDraft(EMPTY_TICKET_DRAFT)
   }
 
   return {
     messages,
     sendMessage,
     loading,
+    savingDraft,
+    submittingTicket,
     resetChat,
     loadMessages,
     submitTicketForm,
+    saveTicketDraft,
     openTicketForm,
   }
 }
