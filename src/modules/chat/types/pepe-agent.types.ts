@@ -1,4 +1,4 @@
-export interface PepeTicketDraft {
+export type PepeTicketDraft = {
   subject: string
   category: string
   subcategory: string
@@ -11,19 +11,27 @@ export interface PepeTicketDraft {
   description: string
 }
 
-export interface PepeDraft {
+export type PepeDraftResponse = {
   status: string
   missingFields: string[]
   ticketDraft: PepeTicketDraft
   updatedAt?: string
 }
 
-export interface PepeAgentApiResponse {
+export type PepeConversationState = {
+  attemptCount: number
+  pendingAttempt: boolean
+  ticketRequestedByUser: boolean
+  ticketOfferAllowed: boolean
+}
+
+export type PepeAgentApiResponse = {
   ok: boolean
   sessionId: string
   userId?: string
   reply: string
-  draft: PepeDraft
+  draft: PepeDraftResponse
+  conversationState: PepeConversationState
   debug?: {
     seenEvents?: string[][]
     rawAgentText?: string

@@ -1,4 +1,4 @@
-export type CreateTicketInput = {
+export type TicketFormData = {
   subject: string
   category: string
   subcategory: string
@@ -9,6 +9,23 @@ export type CreateTicketInput = {
   equipmentModel: string
   serial: string
   description: string
+}
+
+export type SaveTicketDraftInput = TicketFormData & {
+  sessionId: string
+}
+
+export type SaveTicketDraftResponse = {
+  ok: boolean
+  sessionId: string
+  userId: string
+  draftStatus: string
+  missingFields: string[]
+  ticketDraft: TicketFormData
+  updatedAt?: string
+}
+
+export type CreateTicketInput = TicketFormData & {
   sessionId: string
   source?: string
 }
@@ -19,7 +36,13 @@ export type CreateTicketResponse = {
   status: string
   message: string
   ticket: {
+    ticketId: string
+    userId: string
+    companyId: string
+    sessionId: string
+    status: string
     subject: string
+    description: string
     category: string
     subcategory: string
     requester: string
@@ -28,11 +51,13 @@ export type CreateTicketResponse = {
     site: string
     equipmentModel: string
     serial: string
-    description: string
-  }
-  meta: {
-    userId: string
-    sessionId: string
     source: string
+    createdAt: string
+    submittedAt: string
+    createdBy?: {
+      userId: string
+      name: string
+      email: string
+    }
   }
 }
