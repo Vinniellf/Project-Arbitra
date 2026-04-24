@@ -47,7 +47,8 @@ const normalizeMemory = (value: unknown): TicketFormData => {
     site: normalizeString(memory.site),
     equipmentModel: normalizeString(memory.equipmentModel),
     serial: normalizeString(memory.serial),
-    description: normalizeString(memory.description),
+    description:
+      normalizeString(memory.description) || normalizeString(memory.problem),
   }
 }
 
