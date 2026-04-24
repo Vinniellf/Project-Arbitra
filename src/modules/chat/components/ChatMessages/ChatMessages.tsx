@@ -9,7 +9,10 @@ type Props = {
   lastAssistantRef?: React.RefObject<HTMLDivElement | null>
   bottomSpacer?: number
   onGenerateTicket?: () => void
+  onSaveTicketDraft?: (data: TicketFormData) => void
   onSubmitTicketForm?: (data: TicketFormData) => void
+  savingDraft?: boolean
+  submittingTicket?: boolean
 }
 
 export const ChatMessages = ({
@@ -18,11 +21,14 @@ export const ChatMessages = ({
   lastAssistantRef,
   bottomSpacer,
   onGenerateTicket,
+  onSaveTicketDraft,
   onSubmitTicketForm,
+  savingDraft,
+  submittingTicket,
 }: Props) => {
   const visibleMessages = messages.filter(
     (msg) =>
-      !(msg.role === 'assistant' && !msg.content?.trim() && msg.kind !== 'ticket_form')
+      !(msg.role === 'assistant' && !msg.content?.trim() && msg.kind !== 'ticket_form'),
   )
 
   const lastAssistantIndex = [...visibleMessages]
@@ -48,7 +54,10 @@ export const ChatMessages = ({
                 kind={msg.kind}
                 ticketFormData={msg.ticketFormData}
                 onGenerateTicket={onGenerateTicket}
+                onSaveTicketDraft={onSaveTicketDraft}
                 onSubmitTicketForm={onSubmitTicketForm}
+                savingDraft={savingDraft}
+                submittingTicket={submittingTicket}
               />
             </div>
           )

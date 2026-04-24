@@ -19,7 +19,10 @@ type Props = {
   kind?: MessageKind
   ticketFormData?: Partial<TicketFormData>
   onGenerateTicket?: () => void
+  onSaveTicketDraft?: (data: TicketFormData) => void
   onSubmitTicketForm?: (data: TicketFormData) => void
+  savingDraft?: boolean
+  submittingTicket?: boolean
 }
 
 const markdownComponents = {
@@ -104,7 +107,10 @@ export const MessageBubble = ({
   kind = 'text',
   ticketFormData,
   onGenerateTicket,
+  onSaveTicketDraft,
   onSubmitTicketForm,
+  savingDraft,
+  submittingTicket,
 }: Props) => {
   const isUser = role === 'user'
   const isTicketForm = kind === 'ticket_form'
@@ -162,8 +168,12 @@ export const MessageBubble = ({
 
             {isTicketForm && onSubmitTicketForm && (
               <TicketFormCard
+                key={JSON.stringify(ticketFormData ?? {})}
                 onSubmit={onSubmitTicketForm}
+                onSaveDraft={onSaveTicketDraft}
                 initialData={ticketFormData}
+                savingDraft={savingDraft}
+                submitting={submittingTicket}
               />
             )}
           </div>
