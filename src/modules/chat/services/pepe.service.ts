@@ -1,12 +1,22 @@
 import { fetchAuthSession } from 'aws-amplify/auth'
+import type { MessageAction } from '../types/chat.types'
+
+const ACTION_MARKER_PREFIX = '__PEPE_ACTION__:'
 
 const chatSessions: Record<string, string> = {}
 
 const getOrCreateSessionId = (chatId: string): string => {
   if (!chatSessions[chatId]) {
-    chatSessions[chatId] = `bedrock-session-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    chatSessions[chatId] = `bedrock-session-${Date.now()}-${Math.floor(
+      Math.random() * 1000,
+    )}`
   }
+
   return chatSessions[chatId]
+}
+
+export const getPepeSessionId = (chatId: string): string => {
+  return getOrCreateSessionId(chatId)
 }
 
 export const resetPepeState = (chatId: string) => {
@@ -23,10 +33,51 @@ const getCognitoIdToken = async (): Promise<string | null> => {
   }
 }
 
+const isInternalJsonResponse = (value: unknown): boolean => {
+  return typeof value === 'object' && value !== null && 'updates' in value
+}
+
+const extractActionFromResponse = (
+  response: string,
+): { cleanResponse: string; action?: MessageAction } => {
+  const markerIndex = response.indexOf(ACTION_MARKER_PREFIX)
+
+  if (markerIndex === -1) {
+    return {
+      cleanResponse: response.trim(),
+    }
+  }
+
+  const cleanResponse = response.slice(0, markerIndex).trim()
+
+  const markerContent = response
+    .slice(markerIndex + ACTION_MARKER_PREFIX.length)
+    .trim()
+
+  try {
+    const parsed = JSON.parse(markerContent)
+
+    if (parsed?.action === 'generate_ticket') {
+      return {
+        cleanResponse,
+        action: 'generate_ticket',
+      }
+    }
+  } catch {
+    return {
+      cleanResponse,
+    }
+  }
+
+  return {
+    cleanResponse,
+  }
+}
+
 export const streamPepeResponse = async (
   chatId: string,
   message: string,
-  onChunk: (chunk: string) => void,
+  onChunk: (chunk: string, action?: MessageAction) => void,
   onComplete: () => void,
 ) => {
   const sessionId = getOrCreateSessionId(chatId)
@@ -77,12 +128,36 @@ export const streamPepeResponse = async (
       throw new Error('No se pudo leer el stream de respuesta.')
     }
 
+    let fullResponse = ''
+
     while (true) {
       const { done, value } = await reader.read()
+
       if (done) break
 
-      const chunk = decoder.decode(value, { stream: true })
-      onChunk(chunk)
+      fullResponse += decoder.decode(value, { stream: true })
+    }
+
+    fullResponse += decoder.decode()
+
+    const rawResponse = fullResponse.trim()
+
+    if (!rawResponse) return
+
+    try {
+      const parsed = JSON.parse(rawResponse)
+
+      if (isInternalJsonResponse(parsed)) {
+        return
+      }
+    } catch {
+      // No es JSON interno.
+    }
+
+    const { cleanResponse, action } = extractActionFromResponse(rawResponse)
+
+    if (cleanResponse) {
+      onChunk(cleanResponse, action)
     }
   } catch (error) {
     console.error('Error en Pepe:', error)
