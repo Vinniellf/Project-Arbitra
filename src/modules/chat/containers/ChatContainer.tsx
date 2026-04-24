@@ -3,7 +3,11 @@ import { useChat } from '@/modules/chat/hooks/useChat'
 import { useChatUI } from '@/modules/chat/hooks/useChatUI'
 import { useChatHistory } from '@/modules/chat/hooks/useChatHistory'
 import { ChatLayout } from '@/modules/chat/layouts/ChatLayout'
-import type { Chat, Message, TicketFormData } from '@/modules/chat/types/chat.types'
+import type {
+  Chat,
+  Message,
+  TicketFormData,
+} from '@/modules/chat/types/chat.types'
 import { createChat } from '@/modules/chat/services/chat.service'
 
 const ACTIVE_CHAT_KEY = 'active_chat_id'
@@ -13,21 +17,33 @@ export const ChatContainer = () => {
   const ui = useChatUI()
   const history = useChatHistory()
 
-  const [activeChatId, setActiveChatId] = useState<string | null>(() => {
-    return localStorage.getItem(ACTIVE_CHAT_KEY)
-  })
+  const [activeChatId, setActiveChatId] = useState<string | null>(() =>
+    localStorage.getItem(ACTIVE_CHAT_KEY),
+  )
 
   const setActiveChat = (id: string | null) => {
     setActiveChatId(id)
 
     if (id) {
       localStorage.setItem(ACTIVE_CHAT_KEY, id)
-    } else {
-      localStorage.removeItem(ACTIVE_CHAT_KEY)
+      return
     }
+
+    localStorage.removeItem(ACTIVE_CHAT_KEY)
   }
 
-  const syncMessagesToHistory = (chatId: string, updatedMessages: Message[]) => {
+  const getOrCreateActiveChatId = () => {
+    if (activeChatId) return activeChatId
+
+    const newChatId = crypto.randomUUID()
+    setActiveChat(newChatId)
+    return newChatId
+  }
+
+  const syncMessagesToHistory = (
+    chatId: string,
+    updatedMessages: Message[],
+  ) => {
     const chatExists = history.chats.some((chatItem) => chatItem.id === chatId)
 
     if (!chatExists) {
@@ -41,7 +57,7 @@ export const ChatContainer = () => {
   }
 
   const handleSelectChat = (chatId: string) => {
-    const selected = history.chats.find((c) => c.id === chatId)
+    const selected = history.chats.find((chatItem) => chatItem.id === chatId)
     if (!selected) return
 
     setActiveChat(chatId)
@@ -50,7 +66,7 @@ export const ChatContainer = () => {
   }
 
   const handleSendMessage = (text: string) => {
-    const currentChatId = activeChatId ?? crypto.randomUUID()
+    const currentChatId = getOrCreateActiveChatId()
 
     chat.sendMessage(currentChatId, text, (updatedMessages: Message[]) => {
       syncMessagesToHistory(currentChatId, updatedMessages)
@@ -58,42 +74,51 @@ export const ChatContainer = () => {
   }
 
   const handleGenerateTicket = () => {
-    const currentChatId = activeChatId ?? crypto.randomUUID()
+    const currentChatId = getOrCreateActiveChatId()
 
-    chat.openTicketForm((updatedMessages: Message[]) => {
+    chat.openTicketForm(currentChatId, (updatedMessages: Message[]) => {
+      syncMessagesToHistory(currentChatId, updatedMessages)
+    })
+  }
+
+  const handleSaveTicketDraft = (data: TicketFormData) => {
+    const currentChatId = getOrCreateActiveChatId()
+
+    chat.saveTicketDraft(currentChatId, data, (updatedMessages: Message[]) => {
       syncMessagesToHistory(currentChatId, updatedMessages)
     })
   }
 
   const handleSubmitTicketForm = (data: TicketFormData) => {
-    const currentChatId = activeChatId ?? crypto.randomUUID()
+    const currentChatId = getOrCreateActiveChatId()
 
-    chat.submitTicketForm(
-      currentChatId,
-      data,
-      (updatedMessages: Message[]) => {
-        syncMessagesToHistory(currentChatId, updatedMessages)
-      }
-    )
+    chat.submitTicketForm(currentChatId, data, (updatedMessages: Message[]) => {
+      syncMessagesToHistory(currentChatId, updatedMessages)
+    })
   }
 
   const handleResetChat = () => {
+    if (activeChatId) {
+      chat.resetChat(activeChatId)
+    } else {
+      chat.resetChat()
+    }
+
     setActiveChat(null)
-    chat.resetChat()
   }
 
   const handleDeleteChat = (chatId: string) => {
     history.deleteChat(chatId)
 
     if (chatId === activeChatId) {
+      chat.resetChat(chatId)
       setActiveChat(null)
-      chat.resetChat()
     }
   }
 
   const handleNewChat = () => {
+    chat.resetChat(activeChatId ?? undefined)
     setActiveChat(null)
-    chat.resetChat()
     ui.closeSidebar()
   }
 
@@ -101,6 +126,8 @@ export const ChatContainer = () => {
     <ChatLayout
       messages={chat.messages}
       loading={chat.loading}
+      savingDraft={chat.savingDraft}
+      submittingTicket={chat.submittingTicket}
       sendMessage={handleSendMessage}
       resetChat={handleResetChat}
       isSidebarOpen={ui.isSidebarOpen}
@@ -114,6 +141,7 @@ export const ChatContainer = () => {
       onDeleteChat={handleDeleteChat}
       onNewChat={handleNewChat}
       onGenerateTicket={handleGenerateTicket}
+      onSaveTicketDraft={handleSaveTicketDraft}
       onSubmitTicketForm={handleSubmitTicketForm}
     />
   )
