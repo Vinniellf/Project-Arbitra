@@ -15,7 +15,6 @@ import { useBottomSpacer } from '@/modules/chat/hooks/useBottomSpacer'
 type Props = {
   messages: Message[]
   loading: boolean
-  savingDraft: boolean
   submittingTicket: boolean
   sendMessage: (msg: string) => void
   resetChat: () => void
@@ -30,14 +29,12 @@ type Props = {
   onDeleteChat: (id: string) => void
   onNewChat: () => void
   onGenerateTicket: () => void
-  onSaveTicketDraft: (data: TicketFormData) => void
   onSubmitTicketForm: (data: TicketFormData) => void
 }
 
 export const ChatLayout = ({
   messages,
   loading,
-  savingDraft,
   submittingTicket,
   sendMessage,
   resetChat,
@@ -52,7 +49,6 @@ export const ChatLayout = ({
   onDeleteChat,
   onNewChat,
   onGenerateTicket,
-  onSaveTicketDraft,
   onSubmitTicketForm,
 }: Props) => {
   const inputRef = useRef<HTMLDivElement | null>(null)
@@ -68,14 +64,14 @@ export const ChatLayout = ({
   })
 
   const handleSendMessage = (msg: string) => {
-    if (loading || savingDraft || submittingTicket) return
+    if (loading || submittingTicket) return
 
     setShouldScrollToNextAssistant(true)
     sendMessage(msg)
   }
 
   const handleGenerateTicket = () => {
-    if (loading || savingDraft || submittingTicket) return
+    if (loading || submittingTicket) return
 
     setShouldScrollToNextAssistant(true)
     onGenerateTicket()
@@ -127,9 +123,7 @@ export const ChatLayout = ({
                   lastAssistantRef={lastAssistantRef}
                   bottomSpacer={bottomSpacer}
                   onGenerateTicket={handleGenerateTicket}
-                  onSaveTicketDraft={onSaveTicketDraft}
                   onSubmitTicketForm={onSubmitTicketForm}
-                  savingDraft={savingDraft}
                   submittingTicket={submittingTicket}
                 />
               )}
@@ -141,7 +135,7 @@ export const ChatLayout = ({
             >
               <ChatInput
                 onSend={handleSendMessage}
-                loading={loading || savingDraft || submittingTicket}
+                loading={loading || submittingTicket}
               />
             </div>
           </div>
