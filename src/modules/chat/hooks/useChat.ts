@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Message, TicketFormData } from '../types/chat.types'
 import {
   streamPepeResponse,
-  resetPepeState,
+  clearPepeSession,
   getPepeSessionId,
 } from '../services/pepe.service'
 import { getMemoryBySession } from '../services/memory-api.service'
@@ -21,6 +21,10 @@ const normalizeTicketFormData = (
   serial: ticketDraft?.serial ?? '',
   description: ticketDraft?.description ?? '',
 })
+
+const isEmptyTicketData = (data: TicketFormData): boolean => {
+  return Object.values(data).every((value) => !value.trim())
+}
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
@@ -107,6 +111,12 @@ export const useChat = () => {
       const sessionId = getPepeSessionId(chatId)
       const data = await getMemoryBySession(sessionId)
       const ticketFormData = normalizeTicketFormData(data.memory)
+
+      if (isEmptyTicketData(ticketFormData)) {
+        throw new Error(
+          'Aún no hay información suficiente para mostrar el formulario. Continúa describiendo el caso.',
+        )
+      }
 
       const formMessage: Message = {
         id: crypto.randomUUID(),
@@ -195,7 +205,7 @@ export const useChat = () => {
 
   const resetChat = (chatId?: string) => {
     if (chatId) {
-      resetPepeState(chatId)
+      clearPepeSession(chatId)
     }
 
     setMessages([])
