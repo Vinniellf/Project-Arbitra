@@ -34,6 +34,12 @@ export const TicketFormCard = ({
 
   const [formData, setFormData] = useState<TicketFormData>(initialFormData)
 
+  const editableInputClass =
+    'w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none'
+
+  const readOnlyInputClass =
+    'w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-1.5 text-sm text-slate-600 outline-none cursor-not-allowed'
+
   const updateField = <K extends keyof TicketFormData>(
     field: K,
     value: TicketFormData[K],
@@ -94,22 +100,22 @@ export const TicketFormCard = ({
     Boolean(submitting)
 
   return (
-    <form onSubmit={handleSubmit} className="mt-2.5 space-y-2.5">
+    <form onSubmit={handleSubmit} className="mt-2 space-y-2">
       <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-        <p className="text-[11px] sm:text-xs text-slate-600 leading-5">
+        <p className="text-xs text-slate-600 leading-4">
           Revisa y edita la información antes de enviar el ticket.
         </p>
       </div>
 
       <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-700">
+        <label className="text-xs font-medium text-slate-700">
           Asunto
         </label>
         <input
           type="text"
           value={formData.subject}
           onChange={(e) => updateField('subject', e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={editableInputClass}
         />
       </div>
 
@@ -117,16 +123,16 @@ export const TicketFormCard = ({
         <input
           type="text"
           value={formData.category}
-          onChange={(e) => updateField('category', e.target.value)}
+          readOnly
           placeholder="Categoría"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={readOnlyInputClass}
         />
         <input
           type="text"
           value={formData.subcategory}
-          onChange={(e) => updateField('subcategory', e.target.value)}
+          readOnly
           placeholder="Subcategoría"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={readOnlyInputClass}
         />
       </div>
 
@@ -134,16 +140,16 @@ export const TicketFormCard = ({
         <input
           type="text"
           value={formData.requester}
-          onChange={(e) => updateField('requester', e.target.value)}
-          placeholder="Solicitante"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          readOnly
+          placeholder="Nombre del usuario"
+          className={readOnlyInputClass}
         />
         <input
           type="text"
           value={formData.userCompany}
-          onChange={(e) => updateField('userCompany', e.target.value)}
+          readOnly
           placeholder="Empresa"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={readOnlyInputClass}
         />
       </div>
 
@@ -151,16 +157,16 @@ export const TicketFormCard = ({
         <input
           type="text"
           value={formData.businessUnit}
-          onChange={(e) => updateField('businessUnit', e.target.value)}
+          readOnly
           placeholder="Unidad de negocio"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={readOnlyInputClass}
         />
         <input
           type="text"
           value={formData.site}
-          onChange={(e) => updateField('site', e.target.value)}
+          readOnly
           placeholder="Sede"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={readOnlyInputClass}
         />
       </div>
 
@@ -170,30 +176,30 @@ export const TicketFormCard = ({
           value={formData.equipmentModel}
           onChange={(e) => updateField('equipmentModel', e.target.value)}
           placeholder="Modelo del equipo"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={editableInputClass}
         />
         <input
           type="text"
           value={formData.serial}
           onChange={(e) => updateField('serial', e.target.value)}
           placeholder="Serie"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+          className={editableInputClass}
         />
       </div>
 
       <textarea
         value={formData.description}
         onChange={(e) => updateField('description', e.target.value)}
-        rows={5}
+        rows={4}
         placeholder="Describe el problema"
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none resize-none"
+        className={`${editableInputClass} resize-none`}
       />
 
-      <div className="flex justify-end gap-2 pt-0.5">
+      <div className="flex justify-end pt-1">
         <button
           type="submit"
           disabled={isSubmitDisabled}
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-medium text-white"
+          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {submitting ? 'Enviando...' : 'Enviar ticket'}
         </button>
