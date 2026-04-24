@@ -1,7 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
 import { useRef, useState } from 'react'
 import clsx from 'clsx'
-import type { Chat, TicketFormData } from '../types/chat.types'
+import type { Chat, Message, TicketFormData } from '../types/chat.types'
 
 import { ChatHeader } from '@/modules/chat/components/ChatHeader/ChatHeader'
 import { ChatSidebar } from '@/modules/chat/components/ChatSidebar/ChatSidebar'
@@ -11,15 +11,6 @@ import { ChatInput } from '@/modules/chat/components/ChatInput/ChatInput'
 
 import { useAutoScroll } from '@/modules/chat/hooks/useAutoScroll'
 import { useBottomSpacer } from '@/modules/chat/hooks/useBottomSpacer'
-
-type Message = {
-  id: string
-  content: string
-  role: 'user' | 'assistant'
-  action?: 'generate_ticket'
-  kind?: 'text' | 'ticket_form' | 'ticket_summary'
-  ticketFormData?: Partial<TicketFormData>
-}
 
 type Props = {
   messages: Message[]
@@ -148,7 +139,10 @@ export const ChatLayout = ({
               ref={inputRef}
               className="sticky bottom-0 w-full px-2.5 sm:px-3 md:px-4 pb-2 sm:pb-3 bg-white"
             >
-              <ChatInput onSend={handleSendMessage} loading={loading || savingDraft || submittingTicket} />
+              <ChatInput
+                onSend={handleSendMessage}
+                loading={loading || savingDraft || submittingTicket}
+              />
             </div>
           </div>
         </div>
