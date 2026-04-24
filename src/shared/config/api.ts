@@ -15,11 +15,8 @@ export const API = {
   invite: {
     create: `${API_CONFIG.inviteBaseUrl}${API_ROUTES.invite.create}`,
   },
-  chat: {
-    send: `${API_CONFIG.baseUrl}${API_ROUTES.chat.send}`,
-  },
-  tickets: {
-    create: `${API_CONFIG.baseUrl}${API_ROUTES.tickets.create}`,
-    saveDraft: `${API_CONFIG.baseUrl}${API_ROUTES.tickets.saveDraft}`,
+  memory: {
+    get: (sessionId: string) =>
+      `${API_CONFIG.baseUrl}${API_ROUTES.memory.get}/${sessionId}`,
   },
 } as const

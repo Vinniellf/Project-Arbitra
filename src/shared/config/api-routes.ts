@@ -12,11 +12,7 @@ export const API_ROUTES = {
   invite: {
     create: '/default/invite-user',
   },
-  chat: {
-    send: '/chat',
-  },
-  tickets: {
-    create: '/tickets',
-    saveDraft: '/tickets/draft',
+  memory: {
+    get: '/memory',
   },
 } as const
