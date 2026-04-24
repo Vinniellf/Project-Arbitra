@@ -24,6 +24,8 @@ type Message = {
 type Props = {
   messages: Message[]
   loading: boolean
+  savingDraft: boolean
+  submittingTicket: boolean
   sendMessage: (msg: string) => void
   resetChat: () => void
   isSidebarOpen: boolean
@@ -37,12 +39,15 @@ type Props = {
   onDeleteChat: (id: string) => void
   onNewChat: () => void
   onGenerateTicket: () => void
+  onSaveTicketDraft: (data: TicketFormData) => void
   onSubmitTicketForm: (data: TicketFormData) => void
 }
 
 export const ChatLayout = ({
   messages,
   loading,
+  savingDraft,
+  submittingTicket,
   sendMessage,
   resetChat,
   isSidebarOpen,
@@ -56,6 +61,7 @@ export const ChatLayout = ({
   onDeleteChat,
   onNewChat,
   onGenerateTicket,
+  onSaveTicketDraft,
   onSubmitTicketForm,
 }: Props) => {
   const inputRef = useRef<HTMLDivElement | null>(null)
@@ -71,14 +77,14 @@ export const ChatLayout = ({
   })
 
   const handleSendMessage = (msg: string) => {
-    if (loading) return
+    if (loading || savingDraft || submittingTicket) return
 
     setShouldScrollToNextAssistant(true)
     sendMessage(msg)
   }
 
   const handleGenerateTicket = () => {
-    if (loading) return
+    if (loading || savingDraft || submittingTicket) return
 
     setShouldScrollToNextAssistant(true)
     onGenerateTicket()
@@ -130,7 +136,10 @@ export const ChatLayout = ({
                   lastAssistantRef={lastAssistantRef}
                   bottomSpacer={bottomSpacer}
                   onGenerateTicket={handleGenerateTicket}
+                  onSaveTicketDraft={onSaveTicketDraft}
                   onSubmitTicketForm={onSubmitTicketForm}
+                  savingDraft={savingDraft}
+                  submittingTicket={submittingTicket}
                 />
               )}
             </div>
@@ -139,7 +148,7 @@ export const ChatLayout = ({
               ref={inputRef}
               className="sticky bottom-0 w-full px-2.5 sm:px-3 md:px-4 pb-2 sm:pb-3 bg-white"
             >
-              <ChatInput onSend={handleSendMessage} loading={loading} />
+              <ChatInput onSend={handleSendMessage} loading={loading || savingDraft || submittingTicket} />
             </div>
           </div>
         </div>
