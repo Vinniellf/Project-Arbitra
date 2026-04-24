@@ -3,11 +3,7 @@ import { useChat } from '@/modules/chat/hooks/useChat'
 import { useChatUI } from '@/modules/chat/hooks/useChatUI'
 import { useChatHistory } from '@/modules/chat/hooks/useChatHistory'
 import { ChatLayout } from '@/modules/chat/layouts/ChatLayout'
-import type {
-  Chat,
-  Message,
-  TicketFormData,
-} from '@/modules/chat/types/chat.types'
+import type { Chat, Message, TicketFormData } from '@/modules/chat/types/chat.types'
 import { createChat } from '@/modules/chat/services/chat.service'
 
 const ACTIVE_CHAT_KEY = 'active_chat_id'
@@ -81,14 +77,6 @@ export const ChatContainer = () => {
     })
   }
 
-  const handleSaveTicketDraft = (data: TicketFormData) => {
-    const currentChatId = getOrCreateActiveChatId()
-
-    chat.saveTicketDraft(currentChatId, data, (updatedMessages: Message[]) => {
-      syncMessagesToHistory(currentChatId, updatedMessages)
-    })
-  }
-
   const handleSubmitTicketForm = (data: TicketFormData) => {
     const currentChatId = getOrCreateActiveChatId()
 
@@ -126,7 +114,6 @@ export const ChatContainer = () => {
     <ChatLayout
       messages={chat.messages}
       loading={chat.loading}
-      savingDraft={chat.savingDraft}
       submittingTicket={chat.submittingTicket}
       sendMessage={handleSendMessage}
       resetChat={handleResetChat}
@@ -141,7 +128,6 @@ export const ChatContainer = () => {
       onDeleteChat={handleDeleteChat}
       onNewChat={handleNewChat}
       onGenerateTicket={handleGenerateTicket}
-      onSaveTicketDraft={handleSaveTicketDraft}
       onSubmitTicketForm={handleSubmitTicketForm}
     />
   )
