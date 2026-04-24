@@ -2,25 +2,47 @@ import { fetchAuthSession } from 'aws-amplify/auth'
 import type { MessageAction } from '../types/chat.types'
 
 const ACTION_MARKER_PREFIX = '__PEPE_ACTION__:'
+const SESSION_STORAGE_KEY = 'pepe_chat_sessions'
 
-const chatSessions: Record<string, string> = {}
+const readStoredSessions = (): Record<string, string> => {
+  try {
+    const stored = localStorage.getItem(SESSION_STORAGE_KEY)
+    return stored ? (JSON.parse(stored) as Record<string, string>) : {}
+  } catch {
+    return {}
+  }
+}
+
+const saveStoredSessions = (sessions: Record<string, string>) => {
+  try {
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessions))
+  } catch (error) {
+    console.error('Error guardando sesiones de Pepe:', error)
+  }
+}
 
 const getOrCreateSessionId = (chatId: string): string => {
-  if (!chatSessions[chatId]) {
-    chatSessions[chatId] = `bedrock-session-${Date.now()}-${Math.floor(
+  const sessions = readStoredSessions()
+
+  if (!sessions[chatId]) {
+    sessions[chatId] = `bedrock-session-${Date.now()}-${Math.floor(
       Math.random() * 1000,
     )}`
+
+    saveStoredSessions(sessions)
   }
 
-  return chatSessions[chatId]
+  return sessions[chatId]
 }
 
 export const getPepeSessionId = (chatId: string): string => {
   return getOrCreateSessionId(chatId)
 }
 
-export const resetPepeState = (chatId: string) => {
-  delete chatSessions[chatId]
+export const clearPepeSession = (chatId: string) => {
+  const sessions = readStoredSessions()
+  delete sessions[chatId]
+  saveStoredSessions(sessions)
 }
 
 const getCognitoIdToken = async (): Promise<string | null> => {
