@@ -117,7 +117,7 @@ export const ChatContainer = () => {
   }
 
   const handleNewChat = () => {
-    chat.resetChat(activeChatId ?? undefined)
+    chat.resetChat()
     setActiveChat(null)
     ui.closeSidebar()
   }
