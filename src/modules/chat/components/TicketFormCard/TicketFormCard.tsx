@@ -3,9 +3,7 @@ import type { TicketFormData } from '../../types/chat.types'
 
 type Props = {
   onSubmit: (data: TicketFormData) => void
-  onSaveDraft?: (data: TicketFormData) => void
   initialData?: Partial<TicketFormData>
-  savingDraft?: boolean
   submitting?: boolean
 }
 
@@ -26,9 +24,7 @@ const buildInitialFormData = (
 
 export const TicketFormCard = ({
   onSubmit,
-  onSaveDraft,
   initialData,
-  savingDraft,
   submitting,
 }: Props) => {
   const initialFormData = useMemo(
@@ -84,10 +80,6 @@ export const TicketFormCard = ({
     onSubmit(payload)
   }
 
-  const handleSaveDraft = () => {
-    onSaveDraft?.(getPayload())
-  }
-
   const isSubmitDisabled =
     !formData.subject.trim() ||
     !formData.category.trim() ||
@@ -110,7 +102,9 @@ export const TicketFormCard = ({
       </div>
 
       <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-700">Asunto</label>
+        <label className="text-[11px] font-medium text-slate-700">
+          Asunto
+        </label>
         <input
           type="text"
           value={formData.subject}
@@ -196,15 +190,6 @@ export const TicketFormCard = ({
       />
 
       <div className="flex justify-end gap-2 pt-0.5">
-        <button
-          type="button"
-          onClick={handleSaveDraft}
-          disabled={Boolean(savingDraft) || Boolean(submitting)}
-          className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700"
-        >
-          {savingDraft ? 'Guardando...' : 'Guardar borrador'}
-        </button>
-
         <button
           type="submit"
           disabled={isSubmitDisabled}
