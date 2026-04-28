@@ -23,7 +23,7 @@ export async function updateBackendProfile(data: UpdateProfileData) {
     throw new Error('No se pudo obtener el token del usuario')
   }
 
-  const response = await fetch(API.profile.update, {
+  const response = await fetch(API.user.profile, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
