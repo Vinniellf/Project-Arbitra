@@ -16,7 +16,7 @@ import UsersEmptyState from '../components/users/UsersEmptyState'
 import InviteUserButton from '../components/users/InviteUserButton'
 import UserTable from '../components/users/UserTable'
 
-import { useAdminSystemUsers } from '../hooks/users/useAdminSystemUsers'
+import { useAdminSystemUsers } from '../hooks/users/useAdminUsers'
 import { useAdminUserFilters } from '../hooks/users/useAdminUserFilters'
 import { useDisableAdminUser } from '../hooks/users/useDisableAdminUser'
 import { useEnableAdminUser } from '../hooks/users/useEnableAdminUser'
