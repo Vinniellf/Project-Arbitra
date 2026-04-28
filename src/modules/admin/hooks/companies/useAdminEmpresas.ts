@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { listCompanies } from '../../services/companies/companies.service'
-import type { Company } from '../../types/company.types'
+import type { Company } from '../../types/company'
 
 type UseAdminEmpresasReturn = {
   empresas: Company[]

@@ -1,7 +1,7 @@
 import { API } from '@/shared/config/api'
 import { getAccessToken } from '@/shared/api/api-auth'
 import { parseErrorResponse } from '@/shared/api/api-errors'
-import type { GetCompaniesResponse } from '../../types/company.types'
+import type { GetCompaniesResponse } from '../../types/company'
 
 export async function listCompanies(): Promise<GetCompaniesResponse> {
   const accessToken = await getAccessToken()

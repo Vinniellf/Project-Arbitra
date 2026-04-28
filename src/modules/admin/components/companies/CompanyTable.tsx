@@ -6,7 +6,7 @@ import TableHead from '../common/table/TableHead'
 import TableEmptyState from '../common/table/TableEmptyState'
 import TableSkeleton from '../common/table/TableSkeleton'
 
-import type { Company } from '../../types/company.types'
+import type { Company } from '../../types/company'
 
 type CompaniesTableProps = {
   companies: Company[]
