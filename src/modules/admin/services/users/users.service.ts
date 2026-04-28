@@ -1,15 +1,15 @@
 import { API } from '@/shared/config/api'
 import { getAccessToken } from '@/shared/api/api-auth'
 import { parseErrorResponse } from '@/shared/api/api-errors'
-import type { ListSystemUsersResponse } from '../../types/system-user'
+import type { ListSystemUsersResponse } from '../../types/user'
 
-export async function listSystemUsers(
+export async function listUsers(
   limit = 20,
   nextToken?: string,
 ): Promise<ListSystemUsersResponse> {
   const accessToken = await getAccessToken()
 
-  const url = new URL(API.admin.systemUsers)
+  const url = new URL(API.admin.users)
   url.searchParams.set('limit', String(limit))
 
   if (nextToken) {
