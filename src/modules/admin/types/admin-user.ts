@@ -8,6 +8,7 @@ export type InviteFormState = {
   emailsText: string
   role: InviteUserRole
   name: string
+  companyId?: string
 }
 
 export type ParsedEmailsResult = {
@@ -44,34 +45,67 @@ export type InviteUserRole = 'ADMIN' | 'SUPER_ADMIN'
 export type InviteUserRequest = {
   role?: InviteUserRole
   name?: string
+  companyId?: string
   email?: string
   emails?: string[]
 }
 
+export type InviteUserResultStatus =
+  | 'created'
+  | 'resent'
+  | 'already_active'
+  | 'disabled'
+  | 'invalid'
+  | 'error'
+
 export type InviteUserResult = {
   email: string
   success: boolean
-  status: 'created' | 'existing' | 'invalid' | 'error'
+  status: InviteUserResultStatus
   message: string
+  userId?: string
+  companyId?: string | null
+  userStatus?: string
   error?: string
+  errorName?: string
+  errorMessage?: string
+  dynamo?: {
+    alreadyExists: boolean
+    enabled: boolean
+  }
 }
 
 export type InviteUserResponse = {
-  success?: boolean
+  success: boolean
   message: string
   summary?: {
     total: number
     created: number
-    existing: number
+    resent: number
+    alreadyActive: number
+    disabled: number
     invalid: number
     failed: number
   }
   results?: InviteUserResult[]
-  invitedUsers?: string[]
-  failedUsers?: string[]
-  user?: {
-    email: string
-    role: string
-    name?: string
+}
+
+export type SystemUser = {
+  userId: string
+  email: string | null
+  name: string | null
+  companyId: string | null
+  role: string
+  status: string | null
+  enabled: boolean
+  profileCompleted: boolean
+  createdAt: string | null
+}
+
+export type ListSystemUsersResponse = {
+  users: SystemUser[]
+  pagination?: {
+    limit: number
+    nextToken: string | null
   }
 }
