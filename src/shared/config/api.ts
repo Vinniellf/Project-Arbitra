@@ -5,7 +5,6 @@ export const API = {
   admin: {
     inviteUsers: `${API_CONFIG.baseUrl}${API_ROUTES.admin.inviteUsers}`,
     users: `${API_CONFIG.baseUrl}${API_ROUTES.admin.users}`,
-    systemUsers: `${API_CONFIG.baseUrl}${API_ROUTES.admin.systemUsers}`,
     disableUser: `${API_CONFIG.baseUrl}${API_ROUTES.admin.disableUser}`,
     enableUser: `${API_CONFIG.baseUrl}${API_ROUTES.admin.enableUser}`,
     companies: `${API_CONFIG.baseUrl}${API_ROUTES.admin.companies}`,
