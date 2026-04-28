@@ -1,5 +1,6 @@
 export const API_ROUTES = {
   admin: {
+    inviteUsers: '/admin/users/invite',
     users: '/admin/users',
     systemUsers: '/admin/system-users',
     disableUser: '/admin/users/disable',
@@ -8,9 +9,6 @@ export const API_ROUTES = {
   },
   profile: {
     update: '/update-profile',
-  },
-  invite: {
-    create: '/default/invite-user',
   },
   memory: {
     get: '/memory',

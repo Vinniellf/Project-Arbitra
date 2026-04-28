@@ -3,6 +3,7 @@ import { API_ROUTES } from './api-routes'
 
 export const API = {
   admin: {
+    inviteUsers: `${API_CONFIG.baseUrl}${API_ROUTES.admin.inviteUsers}`,
     users: `${API_CONFIG.baseUrl}${API_ROUTES.admin.users}`,
     systemUsers: `${API_CONFIG.baseUrl}${API_ROUTES.admin.systemUsers}`,
     disableUser: `${API_CONFIG.baseUrl}${API_ROUTES.admin.disableUser}`,
@@ -11,9 +12,6 @@ export const API = {
   },
   profile: {
     update: `${API_CONFIG.baseUrl}${API_ROUTES.profile.update}`,
-  },
-  invite: {
-    create: `${API_CONFIG.inviteBaseUrl}${API_ROUTES.invite.create}`,
   },
   memory: {
     get: (sessionId: string) =>
