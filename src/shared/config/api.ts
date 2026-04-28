@@ -10,7 +10,10 @@ export const API = {
     companies: `${API_CONFIG.baseUrl}${API_ROUTES.admin.companies}`,
   },
   profile: {
-    update: `${API_CONFIG.baseUrl}${API_ROUTES.profile.update}`,
+    update: `${API_CONFIG.baseUrl}${API_ROUTES.profile.update}`, // Ruta antigua
+  },
+  user: {
+    profile: `${API_CONFIG.baseUrl}${API_ROUTES.user.profile}`, // Nueva ruta
   },
   memory: {
     get: (sessionId: string) =>

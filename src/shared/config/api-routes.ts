@@ -7,7 +7,10 @@ export const API_ROUTES = {
     companies: '/admin/companies',
   },
   profile: {
-    update: '/update-profile',
+    update: '/update-profile', // Ruta antigua, se mantiene temporalmente
+  },
+  user: {
+    profile: '/user/profile', // Nueva ruta correcta
   },
   memory: {
     get: '/memory',
