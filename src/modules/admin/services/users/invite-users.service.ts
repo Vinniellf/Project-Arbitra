@@ -11,12 +11,18 @@ export async function inviteAdminUser(
 ): Promise<InviteUserResponse> {
   const accessToken = await getAccessToken()
 
-  const normalizedPayload: InviteUserRequest = {
-    role: payload.role,
+  const normalizedPayload: InviteUserRequest = {}
+
+  if (payload.role) {
+    normalizedPayload.role = payload.role
   }
 
   if (payload.name?.trim()) {
     normalizedPayload.name = payload.name.trim()
+  }
+
+  if (payload.companyId?.trim()) {
+    normalizedPayload.companyId = payload.companyId.trim()
   }
 
   if (payload.email?.trim()) {
@@ -33,28 +39,18 @@ export async function inviteAdminUser(
     ]
   }
 
-  try {
-    const response = await fetch(API.invite.create, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(normalizedPayload),
-    })
+  const response = await fetch(API.admin.inviteUsers, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(normalizedPayload),
+  })
 
-    if (!response.ok) {
-      await parseErrorResponse(response)
-    }
-
-    return (await response.json()) as InviteUserResponse
-  } catch (error) {
-    if (error instanceof TypeError) {
-      throw new Error(
-        'No se pudo conectar con la API de invitación. Revisa CORS, la URL del endpoint y que API Gateway esté activo.',
-      )
-    }
-
-    throw error
+  if (!response.ok && response.status !== 207) {
+    await parseErrorResponse(response)
   }
+
+  return (await response.json()) as InviteUserResponse
 }
