@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
-import { listSystemUsers } from '../../services/users/system-users.service'
+import { listUsers } from '../../services/users/users.service'
 import type { AdminUser } from '../../types/admin-user'
-import type { SystemUser } from '../../types/system-user'
+import type { SystemUser } from '../../types/user'
 
 type UseAdminSystemUsersReturn = {
   users: AdminUser[]
@@ -32,7 +32,7 @@ export function useAdminSystemUsers(): UseAdminSystemUsersReturn {
       setLoading(true)
       setError(null)
 
-      const data = await listSystemUsers()
+      const data = await listUsers()
       const mappedUsers = data.users.map(mapSystemUserToAdminUser)
 
       setUsers(mappedUsers)
