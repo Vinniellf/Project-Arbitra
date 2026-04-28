@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useInviteAdminUser } from './useInviteAdminUser'
 import { useAdminRole } from '../shared/useAdminRole'
+import { buildInviteSuccessMessage } from '../../helpers/invite/build-invite-success-message.helper'
 import type {
   ConfirmStatus,
   InviteFormState,
@@ -112,6 +113,24 @@ export function useInviteUserModal({
     setShowConfirmModal(true)
   }
 
+  const buildPayload = (): InviteUserRequest => {
+    const payload: InviteUserRequest =
+      form.mode === 'single'
+        ? {
+            email: normalizeEmail(form.email),
+            name: form.name.trim() || undefined,
+          }
+        : {
+            emails: parsedEmails.valid,
+          }
+
+    if (isSuperAdmin) {
+      payload.role = form.role
+    }
+
+    return payload
+  }
+
   const handleConfirmInvite = async () => {
     if (isBusy) return
 
@@ -120,41 +139,13 @@ export function useInviteUserModal({
     setConfirmSuccess(null)
 
     try {
-      const payload: InviteUserRequest =
-        form.mode === 'single'
-          ? {
-              email: normalizeEmail(form.email),
-              name: form.name.trim() || undefined,
-            }
-          : {
-              emails: parsedEmails.valid,
-            }
-
-      if (isSuperAdmin) {
-        payload.role = form.role
-      }
-
+      const payload = buildPayload()
       const response = await inviteUser(payload)
+
       await onUserInvited?.()
 
       setConfirmStatus('success')
-
-      if (form.mode === 'single') {
-        setConfirmSuccess(
-          `La invitación para ${payload.email} se envió correctamente.`,
-        )
-        return
-      }
-
-      const total = response.summary?.total ?? parsedEmails.valid.length
-      const created = response.summary?.created ?? 0
-      const existing = response.summary?.existing ?? 0
-      const invalid = response.summary?.invalid ?? 0
-      const failed = response.summary?.failed ?? 0
-
-      setConfirmSuccess(
-        `Se procesaron ${total} invitaciones. Creados: ${created}, existentes: ${existing}, inválidos: ${invalid}, fallidos: ${failed}.`,
-      )
+      setConfirmSuccess(buildInviteSuccessMessage(response))
     } catch (err) {
       let message = 'No se pudo enviar la invitación. Inténtalo nuevamente.'
 
@@ -171,6 +162,7 @@ export function useInviteUserModal({
 
   const handleCancelConfirm = () => {
     if (isBusy) return
+
     setShowConfirmModal(false)
     setConfirmStatus('confirm')
     setConfirmError(null)
@@ -197,6 +189,7 @@ export function useInviteUserModal({
 
   const handleClose = () => {
     if (isBusy) return
+
     resetLocalState()
     onClose()
   }
