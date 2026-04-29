@@ -7,18 +7,19 @@ export const API_ROUTES = {
     companies: '/admin/companies',
   },
   profile: {
-    update: '/update-profile', // Ruta antigua, se mantiene temporalmente
+    update: '/update-profile',
   },
   user: {
-    profile: '/user/profile', // Nueva ruta correcta
+    profile: '/user/profile',
   },
   memory: {
     get: '/memory',
   },
   pepe: {
-    send: '/pepe/chat', // Ruta que se va a manejar para el chat
+    send: '/pepe/chat',
   },
-  ticket: {
-    create: '/ticketera/create_ticket', // ruta para crear un ticket 
+  ticketera: {
+    create: '/ticketera/create_ticket',
+    get: '/ticketera',
   },
 } as const
