@@ -6,6 +6,7 @@ import {
   getPepeSessionId,
 } from '../services/pepe.service'
 import { getMemoryBySession } from '../services/memory.service'
+import { createTicket } from '../services/ticket.service'
 
 const normalizeTicketFormData = (
   ticketDraft?: Partial<TicketFormData>,
@@ -64,9 +65,6 @@ export const useChat = () => {
     })
   }
 
-  // =========================
-  // MENSAJE NORMAL
-  // =========================
   const sendMessage = async (
     chatId: string,
     text: string,
@@ -133,9 +131,6 @@ export const useChat = () => {
     )
   }
 
-  // =========================
-  // GENERAR FORMULARIO
-  // =========================
   const openTicketForm = async (
     chatId: string,
     onMessagesChange?: (messages: Message[]) => void,
@@ -199,9 +194,6 @@ export const useChat = () => {
     }
   }
 
-  // =========================
-  // PASAR A CONFIRMACIÓN
-  // =========================
   const submitTicketForm = (
     _chatId: string,
     data: TicketFormData,
@@ -223,9 +215,6 @@ export const useChat = () => {
     )
   }
 
-  // =========================
-  // VOLVER A FORMULARIO
-  // =========================
   const reopenTicketForm = (
     _chatId: string,
     data: TicketFormData,
@@ -247,11 +236,8 @@ export const useChat = () => {
     )
   }
 
-  // =========================
-  // CONFIRMAR CREACIÓN (SIN MENSAJE DE USUARIO)
-  // =========================
   const confirmTicketCreation = async (
-    _chatId: string,
+    chatId: string,
     data: TicketFormData,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
@@ -260,7 +246,16 @@ export const useChat = () => {
     setSubmittingTicket(true)
 
     try {
-      const ticketCode = `TK-${Date.now()}`
+      const sessionId = getPepeSessionId(chatId)
+
+      const result = await createTicket({
+        sessionId,
+        userId: data.requester,
+      })
+
+      const ticketCode = result.externalTicketId
+        ? `TK-${result.externalTicketId}`
+        : `TK-${result.ticketId}`
 
       const successMessage: Message = {
         id: crypto.randomUUID(),
@@ -277,12 +272,15 @@ export const useChat = () => {
         (prev) => [...removeTicketFlowMessages(prev), successMessage],
         onMessagesChange,
       )
-    } catch {
+    } catch (error) {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
         kind: 'text',
-        content: '⚠️ No se pudo crear el ticket.',
+        content:
+          error instanceof Error
+            ? `⚠️ ${error.message}`
+            : '⚠️ No se pudo crear el ticket.',
       }
 
       updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
