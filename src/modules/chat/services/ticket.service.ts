@@ -6,12 +6,14 @@ type CreateTicketInput = {
   userId: string
 }
 
-type CreateTicketResponse = {
+export type CreateTicketResponse = {
   message: string
   ticketId: string
   sessionId?: string
   externalTicketId: string
   externalStatus: string
+  ticketStatus?: string
+  alreadyExists?: boolean
 }
 
 const getToken = async () => {
@@ -52,11 +54,18 @@ export const createTicket = async ({
     throw new Error('La respuesta del servidor no es un JSON válido.')
   }
 
-  if (!response.ok) {
-    if (response.status === 409) {
-      throw new Error('Ya existe un ticket creado para esta conversación.')
+  if (response.status === 409 && isObject(data)) {
+    return {
+      message: String(data.error ?? 'Ya existe un ticket creado'),
+      ticketId: String(data.ticketId ?? ''),
+      sessionId: typeof data.sessionId === 'string' ? data.sessionId : sessionId,
+      externalTicketId: '',
+      externalStatus: 'created',
+      alreadyExists: true,
     }
+  }
 
+  if (!response.ok) {
     const errorMessage =
       isObject(data) && typeof data.error === 'string'
         ? data.error
@@ -75,5 +84,8 @@ export const createTicket = async ({
     sessionId: typeof data.sessionId === 'string' ? data.sessionId : undefined,
     externalTicketId: String(data.externalTicketId ?? ''),
     externalStatus: String(data.externalStatus ?? ''),
+    ticketStatus:
+      typeof data.ticketStatus === 'string' ? data.ticketStatus : undefined,
+    alreadyExists: false,
   }
 }
