@@ -16,10 +16,13 @@ export const API = {
     profile: `${API_CONFIG.baseUrl}${API_ROUTES.user.profile}`, // Nueva ruta
   },
   pepe: {
-    chat: `${API_CONFIG.baseUrl}${API_ROUTES.pepe.send}`, 
+    chat: `${API_CONFIG.baseUrl}${API_ROUTES.pepe.send}`,
   },
   memory: {
     get: (sessionId: string) =>
       `${API_CONFIG.baseUrl}${API_ROUTES.memory.get}/${sessionId}`,
+  },
+  ticket: {
+    create: `${API_CONFIG.baseUrl}${API_ROUTES.ticket.create}`,
   },
 } as const

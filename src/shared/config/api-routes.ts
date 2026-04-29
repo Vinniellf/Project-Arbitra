@@ -18,5 +18,7 @@ export const API_ROUTES = {
   pepe: {
     send: '/pepe/chat', // Ruta que se va a manejar para el chat
   },
+  ticket: {
+    create: '/ticketera/create_ticket', // ruta para crear un ticket 
+  },
 } as const
-
