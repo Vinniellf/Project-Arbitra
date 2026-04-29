@@ -26,9 +26,30 @@ const isEmptyTicketData = (data: TicketFormData): boolean => {
   return Object.values(data).every((value) => !value.trim())
 }
 
+const removeTicketFlowMessages = (messages: Message[]) => {
+  return messages.filter(
+    (msg) =>
+      msg.kind !== 'ticket_form' &&
+      msg.kind !== 'ticket_confirmation' &&
+      msg.kind !== 'ticket_success',
+  )
+}
+
+const removeGenerateTicketActions = (messages: Message[]) => {
+  return messages.map((msg) =>
+    msg.action === 'generate_ticket'
+      ? {
+          ...msg,
+          action: undefined,
+        }
+      : msg,
+  )
+}
+
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
+  const [generatingTicket, setGeneratingTicket] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [submittingTicket, setSubmittingTicket] = useState(false)
 
@@ -43,6 +64,9 @@ export const useChat = () => {
     })
   }
 
+  // =========================
+  // MENSAJE NORMAL
+  // =========================
   const sendMessage = async (
     chatId: string,
     text: string,
@@ -50,7 +74,15 @@ export const useChat = () => {
   ) => {
     const trimmedText = text.trim()
 
-    if (!trimmedText || loading || savingDraft || submittingTicket) return
+    if (
+      !trimmedText ||
+      loading ||
+      generatingTicket ||
+      savingDraft ||
+      submittingTicket
+    ) {
+      return
+    }
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -101,11 +133,31 @@ export const useChat = () => {
     )
   }
 
+  // =========================
+  // GENERAR FORMULARIO
+  // =========================
   const openTicketForm = async (
     chatId: string,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    if (loading || savingDraft || submittingTicket) return
+    if (loading || generatingTicket || savingDraft || submittingTicket) return
+
+    const userTicketMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      kind: 'text',
+      content: 'Generar ticket',
+    }
+
+    updateMessages(
+      (prev) => [
+        ...removeGenerateTicketActions(removeTicketFlowMessages(prev)),
+        userTicketMessage,
+      ],
+      onMessagesChange,
+    )
+
+    setGeneratingTicket(true)
 
     try {
       const sessionId = getPepeSessionId(chatId)
@@ -114,7 +166,7 @@ export const useChat = () => {
 
       if (isEmptyTicketData(ticketFormData)) {
         throw new Error(
-          'Aún no hay información suficiente para mostrar el formulario. Continúa describiendo el caso.',
+          'Aún no hay información suficiente para mostrar el formulario.',
         )
       }
 
@@ -122,16 +174,12 @@ export const useChat = () => {
         id: crypto.randomUUID(),
         role: 'assistant',
         kind: 'ticket_form',
-        content:
-          'Puedes revisar la información detectada antes de enviar la solicitud.',
+        content: '',
         ticketFormData,
       }
 
       updateMessages(
-        (prev) => {
-          const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
-          return [...filtered, formMessage]
-        },
+        (prev) => [...removeTicketFlowMessages(prev), formMessage],
         onMessagesChange,
       )
     } catch (error) {
@@ -142,74 +190,113 @@ export const useChat = () => {
         content:
           error instanceof Error
             ? `⚠️ ${error.message}`
-            : '⚠️ No se pudo cargar la información del formulario.',
+            : '⚠️ Error cargando formulario',
       }
 
       updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
+    } finally {
+      setGeneratingTicket(false)
     }
   }
 
-  const saveTicketDraft = async (
+  // =========================
+  // PASAR A CONFIRMACIÓN
+  // =========================
+  const submitTicketForm = (
     _chatId: string,
     data: TicketFormData,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    if (savingDraft || loading || submittingTicket) return
+    if (loading || generatingTicket || savingDraft || submittingTicket) return
 
-    setSavingDraft(true)
-
-    try {
-      const formMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        kind: 'ticket_form',
-        content: 'Cambios actualizados localmente.',
-        ticketFormData: data,
-      }
-
-      updateMessages(
-        (prev) => {
-          const filtered = prev.filter((msg) => msg.kind !== 'ticket_form')
-          return [...filtered, formMessage]
-        },
-        onMessagesChange,
-      )
-    } finally {
-      setSavingDraft(false)
+    const confirmationMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      kind: 'ticket_confirmation',
+      content: '',
+      ticketFormData: data,
     }
+
+    updateMessages(
+      (prev) => [...removeTicketFlowMessages(prev), confirmationMessage],
+      onMessagesChange,
+    )
   }
 
-  const submitTicketForm = async (
+  // =========================
+  // VOLVER A FORMULARIO
+  // =========================
+  const reopenTicketForm = (
     _chatId: string,
-    _data: TicketFormData,
+    data: TicketFormData,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    if (loading || savingDraft || submittingTicket) return
+    if (loading || generatingTicket || savingDraft || submittingTicket) return
+
+    const formMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      kind: 'ticket_form',
+      content: '',
+      ticketFormData: data,
+    }
+
+    updateMessages(
+      (prev) => [...removeTicketFlowMessages(prev), formMessage],
+      onMessagesChange,
+    )
+  }
+
+  // =========================
+  // CONFIRMAR CREACIÓN (SIN MENSAJE DE USUARIO)
+  // =========================
+  const confirmTicketCreation = async (
+    _chatId: string,
+    data: TicketFormData,
+    onMessagesChange?: (messages: Message[]) => void,
+  ) => {
+    if (loading || generatingTicket || savingDraft || submittingTicket) return
 
     setSubmittingTicket(true)
 
     try {
-      const warningMessage: Message = {
+      const ticketCode = `TK-${Date.now()}`
+
+      const successMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        kind: 'ticket_success',
+        content: '',
+        ticketFormData: {
+          ...data,
+          ticketCode,
+        },
+      }
+
+      updateMessages(
+        (prev) => [...removeTicketFlowMessages(prev), successMessage],
+        onMessagesChange,
+      )
+    } catch {
+      const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
         kind: 'text',
-        content:
-          'El formulario está listo. Falta conectar el nuevo endpoint final para crear la solicitud.',
+        content: '⚠️ No se pudo crear el ticket.',
       }
 
-      updateMessages((prev) => [...prev, warningMessage], onMessagesChange)
+      updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
     } finally {
       setSubmittingTicket(false)
     }
   }
 
   const resetChat = (chatId?: string) => {
-    if (chatId) {
-      clearPepeSession(chatId)
-    }
+    if (chatId) clearPepeSession(chatId)
 
     setMessages([])
     setLoading(false)
+    setGeneratingTicket(false)
     setSavingDraft(false)
     setSubmittingTicket(false)
   }
@@ -222,12 +309,14 @@ export const useChat = () => {
     messages,
     sendMessage,
     loading,
+    generatingTicket,
     savingDraft,
     submittingTicket,
     resetChat,
     loadMessages,
     submitTicketForm,
-    saveTicketDraft,
     openTicketForm,
+    reopenTicketForm,
+    confirmTicketCreation,
   }
 }
