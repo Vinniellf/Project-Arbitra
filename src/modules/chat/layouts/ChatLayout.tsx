@@ -141,7 +141,7 @@ export const ChatLayout = ({
               ) : (
                 <ChatMessages
                   messages={messages}
-                  loading={loading || generatingTicket || submittingTicket}
+                  loading={loading || generatingTicket}
                   generatingTicket={generatingTicket}
                   lastAssistantRef={lastAssistantRef}
                   bottomSpacer={bottomSpacer}
