@@ -14,12 +14,11 @@ export const TicketSuccessCard = ({ ticketCode }: Props) => {
           bg-emerald-50 px-3 py-2
         "
       >
-        {/* ICONO */}
         <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
 
-        {/* TEXTO */}
         <p className="text-sm text-emerald-900">
           <span className="font-semibold">Ticket creado</span>
+
           {ticketCode && (
             <>
               {' · '}
