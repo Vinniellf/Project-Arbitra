@@ -1,7 +1,8 @@
 import { fetchAuthSession } from 'aws-amplify/auth'
+import { API } from '@/shared/config/api'
 import type { MessageAction } from '../types/chat.types'
 
-const ACTION_MARKER_PREFIX = '__PEPE_ACTION__:'
+
 const SESSION_STORAGE_KEY = 'pepe_chat_sessions'
 
 const readStoredSessions = (): Record<string, string> => {
@@ -55,47 +56,6 @@ const getCognitoIdToken = async (): Promise<string | null> => {
   }
 }
 
-const isInternalJsonResponse = (value: unknown): boolean => {
-  return typeof value === 'object' && value !== null && 'updates' in value
-}
-
-const extractActionFromResponse = (
-  response: string,
-): { cleanResponse: string; action?: MessageAction } => {
-  const markerIndex = response.indexOf(ACTION_MARKER_PREFIX)
-
-  if (markerIndex === -1) {
-    return {
-      cleanResponse: response.trim(),
-    }
-  }
-
-  const cleanResponse = response.slice(0, markerIndex).trim()
-
-  const markerContent = response
-    .slice(markerIndex + ACTION_MARKER_PREFIX.length)
-    .trim()
-
-  try {
-    const parsed = JSON.parse(markerContent)
-
-    if (parsed?.action === 'generate_ticket') {
-      return {
-        cleanResponse,
-        action: 'generate_ticket',
-      }
-    }
-  } catch {
-    return {
-      cleanResponse,
-    }
-  }
-
-  return {
-    cleanResponse,
-  }
-}
-
 export const streamPepeResponse = async (
   chatId: string,
   message: string,
@@ -119,10 +79,10 @@ export const streamPepeResponse = async (
       return
     }
 
-    const endpoint = import.meta.env.VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL
+    const endpoint = API.pepe.chat
 
     if (!endpoint) {
-      onChunk('\n⚠️ No está configurado el endpoint de streaming del agente.')
+      onChunk('\n⚠️ No está configurado el endpoint de API Gateway.')
       onComplete()
       return
     }
@@ -140,49 +100,16 @@ export const streamPepeResponse = async (
     })
 
     if (!response.ok) {
-      throw new Error('Error comunicando con AgentCore')
+      throw new Error(`Error del API Gateway: ${response.status}`)
     }
 
-    const reader = response.body?.getReader()
-    const decoder = new TextDecoder('utf-8')
-
-    if (!reader) {
-      throw new Error('No se pudo leer el stream de respuesta.')
+    const data = await response.json()
+    if (data.response) {
+      onChunk(data.response, data.action as MessageAction)
     }
 
-    let fullResponse = ''
-
-    while (true) {
-      const { done, value } = await reader.read()
-
-      if (done) break
-
-      fullResponse += decoder.decode(value, { stream: true })
-    }
-
-    fullResponse += decoder.decode()
-
-    const rawResponse = fullResponse.trim()
-
-    if (!rawResponse) return
-
-    try {
-      const parsed = JSON.parse(rawResponse)
-
-      if (isInternalJsonResponse(parsed)) {
-        return
-      }
-    } catch {
-      // No es JSON interno.
-    }
-
-    const { cleanResponse, action } = extractActionFromResponse(rawResponse)
-
-    if (cleanResponse) {
-      onChunk(cleanResponse, action)
-    }
   } catch (error) {
-    console.error('Error en Pepe:', error)
+    console.error('Error comunicándose con Pepe:', error)
     onChunk('\n⚠️ Lo siento, tuve un problema de conexión con el servidor central.')
   } finally {
     onComplete()

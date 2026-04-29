@@ -15,6 +15,9 @@ export const API = {
   user: {
     profile: `${API_CONFIG.baseUrl}${API_ROUTES.user.profile}`, // Nueva ruta
   },
+  pepe: {
+    chat: `${API_CONFIG.baseUrl}${API_ROUTES.pepe.send}`, 
+  },
   memory: {
     get: (sessionId: string) =>
       `${API_CONFIG.baseUrl}${API_ROUTES.memory.get}/${sessionId}`,

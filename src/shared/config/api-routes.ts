@@ -15,4 +15,8 @@ export const API_ROUTES = {
   memory: {
     get: '/memory',
   },
+  pepe: {
+    send: '/pepe/chat', // Ruta que se va a manejar para el chat
+  },
 } as const
+
