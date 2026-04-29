@@ -255,7 +255,9 @@ export const useChat = () => {
 
       const ticketCode = result.externalTicketId
         ? `TK-${result.externalTicketId}`
-        : `TK-${result.ticketId}`
+        : result.ticketId
+          ? `TK-${result.ticketId.replace('ticket-', '')}`
+          : 'TK-creado'
 
       const successMessage: Message = {
         id: crypto.randomUUID(),
