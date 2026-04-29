@@ -5,7 +5,7 @@ import {
   clearPepeSession,
   getPepeSessionId,
 } from '../services/pepe.service'
-import { getMemoryBySession } from '../services/memory-api.service'
+import { getMemoryBySession } from '../services/memory.service'
 
 const normalizeTicketFormData = (
   ticketDraft?: Partial<TicketFormData>,
