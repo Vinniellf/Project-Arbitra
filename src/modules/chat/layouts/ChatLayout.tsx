@@ -15,6 +15,7 @@ import { useBottomSpacer } from '@/modules/chat/hooks/useBottomSpacer'
 type Props = {
   messages: Message[]
   loading: boolean
+  generatingTicket: boolean
   submittingTicket: boolean
   sendMessage: (msg: string) => void
   resetChat: () => void
@@ -30,11 +31,14 @@ type Props = {
   onNewChat: () => void
   onGenerateTicket: () => void
   onSubmitTicketForm: (data: TicketFormData) => void
+  onConfirmTicketCreation: (data: TicketFormData) => void
+  onEditTicket: (data: TicketFormData) => void
 }
 
 export const ChatLayout = ({
   messages,
   loading,
+  generatingTicket,
   submittingTicket,
   sendMessage,
   resetChat,
@@ -50,6 +54,8 @@ export const ChatLayout = ({
   onNewChat,
   onGenerateTicket,
   onSubmitTicketForm,
+  onConfirmTicketCreation,
+  onEditTicket,
 }: Props) => {
   const inputRef = useRef<HTMLDivElement | null>(null)
   const bottomSpacer = useBottomSpacer(inputRef)
@@ -57,24 +63,40 @@ export const ChatLayout = ({
   const [shouldScrollToNextAssistant, setShouldScrollToNextAssistant] =
     useState(false)
 
+  const isBusy = loading || generatingTicket || submittingTicket
+
   const { containerRef, lastAssistantRef } = useAutoScroll(messages, {
-    loading,
+    loading: isBusy,
     shouldScrollToNextAssistant,
     onScrolledToNextAssistant: () => setShouldScrollToNextAssistant(false),
   })
 
   const handleSendMessage = (msg: string) => {
-    if (loading || submittingTicket) return
+    if (isBusy) return
 
     setShouldScrollToNextAssistant(true)
     sendMessage(msg)
   }
 
   const handleGenerateTicket = () => {
-    if (loading || submittingTicket) return
+    if (isBusy) return
 
     setShouldScrollToNextAssistant(true)
     onGenerateTicket()
+  }
+
+  const handleConfirmTicketCreation = (data: TicketFormData) => {
+    if (isBusy) return
+
+    setShouldScrollToNextAssistant(true)
+    onConfirmTicketCreation(data)
+  }
+
+  const handleEditTicket = (data: TicketFormData) => {
+    if (isBusy) return
+
+    setShouldScrollToNextAssistant(true)
+    onEditTicket(data)
   }
 
   const containerClasses = clsx(
@@ -119,11 +141,14 @@ export const ChatLayout = ({
               ) : (
                 <ChatMessages
                   messages={messages}
-                  loading={loading}
+                  loading={loading || generatingTicket || submittingTicket}
+                  generatingTicket={generatingTicket}
                   lastAssistantRef={lastAssistantRef}
                   bottomSpacer={bottomSpacer}
                   onGenerateTicket={handleGenerateTicket}
                   onSubmitTicketForm={onSubmitTicketForm}
+                  onConfirmTicketCreation={handleConfirmTicketCreation}
+                  onEditTicket={handleEditTicket}
                   submittingTicket={submittingTicket}
                 />
               )}
@@ -133,10 +158,7 @@ export const ChatLayout = ({
               ref={inputRef}
               className="sticky bottom-0 w-full px-2.5 sm:px-3 md:px-4 pb-2 sm:pb-3 bg-white"
             >
-              <ChatInput
-                onSend={handleSendMessage}
-                loading={loading || submittingTicket}
-              />
+              <ChatInput onSend={handleSendMessage} loading={isBusy} />
             </div>
           </div>
         </div>
