@@ -29,42 +29,56 @@ type Props = {
   submittingTicket?: boolean
 }
 
-/* 🔥 ESTILO COMPACTO */
 const markdownComponents = {
   p: ({ children }: { children?: ReactNode }) => (
-    <p className="my-1 leading-6 text-slate-700">{children}</p>
+    <p className="my-1 leading-5 text-slate-700">{children}</p>
   ),
 
   strong: ({ children }: { children?: ReactNode }) => (
-    <strong className="font-semibold text-slate-900">{children}</strong>
+    <strong className="font-medium text-slate-800">{children}</strong>
+  ),
+
+  em: ({ children }: { children?: ReactNode }) => (
+    <em className="italic text-slate-600">{children}</em>
   ),
 
   ol: ({ children }: { children?: ReactNode }) => (
-    <ol className="my-2 list-decimal pl-5 space-y-1 marker:text-blue-600 marker:font-medium">
+    <ol className="my-2 list-decimal space-y-1 pl-5 marker:text-[11px] marker:font-semibold marker:text-blue-600">
       {children}
     </ol>
   ),
 
   ul: ({ children }: { children?: ReactNode }) => (
-    <ul className="my-2 list-disc pl-5 space-y-1 marker:text-blue-500">
+    <ul className="my-2 list-disc space-y-1 pl-5 marker:text-blue-500">
       {children}
     </ul>
   ),
 
   li: ({ children }: { children?: ReactNode }) => (
-    <li className="leading-6 text-slate-700">{children}</li>
+    <li className="pl-0.5 leading-5 text-slate-700">{children}</li>
   ),
 
   code: ({ children }: { children?: ReactNode }) => (
-    <code className="rounded bg-slate-100 px-1 py-0.5 text-[11px] text-slate-800">
+    <code className="rounded bg-slate-100 px-1 py-0.5 text-[11px] font-medium text-slate-800">
       {children}
     </code>
   ),
 
   pre: ({ children }: { children?: ReactNode }) => (
-    <pre className="my-2 overflow-x-auto rounded-lg bg-slate-50 p-2 text-[11px] leading-5">
+    <pre className="my-2 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2 text-[11px] leading-5 text-slate-800">
       {children}
     </pre>
+  ),
+
+  a: ({ children, href }: { children?: ReactNode; href?: string }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700"
+    >
+      {children}
+    </a>
   ),
 
   hr: () => null,
@@ -90,9 +104,14 @@ export const MessageBubble = ({
   const isWide = isTicketForm || isTicketConfirmation
 
   return (
-    <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div
+      className={`
+        flex items-end gap-2
+        ${isUser ? 'justify-end' : 'justify-start'}
+      `}
+    >
       {!isUser && (
-        <div className="flex h-7 w-7 items-center justify-center shrink-0">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center">
           <img
             src={pepeIcon}
             className="h-10 w-10 object-contain"
@@ -103,17 +122,21 @@ export const MessageBubble = ({
 
       <div
         className={`
-          px-3 py-2 rounded-xl
-          text-[12px] sm:text-[13px] leading-6
-          shadow-sm
+          rounded-xl px-3 py-2
+          text-[12px] leading-5 sm:text-[13px]
+          shadow-sm transition-colors
 
-          ${isWide
-            ? 'w-full max-w-[95%] sm:max-w-[90%] md:max-w-2xl'
-            : 'max-w-[85%] sm:max-w-[75%]'}
+          ${
+            isWide
+              ? 'w-full max-w-[95%] sm:max-w-[90%] md:max-w-2xl'
+              : 'max-w-[85%] sm:max-w-[75%]'
+          }
 
-          ${isUser
-            ? 'bg-blue-600 text-white'
-            : 'bg-white/90 border border-slate-200 text-slate-800'}
+          ${
+            isUser
+              ? 'bg-blue-600 text-white'
+              : 'border border-slate-200 bg-white/90 text-slate-800'
+          }
         `}
       >
         {isTicketConfirmation &&
@@ -131,9 +154,11 @@ export const MessageBubble = ({
         ) : isTicketSuccess ? (
           <TicketSuccessCard ticketCode={ticketFormData?.ticketCode} />
         ) : isUser ? (
-          <span className="whitespace-pre-wrap">{content}</span>
+          <span className="whitespace-pre-wrap wrap-break-word leading-5">
+            {content}
+          </span>
         ) : (
-          <div className="max-w-full">
+          <div className="max-w-full wrap-break-word">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={markdownComponents}
@@ -162,7 +187,7 @@ export const MessageBubble = ({
       </div>
 
       {isUser && (
-        <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200">
           <User size={12} className="text-slate-600" />
         </div>
       )}
