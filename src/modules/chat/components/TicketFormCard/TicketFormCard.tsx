@@ -24,7 +24,7 @@ type FieldIconProps = {
 }
 
 const FieldIcon = ({ children }: FieldIconProps) => (
-  <span className="flex h-4 w-4 items-center justify-center text-slate-400">
+  <span className="flex h-3.5 w-3.5 items-center justify-center text-slate-400">
     {children}
   </span>
 )
@@ -57,13 +57,13 @@ export const TicketFormCard = ({
   const [formData, setFormData] = useState<TicketFormData>(initialFormData)
 
   const input =
-    'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
+    'w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
 
   const readOnly =
-    'w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500 cursor-not-allowed'
+    'w-full rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs text-slate-500 cursor-not-allowed'
 
   const label =
-    'mb-1 flex items-center gap-2 text-xs font-semibold text-slate-600'
+    'mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-600'
 
   const updateField = <K extends keyof TicketFormData>(
     field: K,
@@ -85,23 +85,21 @@ export const TicketFormCard = ({
           description: formData.description.trim(),
         })
       }}
-      className="mt-3 w-full max-w-2xl mx-auto space-y-4"
+      className="mt-2 w-full max-w-2xl mx-auto space-y-3"
     >
-      {/* HEADER */}
-      <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
-        <p className="text-base font-semibold text-slate-800">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <p className="text-sm font-semibold text-slate-800">
           Completa la información del ticket
         </p>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-0.5 text-xs text-slate-600">
           Puedes editar los datos antes de enviar.
         </p>
       </div>
 
-      {/* ASUNTO */}
       <div>
         <label className={label}>
           <FieldIcon>
-            <FileText size={16} />
+            <FileText size={14} />
           </FieldIcon>
           Asunto
         </label>
@@ -112,12 +110,11 @@ export const TicketFormCard = ({
         />
       </div>
 
-      {/* CATEGORÍA */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={label}>
             <FieldIcon>
-              <Tag size={16} />
+              <Tag size={14} />
             </FieldIcon>
             Categoría
           </label>
@@ -127,7 +124,7 @@ export const TicketFormCard = ({
         <div>
           <label className={label}>
             <FieldIcon>
-              <Tag size={16} />
+              <Tag size={14} />
             </FieldIcon>
             Subcategoría
           </label>
@@ -135,12 +132,11 @@ export const TicketFormCard = ({
         </div>
       </div>
 
-      {/* USUARIO */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={label}>
             <FieldIcon>
-              <User size={16} />
+              <User size={14} />
             </FieldIcon>
             Usuario
           </label>
@@ -150,7 +146,7 @@ export const TicketFormCard = ({
         <div>
           <label className={label}>
             <FieldIcon>
-              <Building2 size={16} />
+              <Building2 size={14} />
             </FieldIcon>
             Empresa
           </label>
@@ -158,12 +154,11 @@ export const TicketFormCard = ({
         </div>
       </div>
 
-      {/* UBICACIÓN */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={label}>
             <FieldIcon>
-              <Building2 size={16} />
+              <Building2 size={14} />
             </FieldIcon>
             Unidad
           </label>
@@ -173,7 +168,7 @@ export const TicketFormCard = ({
         <div>
           <label className={label}>
             <FieldIcon>
-              <MapPin size={16} />
+              <MapPin size={14} />
             </FieldIcon>
             Sede
           </label>
@@ -181,20 +176,17 @@ export const TicketFormCard = ({
         </div>
       </div>
 
-      {/* EQUIPO */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={label}>
             <FieldIcon>
-              <Cpu size={16} />
+              <Cpu size={14} />
             </FieldIcon>
             Modelo
           </label>
           <input
             value={formData.equipmentModel}
-            onChange={(e) =>
-              updateField('equipmentModel', e.target.value)
-            }
+            onChange={(e) => updateField('equipmentModel', e.target.value)}
             className={input}
           />
         </div>
@@ -202,7 +194,7 @@ export const TicketFormCard = ({
         <div>
           <label className={label}>
             <FieldIcon>
-              <Hash size={16} />
+              <Hash size={14} />
             </FieldIcon>
             Serie
           </label>
@@ -214,36 +206,34 @@ export const TicketFormCard = ({
         </div>
       </div>
 
-      {/* DESCRIPCIÓN */}
       <div>
         <label className={label}>
           <FieldIcon>
-            <AlignLeft size={16} />
+            <AlignLeft size={14} />
           </FieldIcon>
           Descripción
         </label>
         <textarea
-          rows={5}
+          rows={4}
           value={formData.description}
           onChange={(e) => updateField('description', e.target.value)}
-          className={`${input} resize-none`}
+          className={`${input} resize-none leading-5`}
         />
       </div>
 
-      {/* CTA */}
-      <div className="flex justify-end pt-3">
+      <div className="flex justify-end pt-2">
         <button
           type="submit"
           disabled={isDisabled}
           className="
-            inline-flex items-center gap-2
-            rounded-lg bg-blue-600 px-5 py-2.5
-            text-sm font-semibold text-white
+            inline-flex items-center gap-1.5
+            rounded-lg bg-blue-600 px-4 py-2
+            text-xs font-semibold text-white
             shadow-sm transition hover:bg-blue-700
             disabled:bg-slate-300 disabled:cursor-not-allowed
           "
         >
-          <Send size={16} />
+          <Send size={14} />
           {submitting ? 'Enviando...' : 'Enviar ticket'}
         </button>
       </div>
