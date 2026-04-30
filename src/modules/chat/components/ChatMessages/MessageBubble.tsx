@@ -29,12 +29,45 @@ type Props = {
   submittingTicket?: boolean
 }
 
+/* 🔥 ESTILO COMPACTO */
 const markdownComponents = {
   p: ({ children }: { children?: ReactNode }) => (
-    <p className="my-1.5 whitespace-pre-wrap leading-6 text-inherit">
-      {children}
-    </p>
+    <p className="my-1 leading-6 text-slate-700">{children}</p>
   ),
+
+  strong: ({ children }: { children?: ReactNode }) => (
+    <strong className="font-semibold text-slate-900">{children}</strong>
+  ),
+
+  ol: ({ children }: { children?: ReactNode }) => (
+    <ol className="my-2 list-decimal pl-5 space-y-1 marker:text-blue-600 marker:font-medium">
+      {children}
+    </ol>
+  ),
+
+  ul: ({ children }: { children?: ReactNode }) => (
+    <ul className="my-2 list-disc pl-5 space-y-1 marker:text-blue-500">
+      {children}
+    </ul>
+  ),
+
+  li: ({ children }: { children?: ReactNode }) => (
+    <li className="leading-6 text-slate-700">{children}</li>
+  ),
+
+  code: ({ children }: { children?: ReactNode }) => (
+    <code className="rounded bg-slate-100 px-1 py-0.5 text-[11px] text-slate-800">
+      {children}
+    </code>
+  ),
+
+  pre: ({ children }: { children?: ReactNode }) => (
+    <pre className="my-2 overflow-x-auto rounded-lg bg-slate-50 p-2 text-[11px] leading-5">
+      {children}
+    </pre>
+  ),
+
+  hr: () => null,
 }
 
 export const MessageBubble = ({
@@ -54,47 +87,35 @@ export const MessageBubble = ({
   const isTicketForm = kind === 'ticket_form'
   const isTicketConfirmation = kind === 'ticket_confirmation'
   const isTicketSuccess = kind === 'ticket_success'
+  const isWide = isTicketForm || isTicketConfirmation
 
   return (
-    <div
-      className={`
-        flex items-end gap-2
-        ${isUser ? 'justify-end' : 'justify-start'}
-      `}
-    >
+    <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && (
-        <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
+        <div className="flex h-7 w-7 items-center justify-center shrink-0">
           <img
             src={pepeIcon}
-            className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
-            alt="Bot avatar"
+            className="h-10 w-10 object-contain"
+            alt="Pepe AI"
           />
         </div>
       )}
 
       <div
         className={`
-          px-3
-          py-2
-          rounded-xl
-          text-[13px] sm:text-sm
-          leading-6
-          wrap-break-word
+          px-3 py-2 rounded-xl
+          text-[12px] sm:text-[13px] leading-6
+          shadow-sm
 
-          ${
-            isTicketForm || isTicketConfirmation
-              ? 'w-full max-w-[96%] sm:max-w-[92%] md:max-w-xl'
-              : 'max-w-[88%] sm:max-w-[78%]'
-          }
+          ${isWide
+            ? 'w-full max-w-[95%] sm:max-w-[90%] md:max-w-2xl'
+            : 'max-w-[85%] sm:max-w-[75%]'}
 
-          ${
-            isUser
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'bg-white/80 border border-slate-200 text-slate-800'
-          }
+          ${isUser
+            ? 'bg-blue-600 text-white'
+            : 'bg-white/90 border border-slate-200 text-slate-800'}
         `}
       >
-        {/* CONFIRMATION */}
         {isTicketConfirmation &&
         ticketFormData &&
         onConfirmTicketCreation &&
@@ -107,19 +128,12 @@ export const MessageBubble = ({
               onConfirmTicketCreation(ticketFormData as TicketFormData)
             }
           />
-        ) : 
-        /* SUCCESS */
-        isTicketSuccess ? (
+        ) : isTicketSuccess ? (
           <TicketSuccessCard ticketCode={ticketFormData?.ticketCode} />
-        ) : 
-        /* USER */
-        isUser ? (
-          <span className="whitespace-pre-wrap wrap-break-word">
-            {content}
-          </span>
+        ) : isUser ? (
+          <span className="whitespace-pre-wrap">{content}</span>
         ) : (
-          /* NORMAL + FORM */
-          <div className="max-w-full text-[13px] sm:text-sm leading-6 wrap-break-word text-slate-800">
+          <div className="max-w-full">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={markdownComponents}
@@ -127,7 +141,6 @@ export const MessageBubble = ({
               {content}
             </ReactMarkdown>
 
-            {/* BOTÓN GENERAR */}
             {action === 'generate_ticket' && onGenerateTicket && (
               <GenerateTicketButton
                 onClick={onGenerateTicket}
@@ -136,7 +149,6 @@ export const MessageBubble = ({
               />
             )}
 
-            {/* FORMULARIO */}
             {isTicketForm && onSubmitTicketForm && (
               <TicketFormCard
                 key={JSON.stringify(ticketFormData ?? {})}
@@ -150,8 +162,8 @@ export const MessageBubble = ({
       </div>
 
       {isUser && (
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-          <User size={13} className="sm:w-3.5 sm:h-3.5 text-slate-600" />
+        <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+          <User size={12} className="text-slate-600" />
         </div>
       )}
     </div>
