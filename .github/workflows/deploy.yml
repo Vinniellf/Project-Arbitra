@@ -12,7 +12,7 @@ jobs:
  
     steps:
       # 1. Descargar el código del repositorio
-      
+
       - name: Checkout Code
         uses: actions/checkout@v4
  
@@ -33,7 +33,7 @@ jobs:
           echo "VITE_USER_POOL_ID=${{ secrets.VITE_USER_POOL_ID }}" >> .env
           echo "VITE_USER_POOL_CLIENT_ID=${{ secrets.VITE_USER_POOL_CLIENT_ID }}" >> .env
           echo "VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL=${{ secrets.VITE_LAMBDA_PEPE_DEV_FRONTED_TO_AGENT_URL }}" >> .env
-          echo "VITE_ADMIN_USERS_API_URL=${{secrets.VITE_ADMIN_USERS_API_URL}}" >> .env
+          echo "VITE_API_BASE_URL=${{secrets.VITE_API_BASE_URL}}" >> .env
           echo "VITE_INVITE_USER_API_URL=${{secrets.VITE_INVITE_USER_API_URL}}" >> .env
 
 
