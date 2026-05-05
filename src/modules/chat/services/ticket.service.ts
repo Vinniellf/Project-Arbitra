@@ -3,7 +3,6 @@ import { API } from '@/shared/config/api'
 
 type CreateTicketInput = {
   sessionId: string
-  userId: string
 }
 
 export type CreateTicketResponse = {
@@ -26,7 +25,6 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 
 export const createTicket = async ({
   sessionId,
-  userId,
 }: CreateTicketInput): Promise<CreateTicketResponse> => {
   const token = await getToken()
 
@@ -42,7 +40,6 @@ export const createTicket = async ({
     },
     body: JSON.stringify({
       sessionId,
-      userId,
     }),
   })
 
