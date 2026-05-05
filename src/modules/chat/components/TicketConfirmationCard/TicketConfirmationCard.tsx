@@ -36,8 +36,9 @@ export const TicketConfirmationCard = ({
   const labelClass =
     'mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-600'
 
+  // 🔥 estilo read-only
   const valueBoxClass =
-    'w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700'
+    'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-700 cursor-not-allowed'
 
   return (
     <div className="mt-2 space-y-3">
@@ -56,6 +57,7 @@ export const TicketConfirmationCard = ({
         </div>
       </div>
 
+      {/* Asunto */}
       <div className="space-y-1">
         <p className={labelClass}>
           <FieldIcon>
@@ -69,6 +71,7 @@ export const TicketConfirmationCard = ({
         </div>
       </div>
 
+      {/* Modelo / Serie */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <p className={labelClass}>
@@ -97,6 +100,7 @@ export const TicketConfirmationCard = ({
         </div>
       </div>
 
+      {/* Descripción */}
       <div>
         <p className={labelClass}>
           <FieldIcon>
@@ -105,13 +109,14 @@ export const TicketConfirmationCard = ({
           Descripción
         </p>
 
-        <div className={`${valueBoxClass} min-h-20 max-h-32 overflow-y-auto`}>
+        <div className={`${valueBoxClass} min-h-20 max-h-40 overflow-y-auto`}>
           <p className="whitespace-pre-wrap leading-5">
             {data.description || 'Sin descripción'}
           </p>
         </div>
       </div>
 
+      {/* Botones */}
       <div className="flex flex-col-reverse gap-2 pt-1.5 sm:flex-row sm:justify-end">
         <button
           type="button"
