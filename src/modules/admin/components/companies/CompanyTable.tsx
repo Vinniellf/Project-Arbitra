@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Building, CalendarDays, Hash } from 'lucide-react'
+import { Building, Hash, MapPin, BriefcaseBusiness } from 'lucide-react'
 
 import TableContainer from '../common/table/TableContainer'
 import TableHead from '../common/table/TableHead'
@@ -8,26 +8,26 @@ import TableSkeleton from '../common/table/TableSkeleton'
 
 import type { Company } from '../../types/company'
 
+import {
+  getCompanyStatusBadge,
+  getCompanyStatusLabel,
+} from '../../helpers/company/company.helpers'
+
 type CompaniesTableProps = {
   companies: Company[]
   loading?: boolean
-  formatDate: (date?: string | null) => string
-  getStatusBadge: (status: string) => string
-  getStatusLabel: (status: string) => string
 }
 
 export default function CompaniesTable({
   companies,
   loading = false,
-  formatDate,
-  getStatusBadge,
-  getStatusLabel,
 }: CompaniesTableProps) {
   const columns = [
     { key: 'company', label: 'Empresa' },
+    { key: 'businessUnit', label: 'Razón social' },
     { key: 'ruc', label: 'RUC' },
-    { key: 'status', label: 'Estado' },
-    { key: 'created', label: 'Creado', align: 'right' as const },
+    { key: 'site', label: 'Sede' },
+    { key: 'status', label: 'Estado', align: 'right' as const },
   ]
 
   return (
@@ -73,7 +73,10 @@ export default function CompaniesTable({
 
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-slate-900">
-                        {company.name}
+                        {company.company || '-'}
+                      </p>
+                      <p className="truncate text-xs text-slate-500">
+                        {company.location || '-'}
                       </p>
                     </div>
                   </div>
@@ -81,26 +84,33 @@ export default function CompaniesTable({
 
                 <td className="px-3 py-3">
                   <div className="flex items-center gap-1.5 text-sm text-slate-700">
-                    <Hash className="h-3.5 w-3.5 text-slate-400" />
-                    <span>{company.ruc}</span>
+                    <BriefcaseBusiness className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{company.businessUnit || '-'}</span>
                   </div>
                 </td>
 
                 <td className="px-3 py-3">
-                  <span
-                    className={`rounded-md px-2 py-1 text-[11px] font-semibold ${getStatusBadge(
-                      company.status,
-                    )}`}
-                  >
-                    {getStatusLabel(company.status)}
-                  </span>
+                  <div className="flex items-center gap-1.5 text-sm text-slate-700">
+                    <Hash className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{company.ruc || '-'}</span>
+                  </div>
+                </td>
+
+                <td className="px-3 py-3">
+                  <div className="flex items-center gap-1.5 text-sm text-slate-700">
+                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{company.site || '-'}</span>
+                  </div>
                 </td>
 
                 <td className="px-3 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1.5 text-sm text-slate-700">
-                    <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-                    <span>{formatDate(company.createdAt)}</span>
-                  </div>
+                  <span
+                    className={`rounded-md px-2 py-1 text-[11px] font-semibold ${getCompanyStatusBadge(
+                      company.status,
+                    )}`}
+                  >
+                    {getCompanyStatusLabel(company.status)}
+                  </span>
                 </td>
               </motion.tr>
             ))}
