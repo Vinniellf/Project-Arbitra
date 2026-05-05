@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Message, TicketFormData } from '../types/chat.types'
 import {
   streamPepeResponse,
@@ -36,6 +36,12 @@ const removeTicketFlowMessages = (messages: Message[]) => {
   )
 }
 
+const removeTicketErrorMessages = (messages: Message[]) => {
+  return messages.filter(
+    (msg) => !(msg.kind === 'text' && msg.content.startsWith('⚠️')),
+  )
+}
+
 const removeGenerateTicketActions = (messages: Message[]) => {
   return messages.map((msg) =>
     msg.action === 'generate_ticket'
@@ -53,6 +59,8 @@ export const useChat = () => {
   const [generatingTicket, setGeneratingTicket] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [submittingTicket, setSubmittingTicket] = useState(false)
+
+  const submittingTicketRef = useRef(false)
 
   const updateMessages = (
     updater: (prev: Message[]) => Message[],
@@ -77,7 +85,8 @@ export const useChat = () => {
       loading ||
       generatingTicket ||
       savingDraft ||
-      submittingTicket
+      submittingTicket ||
+      submittingTicketRef.current
     ) {
       return
     }
@@ -135,7 +144,15 @@ export const useChat = () => {
     chatId: string,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    if (loading || generatingTicket || savingDraft || submittingTicket) return
+    if (
+      loading ||
+      generatingTicket ||
+      savingDraft ||
+      submittingTicket ||
+      submittingTicketRef.current
+    ) {
+      return
+    }
 
     const userTicketMessage: Message = {
       id: crypto.randomUUID(),
@@ -146,7 +163,9 @@ export const useChat = () => {
 
     updateMessages(
       (prev) => [
-        ...removeGenerateTicketActions(removeTicketFlowMessages(prev)),
+        ...removeGenerateTicketActions(
+          removeTicketErrorMessages(removeTicketFlowMessages(prev)),
+        ),
         userTicketMessage,
       ],
       onMessagesChange,
@@ -174,7 +193,10 @@ export const useChat = () => {
       }
 
       updateMessages(
-        (prev) => [...removeTicketFlowMessages(prev), formMessage],
+        (prev) => [
+          ...removeTicketErrorMessages(removeTicketFlowMessages(prev)),
+          formMessage,
+        ],
         onMessagesChange,
       )
     } catch (error) {
@@ -188,7 +210,10 @@ export const useChat = () => {
             : '⚠️ Error cargando formulario',
       }
 
-      updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
+      updateMessages(
+        (prev) => [...removeTicketErrorMessages(prev), errorMessage],
+        onMessagesChange,
+      )
     } finally {
       setGeneratingTicket(false)
     }
@@ -199,7 +224,15 @@ export const useChat = () => {
     data: TicketFormData,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    if (loading || generatingTicket || savingDraft || submittingTicket) return
+    if (
+      loading ||
+      generatingTicket ||
+      savingDraft ||
+      submittingTicket ||
+      submittingTicketRef.current
+    ) {
+      return
+    }
 
     const confirmationMessage: Message = {
       id: crypto.randomUUID(),
@@ -210,7 +243,10 @@ export const useChat = () => {
     }
 
     updateMessages(
-      (prev) => [...removeTicketFlowMessages(prev), confirmationMessage],
+      (prev) => [
+        ...removeTicketErrorMessages(removeTicketFlowMessages(prev)),
+        confirmationMessage,
+      ],
       onMessagesChange,
     )
   }
@@ -220,7 +256,15 @@ export const useChat = () => {
     data: TicketFormData,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    if (loading || generatingTicket || savingDraft || submittingTicket) return
+    if (
+      loading ||
+      generatingTicket ||
+      savingDraft ||
+      submittingTicket ||
+      submittingTicketRef.current
+    ) {
+      return
+    }
 
     const formMessage: Message = {
       id: crypto.randomUUID(),
@@ -231,7 +275,10 @@ export const useChat = () => {
     }
 
     updateMessages(
-      (prev) => [...removeTicketFlowMessages(prev), formMessage],
+      (prev) => [
+        ...removeTicketErrorMessages(removeTicketFlowMessages(prev)),
+        formMessage,
+      ],
       onMessagesChange,
     )
   }
@@ -241,8 +288,17 @@ export const useChat = () => {
     data: TicketFormData,
     onMessagesChange?: (messages: Message[]) => void,
   ) => {
-    if (loading || generatingTicket || savingDraft || submittingTicket) return
+    if (
+      loading ||
+      generatingTicket ||
+      savingDraft ||
+      submittingTicket ||
+      submittingTicketRef.current
+    ) {
+      return
+    }
 
+    submittingTicketRef.current = true
     setSubmittingTicket(true)
 
     try {
@@ -250,7 +306,6 @@ export const useChat = () => {
 
       const result = await createTicket({
         sessionId,
-        userId: data.requester,
       })
 
       const ticketCode = result.externalTicketId
@@ -271,7 +326,10 @@ export const useChat = () => {
       }
 
       updateMessages(
-        (prev) => [...removeTicketFlowMessages(prev), successMessage],
+        (prev) => [
+          ...removeTicketErrorMessages(removeTicketFlowMessages(prev)),
+          successMessage,
+        ],
         onMessagesChange,
       )
     } catch (error) {
@@ -281,18 +339,31 @@ export const useChat = () => {
         kind: 'text',
         content:
           error instanceof Error
-            ? `⚠️ ${error.message}`
-            : '⚠️ No se pudo crear el ticket.',
+            ? `⚠️ ${error.message}. Puedes intentar nuevamente.`
+            : '⚠️ No se pudo crear el ticket. Puedes intentar nuevamente.',
       }
 
-      updateMessages((prev) => [...prev, errorMessage], onMessagesChange)
+      updateMessages(
+        (prev) => [
+          ...prev.filter(
+            (msg) =>
+              msg.kind !== 'ticket_success' &&
+              !(msg.kind === 'text' && msg.content.startsWith('⚠️')),
+          ),
+          errorMessage,
+        ],
+        onMessagesChange,
+      )
     } finally {
+      submittingTicketRef.current = false
       setSubmittingTicket(false)
     }
   }
 
   const resetChat = (chatId?: string) => {
     if (chatId) clearPepeSession(chatId)
+
+    submittingTicketRef.current = false
 
     setMessages([])
     setLoading(false)

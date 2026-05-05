@@ -1,9 +1,7 @@
-// modules/admin/constants/admin-company.constants.ts
-
 export const ADMIN_COMPANY_STATUS = {
-  ALL: 'ALL',
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
+  ALL: 'all',
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
 } as const
 
 export const ADMIN_COMPANY_STATUS_OPTIONS = [
