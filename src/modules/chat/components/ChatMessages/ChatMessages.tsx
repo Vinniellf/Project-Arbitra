@@ -6,20 +6,26 @@ import pepeIcon from '@/assets/icon.webp'
 type Props = {
   messages: Message[]
   loading?: boolean
+  generatingTicket?: boolean
   lastAssistantRef?: React.RefObject<HTMLDivElement | null>
   bottomSpacer?: number
   onGenerateTicket?: () => void
   onSubmitTicketForm?: (data: TicketFormData) => void
+  onConfirmTicketCreation?: (data: TicketFormData) => void
+  onEditTicket?: (data: TicketFormData) => void
   submittingTicket?: boolean
 }
 
 export const ChatMessages = ({
   messages,
   loading,
+  generatingTicket,
   lastAssistantRef,
   bottomSpacer,
   onGenerateTicket,
   onSubmitTicketForm,
+  onConfirmTicketCreation,
+  onEditTicket,
   submittingTicket,
 }: Props) => {
   const visibleMessages = messages.filter(
@@ -27,7 +33,9 @@ export const ChatMessages = ({
       !(
         msg.role === 'assistant' &&
         !msg.content?.trim() &&
-        msg.kind !== 'ticket_form'
+        msg.kind !== 'ticket_form' &&
+        msg.kind !== 'ticket_confirmation' &&
+        msg.kind !== 'ticket_success'
       ),
   )
 
@@ -55,6 +63,9 @@ export const ChatMessages = ({
                 ticketFormData={msg.ticketFormData}
                 onGenerateTicket={onGenerateTicket}
                 onSubmitTicketForm={onSubmitTicketForm}
+                onConfirmTicketCreation={onConfirmTicketCreation}
+                onEditTicket={onEditTicket}
+                generatingTicket={generatingTicket}
                 submittingTicket={submittingTicket}
               />
             </div>

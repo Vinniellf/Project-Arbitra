@@ -3,9 +3,12 @@ import pepeIcon from '@/assets/icon.webp'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ReactNode } from 'react'
+
 import { GenerateTicketButton } from '@/modules/chat/components/GenerateTicketButton/GenerateTicketButton'
 import { TicketFormCard } from '@/modules/chat/components/TicketFormCard/TicketFormCard'
-import { TicketSummaryCard } from '@/modules/chat/components/TicketSummaryCard/TicketSummaryCard'
+import { TicketConfirmationCard } from '@/modules/chat/components/TicketConfirmationCard/TicketConfirmationCard'
+import { TicketSuccessCard } from '@/modules/chat/components/TicketSuccessCard/TicketSuccessCard'
+
 import type {
   MessageAction,
   MessageKind,
@@ -17,85 +20,68 @@ type Props = {
   content: string
   action?: MessageAction
   kind?: MessageKind
-  ticketFormData?: Partial<TicketFormData>
+  ticketFormData?: Partial<TicketFormData> & { ticketCode?: string }
   onGenerateTicket?: () => void
   onSubmitTicketForm?: (data: TicketFormData) => void
+  onConfirmTicketCreation?: (data: TicketFormData) => void
+  onEditTicket?: (data: TicketFormData) => void
+  generatingTicket?: boolean
   submittingTicket?: boolean
 }
 
 const markdownComponents = {
-  h1: ({ children }: { children?: ReactNode }) => (
-    <h1 className="text-lg sm:text-xl font-bold text-inherit mt-1 mb-2 leading-tight">
-      {children}
-    </h1>
-  ),
-  h2: ({ children }: { children?: ReactNode }) => (
-    <h2 className="text-base sm:text-lg font-semibold text-inherit mt-3 mb-1.5 leading-tight">
-      {children}
-    </h2>
-  ),
-  h3: ({ children }: { children?: ReactNode }) => (
-    <h3 className="text-sm sm:text-base font-semibold text-inherit mt-2.5 mb-1.5 leading-snug">
-      {children}
-    </h3>
-  ),
   p: ({ children }: { children?: ReactNode }) => (
-    <p className="my-1.5 whitespace-pre-wrap leading-6 text-inherit">
-      {children}
-    </p>
+    <p className="my-1 leading-5 text-slate-700">{children}</p>
   ),
+
   strong: ({ children }: { children?: ReactNode }) => (
-    <strong className="font-semibold text-inherit">{children}</strong>
+    <strong className="font-medium text-slate-800">{children}</strong>
   ),
+
   em: ({ children }: { children?: ReactNode }) => (
-    <em className="italic text-inherit">{children}</em>
+    <em className="italic text-slate-600">{children}</em>
   ),
-  ul: ({ children }: { children?: ReactNode }) => (
-    <ul className="list-disc pl-4 my-1.5 space-y-0.5">{children}</ul>
-  ),
+
   ol: ({ children }: { children?: ReactNode }) => (
-    <ol className="list-decimal pl-4 my-1.5 space-y-0.5">{children}</ol>
-  ),
-  li: ({ children }: { children?: ReactNode }) => (
-    <li className="leading-6 text-inherit">{children}</li>
-  ),
-  blockquote: ({ children }: { children?: ReactNode }) => (
-    <blockquote className="border-l-4 border-white/40 pl-3 my-2 italic text-inherit">
+    <ol className="my-2 list-decimal space-y-1 pl-5 marker:text-[11px] marker:font-semibold marker:text-blue-600">
       {children}
-    </blockquote>
+    </ol>
   ),
-  code(props: { inline?: boolean; children?: ReactNode }) {
-    const { inline, children } = props
 
-    if (inline) {
-      return (
-        <code className="px-1 py-0.5 rounded bg-black/10 text-inherit text-[12px] font-mono wrap-break-word">
-          {children}
-        </code>
-      )
-    }
+  ul: ({ children }: { children?: ReactNode }) => (
+    <ul className="my-2 list-disc space-y-1 pl-5 marker:text-blue-500">
+      {children}
+    </ul>
+  ),
 
-    return (
-      <code className="block w-full overflow-x-auto rounded-lg bg-slate-900 text-slate-100 p-2.5 text-[12px] font-mono leading-5 my-2">
-        {children}
-      </code>
-    )
-  },
+  li: ({ children }: { children?: ReactNode }) => (
+    <li className="pl-0.5 leading-5 text-slate-700">{children}</li>
+  ),
+
+  code: ({ children }: { children?: ReactNode }) => (
+    <code className="rounded bg-slate-100 px-1 py-0.5 text-[11px] font-medium text-slate-800">
+      {children}
+    </code>
+  ),
+
   pre: ({ children }: { children?: ReactNode }) => (
-    <pre className="my-2 overflow-x-auto">{children}</pre>
+    <pre className="my-2 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-2 text-[11px] leading-5 text-slate-800">
+      {children}
+    </pre>
   ),
-  a: ({ href, children }: { href?: string; children?: ReactNode }) => (
+
+  a: ({ children, href }: { children?: ReactNode; href?: string }) => (
     <a
       href={href}
       target="_blank"
-      rel="noopener noreferrer"
-      className="underline underline-offset-2 text-inherit"
+      rel="noreferrer"
+      className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700"
     >
       {children}
     </a>
   ),
-  hr: () => <hr className="my-3 border-white/30" />,
-  br: () => <br />,
+
+  hr: () => null,
 }
 
 export const MessageBubble = ({
@@ -106,11 +92,16 @@ export const MessageBubble = ({
   ticketFormData,
   onGenerateTicket,
   onSubmitTicketForm,
+  onConfirmTicketCreation,
+  onEditTicket,
+  generatingTicket,
   submittingTicket,
 }: Props) => {
   const isUser = role === 'user'
   const isTicketForm = kind === 'ticket_form'
-  const isTicketSummary = kind === 'ticket_summary'
+  const isTicketConfirmation = kind === 'ticket_confirmation'
+  const isTicketSuccess = kind === 'ticket_success'
+  const isWide = isTicketForm || isTicketConfirmation
 
   return (
     <div
@@ -120,37 +111,54 @@ export const MessageBubble = ({
       `}
     >
       {!isUser && (
-        <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center">
           <img
             src={pepeIcon}
-            className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
-            alt="Bot avatar"
+            className="h-10 w-10 object-contain"
+            alt="Pepe AI"
           />
         </div>
       )}
 
       <div
         className={`
-          px-3
-          py-2
-          rounded-xl
-          text-[13px] sm:text-sm
-          max-w-[88%] sm:max-w-[78%]
-          leading-6
-          wrap-break-word
+          rounded-xl px-3 py-2
+          text-[12px] leading-5 sm:text-[13px]
+          shadow-sm transition-colors
+
+          ${
+            isWide
+              ? 'w-full max-w-[95%] sm:max-w-[90%] md:max-w-2xl'
+              : 'max-w-[85%] sm:max-w-[75%]'
+          }
+
           ${
             isUser
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'bg-white/80 border border-slate-200 text-slate-800'
+              ? 'bg-blue-600 text-white'
+              : 'border border-slate-200 bg-white/90 text-slate-800'
           }
         `}
       >
-        {isTicketSummary ? (
-          <TicketSummaryCard data={ticketFormData ?? {}} />
+        {isTicketConfirmation &&
+        ticketFormData &&
+        onConfirmTicketCreation &&
+        onEditTicket ? (
+          <TicketConfirmationCard
+            data={ticketFormData as TicketFormData}
+            submitting={submittingTicket}
+            onCancel={() => onEditTicket(ticketFormData as TicketFormData)}
+            onConfirm={() =>
+              onConfirmTicketCreation(ticketFormData as TicketFormData)
+            }
+          />
+        ) : isTicketSuccess ? (
+          <TicketSuccessCard ticketCode={ticketFormData?.ticketCode} />
         ) : isUser ? (
-          <span className="whitespace-pre-wrap wrap-break-word">{content}</span>
+          <span className="whitespace-pre-wrap wrap-break-word leading-5">
+            {content}
+          </span>
         ) : (
-          <div className="max-w-full text-[13px] sm:text-sm leading-6 wrap-break-word text-slate-800">
+          <div className="max-w-full wrap-break-word">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={markdownComponents}
@@ -159,7 +167,11 @@ export const MessageBubble = ({
             </ReactMarkdown>
 
             {action === 'generate_ticket' && onGenerateTicket && (
-              <GenerateTicketButton onClick={onGenerateTicket} />
+              <GenerateTicketButton
+                onClick={onGenerateTicket}
+                loading={generatingTicket}
+                disabled={submittingTicket}
+              />
             )}
 
             {isTicketForm && onSubmitTicketForm && (
@@ -175,8 +187,8 @@ export const MessageBubble = ({
       </div>
 
       {isUser && (
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-          <User size={13} className="sm:w-3.5 sm:h-3.5 text-slate-600" />
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200">
+          <User size={12} className="text-slate-600" />
         </div>
       )}
     </div>

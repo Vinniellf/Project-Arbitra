@@ -9,6 +9,8 @@ export type TicketFormData = {
   equipmentModel: string
   serial: string
   description: string
+  ticketCode?: string
+  status?: string
 }
 
 export type SaveTicketDraftInput = TicketFormData & {
