@@ -46,13 +46,25 @@ export default function NewPasswordPage() {
   const [showLoading, setShowLoading] = useState(false)
 
   const { confirmNewPassword, updateProfile, loading } = useAuth()
-  const { refreshUser, setRequiresNewPassword } = useAuthContext()
+  const { refreshUser, setRequiresNewPassword, logout } = useAuthContext()
   const navigate = useNavigate()
 
   const rules = validatePassword(password)
   const validPassword = isPasswordValid(rules)
 
   const isValidName = (value: string) => value.trim().length >= 2
+
+  const handleBackToLogin = async () => {
+    setError('')
+
+    try {
+      setRequiresNewPassword(false)
+      await logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    } catch {
+      navigate(ROUTES.LOGIN, { replace: true })
+    }
+  }
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -285,6 +297,15 @@ export default function NewPasswordPage() {
           ) : (
             'Guardar y continuar'
           )}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleBackToLogin}
+          disabled={loading}
+          className="mt-3 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+        >
+          Volver al login
         </button>
       </form>
     </div>
